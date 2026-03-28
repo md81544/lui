@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
+include(FetchContent)
+FetchContent_Declare(cpp-terminal
+  GIT_REPOSITORY https://github.com/jupyter-xeus/cpp-terminal
+  GIT_TAG master
+)
+FetchContent_MakeAvailable(cpp-terminal)
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
@@ -24,6 +31,7 @@ target_compile_options(${APP_NAME} PRIVATE
 )
 
 target_link_libraries(${APP_NAME} PRIVATE
+    cpp-terminal
 )
 
 add_custom_command(
@@ -32,4 +40,12 @@ add_custom_command(
         $<TARGET_FILE:${APP_NAME}>
         ${CMAKE_SOURCE_DIR}/$<TARGET_FILE_NAME:${APP_NAME}>
     COMMENT "Updating symlink: $<TARGET_FILE_NAME:${APP_NAME}> -> $<TARGET_FILE:${APP_NAME}>"
+)
+
+add_custom_command(
+    TARGET ${APP_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CMAKE_BINARY_DIR}/compile_commands.json
+        ${CMAKE_SOURCE_DIR}/compile_commands.json
+    COMMENT "Updating symlink: compile_commands.json"
 )
