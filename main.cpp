@@ -7,6 +7,8 @@
 int main() {
     std::cout << Term::clear_screen();
     std::cout << Term::cursor_move(2,2) <<
-        Term::color_fg(Term::Color::Name::Red) << "Hello world\n" << std::endl;
+        Term::color_fg(Term::Color::Name::Red) << "Hello ";
+    // Reset the fg colour to the terminal's default
+    std::cout << Term::color_fg(Term::Color::Name::Default ) << "world\n" << std::endl;
     return 0;
 }
