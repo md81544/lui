@@ -1,12 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 
-include(FetchContent)
-FetchContent_Declare(cpp-terminal
-  GIT_REPOSITORY https://github.com/jupyter-xeus/cpp-terminal
-  GIT_TAG f065f21aa16ff6516500195b2962cf8fa629d20c
-)
-FetchContent_MakeAvailable(cpp-terminal)
-
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
@@ -19,7 +12,10 @@ set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_COMPILER clang++)
 
-add_executable(${APP_NAME} main.cpp)
+add_executable(${APP_NAME}
+    main.cpp
+    terminal.cpp
+)
 
 target_compile_options(${APP_NAME} PRIVATE
     -Wall
@@ -31,7 +27,6 @@ target_compile_options(${APP_NAME} PRIVATE
 )
 
 target_link_libraries(${APP_NAME} PRIVATE
-    cpp-terminal
 )
 
 add_custom_command(

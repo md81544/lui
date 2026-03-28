@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/lui",
             "args": [],
-            "cwd": "${workspaceRoot}"
+            "cwd": "${workspaceRoot}",
         }
     ]
 }
