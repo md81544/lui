@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 include(FetchContent)
 FetchContent_Declare(cpp-terminal
   GIT_REPOSITORY https://github.com/jupyter-xeus/cpp-terminal
-  GIT_TAG master
+  GIT_TAG f065f21aa16ff6516500195b2962cf8fa629d20c
 )
 FetchContent_MakeAvailable(cpp-terminal)
 
