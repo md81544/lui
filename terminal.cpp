@@ -4,27 +4,16 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
-#ifdef _WIN32
-#include <conio.h>
-#include <io.h>
-#else
 #include <termios.h>
 #include <unistd.h>
-#endif
 
 namespace terminal {
 
 Terminal::Terminal()
 {
-#ifdef _WIN32
-    if (!_isatty(_fileno(stdout))) {
-        m_isTTY = false;
-    }
-#else
     if (!isatty(STDOUT_FILENO)) {
         m_isTty = false;
     }
-#endif
     m_renderString.clear();
     if (m_isTty) {
         std::cout << "\033[?1049h"; // switch to alternate screen

@@ -1,19 +1,12 @@
 #pragma once
 
-#include <cstdio>
-#ifdef _WIN32
-#include <conio.h>
-#include <io.h>
-#else
+//#include <cstdio>
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
-#endif
-
-// TODO: test on Windows
 
 namespace {
-#ifndef _WIN32
+
 // Returns true if a byte is available on stdin within timeout_ms milliseconds
 bool stdinReady(int timeout_ms)
 {
@@ -35,8 +28,7 @@ int readByte()
     return -1;
 }
 
-#endif
-}
+} // anonymous namespace
 
 namespace keyPress {
 
@@ -75,58 +67,6 @@ constexpr int UNKNOWN = 1024;
 inline int getKeyPress()
 {
     char c;
-#ifdef _WIN32
-    c = _getch();
-    if (c == 0 || c == 224) {
-        int c2 = _getch();
-        switch (c2) {
-            case 72:
-                return UP;
-            case 80:
-                return DOWN;
-            case 77:
-            return RIGHT case 75:
-                return LEFT;
-            case 71:
-                return HOME;
-            case 79:
-                return END;
-            case 73:
-                return PGUP;
-            case 81:
-                return PGDN;
-            case 82:
-                return INSERT;
-            case 83:
-                return DELETE;
-            case 59:
-                return F1;
-            case 60:
-                return F2;
-            case 61:
-                return F3;
-            case 62:
-                return F4;
-            case 63:
-                return F5;
-            case 64:
-                return F6;
-            case 65:
-                return F7;
-            case 66:
-                return F8;
-            case 67:
-                return F9;
-            case 68:
-                return F10;
-            case 133:
-                return F11;
-            case 134:
-                return F12;
-                default : return UNKNOWN;
-        }
-    }
-#else
     termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
@@ -243,7 +183,6 @@ inline int getKeyPress()
         return 27;
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-#endif
     return c;
 }
 

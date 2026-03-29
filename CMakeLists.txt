@@ -15,6 +15,7 @@ set(CMAKE_CXX_COMPILER clang++)
 add_executable(${APP_NAME}
     main.cpp
     terminal.cpp
+    word_searcher.cpp
 )
 
 target_compile_options(${APP_NAME} PRIVATE
