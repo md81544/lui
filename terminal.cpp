@@ -2,7 +2,6 @@
 #include "keypress.h"
 #include <cassert>
 #include <cstdint>
-#include <format>
 #include <iostream>
 #include <string>
 #ifdef _WIN32
@@ -172,7 +171,7 @@ void Terminal::printMenuString(Colour normal, Colour highlight, std::string_view
             highlighting = true;
             setFgColour(highlight);
         } else {
-            print(std::format("{}", c));
+            print(std::string{c});
             if (highlighting) {
                 highlighting = false;
                 setFgColour(normal);
