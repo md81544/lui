@@ -55,7 +55,7 @@ public:
     // given string which is preceded by an underscore
     void printMenuString(Colour normal, Colour highlight, std::string_view text);
     // Note the size of the terminal can change if the user
-    // resizes it, so a safe approach is to query this on each render().
+    // resizes it, so a safe approach is to query this before each render().
     std::tuple<std::size_t, std::size_t> getTerminalSize();
 
 private:

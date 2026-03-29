@@ -1,16 +1,16 @@
 #pragma once
 
-#include <string_view>
+#include <filesystem>
 #include <vector>
 
 class WordSearcher final {
 public:
     WordSearcher(
-        std::string_view words1FileName,
-        std::string_view words2FileName,
-        std::string_view words3FileName,
-        std::string_view thesaurusFileName,
-        std::string_view definitionsFileName);
+        std::filesystem::path words1File,
+        std::filesystem::path words2File,
+        std::filesystem::path words3File,
+        std::filesystem::path thesaurusFile,
+        std::filesystem::path definitionsFile);
     ~WordSearcher();
 
 private:
