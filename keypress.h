@@ -37,7 +37,14 @@ int readByte() {
 
 namespace keyPress {
 
+// The following are not "special" keys (i.e.
+// their values are below 128) but included
+// for readability. Add others as needed.
 constexpr int ESC = 27;
+constexpr int ENTER = 13;
+constexpr int BACKSPACE = 127;
+
+// Special keys (arbitrary values):
 constexpr int UP = 256;
 constexpr int DOWN = 257;
 constexpr int RIGHT = 258;
