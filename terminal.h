@@ -50,6 +50,9 @@ public:
     int  getChar();
     // Note beep will happen when the next render occurs
     void bell();
+    // Helper function that automatically highlights any character in the
+    // given string which is preceded by an underscore
+    void printMenuString(Colour normal, Colour highlight, std::string_view text);
 
 private:
     std::string colourToAnsiFg(Colour colour);

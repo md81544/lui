@@ -21,14 +21,13 @@ int main()
         term.setFgColour(terminal::Colour::BrightYellow);
         term.printAt(row, 18, "This is movable (up/down arrow)");
 
-        // Multiple colours in one word:
-        // TODO could do with a helper function to parse a string
-        term.goTo(8, 1);
-        term.setFgColour(terminal::Colour::BrightWhite);
-        term.print("M");
-        term.setFgColour(terminal::Colour::Default);
-        term.print("enu option 1");
-        term.cursorDown(3);
+        // Helper function to highlight items in string for menus
+        term.goTo(12, 0);
+        term.printMenuString(
+            terminal::Colour::Default,
+            terminal::Colour::BrightWhite,
+            "_File _Edit _Selection _View _Help");
+        term.print("\n");
 
         term.render();
         std::cout << "Press a key (Esc to quit) " << std::flush;
