@@ -5,6 +5,7 @@
 #include <conio.h>
 #include <io.h>
 #else
+#include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
 #endif
