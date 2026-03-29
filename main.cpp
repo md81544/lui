@@ -1,7 +1,6 @@
 #include "keypress.h"
 #include "terminal.h"
 #include <iostream>
-#include <print>
 
 int main()
 {
