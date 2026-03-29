@@ -149,6 +149,9 @@ void Terminal::restoreCursorPosition()
 
 int Terminal::getChar()
 {
+    if (!m_isTty) {
+        return keyPress::ESC;
+    }
     return keyPress::getKeyPress();
 }
 
