@@ -19,7 +19,7 @@ int main()
         term.printAt(4, 4, "All your base are belong to us");
         term.setFgColour(terminal::Colour::Grey);
         term.printAt(5, 5, "This is grey");
-        term.setFgColour(terminal::Colour::BrightYellow);
+        term.setFgColour(terminal::Colour::BrightMagenta);
         term.printAt(row, 18, "This is movable (up/down arrow)");
 
         // Fixed position footer
@@ -30,10 +30,11 @@ int main()
         // Helper function to highlight items in string for menus
         term.goTo(12, 0);
         term.printMenuString(
-            terminal::Colour::Default,
+            terminal::Colour::Yellow,
             terminal::Colour::BrightWhite,
             "_File _Edit _Selection _View _Help");
         term.print("\n");
+        term.setFgColour(terminal::Colour::Default);
 
         term.render();
         std::cout << "Press a key (Esc to quit) " << std::flush;
