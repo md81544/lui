@@ -5,7 +5,7 @@
 int main()
 {
     // This is currently just a test for the Terminal
-    // class which formats output.
+    // class which formats output (and reads key presses)
     terminal::Terminal term;
 
     while (true) {
@@ -31,6 +31,7 @@ int main()
         if (keyPress == keyPress::ESC) {
             break;
         }
+        term.bell();
     }
     return 0;
 }

@@ -48,6 +48,8 @@ public:
     void saveCursorPosition();
     void restoreCursorPosition();
     int  getChar();
+    // Note beep will happen when the next render occurs
+    void bell();
 
 private:
     std::string colourToAnsiFg(Colour colour);

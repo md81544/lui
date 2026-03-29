@@ -152,6 +152,16 @@ int Terminal::getChar()
     return keyPress::getKeyPress();
 }
 
+void Terminal::bell()
+{
+    if (m_isTty) {
+        m_renderString.append("\007");
+    }
+}
+
+
+// Private member functions:
+
 std::string Terminal::colourToAnsiFg(Colour colour)
 {
     std::string rc { "\033[" };
