@@ -27,7 +27,7 @@ enum class Colour : std::uint8_t {
     BrightWhite,
 };
 
-class Terminal {
+class Terminal final {
 public:
     Terminal();
     ~Terminal();
@@ -47,7 +47,7 @@ public:
     void clearLine();
     void saveCursorPosition();
     void restoreCursorPosition();
-    char getChar();
+    int  getChar();
 
 private:
     std::string colourToAnsiFg(Colour colour);

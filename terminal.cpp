@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "keypress.h"
 #include <cassert>
 #include <cstdint>
 #include <iostream>
@@ -146,23 +147,9 @@ void Terminal::restoreCursorPosition()
     }
 }
 
-char Terminal::getChar()
+int Terminal::getChar()
 {
-    if (!m_isTty) {
-        return 0;
-    }
-#ifdef _WIN32
-    return _getch();
-#else
-    termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    char c = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    return c;
-#endif
+    return keyPress::getKeyPress();
 }
 
 std::string Terminal::colourToAnsiFg(Colour colour)
