@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <sys/ioctl.h>
 #include <termios.h>
+#include <tuple>
 #include <unistd.h>
 
 namespace terminal {
@@ -168,6 +170,19 @@ void Terminal::printMenuString(Colour normal, Colour highlight, std::string_view
         }
     }
 }
+
+std::tuple<std::size_t, std::size_t> Terminal::getTerminalSize()
+{
+    winsize ws;
+    unsigned short rows{0};
+    unsigned short cols{0};
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0) {
+        rows = ws.ws_row;
+        cols = ws.ws_col;
+    }
+    return {rows, cols};
+}
+
 
 // Private member functions:
 

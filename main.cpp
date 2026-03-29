@@ -1,5 +1,6 @@
 #include "keypress.h"
 #include "terminal.h"
+#include <format>
 #include <iostream>
 
 int main()
@@ -8,7 +9,7 @@ int main()
     // class which formats output (and reads key presses)
     terminal::Terminal term;
 
-    int row = 10;
+    std::size_t row = 10;
 
     while (true) {
 
@@ -20,6 +21,11 @@ int main()
         term.printAt(5, 5, "This is grey");
         term.setFgColour(terminal::Colour::BrightYellow);
         term.printAt(row, 18, "This is movable (up/down arrow)");
+
+        // Fixed position footer
+        term.setFgColour(terminal::Colour::Default);
+        auto [rows, cols] = term.getTerminalSize();
+        term.printAt(rows - 2, 0, std::format("Terminal size: {} rows, and {} cols", rows, cols));
 
         // Helper function to highlight items in string for menus
         term.goTo(12, 0);
@@ -39,7 +45,7 @@ int main()
                 --row;
             }
         } else if (keyPress == keyPress::DOWN) {
-            if (row < 20) {
+            if (row < rows - 3) {
                 ++row;
             }
         } else {
