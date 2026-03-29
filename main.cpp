@@ -1,5 +1,6 @@
 #include "keypress.h"
 #include "terminal.h"
+#include <cstddef>
 #include <format>
 #include <iostream>
 
@@ -25,6 +26,12 @@ int main()
         // Fixed position footer
         term.setFgColour(terminal::Colour::Default);
         auto [rows, cols] = term.getTerminalSize();
+        std::string hr;
+        for (std::size_t c = 0; c < cols; ++c) {
+            hr.append("━");
+        }
+
+        term.printAt(rows - 3, 0, hr);
         term.printAt(rows - 2, 0, std::format("Terminal size: {} rows, and {} cols", rows, cols));
 
         // Helper function to highlight items in string for menus
@@ -46,7 +53,7 @@ int main()
                 --row;
             }
         } else if (keyPress == keyPress::DOWN) {
-            if (row < rows - 3) {
+            if (row < rows - 4) {
                 ++row;
             }
         } else {
