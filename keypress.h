@@ -21,15 +21,17 @@ bool stdinReady(int timeout_ms)
     FD_ZERO(&fds);
     FD_SET(STDIN_FILENO, &fds);
     timeval tv;
-    tv.tv_sec  = timeout_ms / 1000;
+    tv.tv_sec = timeout_ms / 1000;
     tv.tv_usec = (timeout_ms % 1000) * 1000;
     return select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv) > 0;
 }
 
-int readByte() {
+int readByte()
+{
     unsigned char c;
-    if (read(STDIN_FILENO, &c, 1) == 1)
+    if (read(STDIN_FILENO, &c, 1) == 1) {
         return c;
+    }
     return -1;
 }
 
