@@ -27,6 +27,18 @@ int readByte()
     return -1;
 }
 
+struct TerminalGuard {
+    termios saved_attrs;
+    TerminalGuard()
+    {
+        tcgetattr(STDIN_FILENO, &saved_attrs);
+    }
+    ~TerminalGuard()
+    {
+        tcsetattr(STDIN_FILENO, TCSANOW, &saved_attrs);
+    }
+};
+
 } // anonymous namespace
 
 namespace keyPress {
@@ -34,12 +46,14 @@ namespace keyPress {
 // The following are not "special" keys (i.e.
 // their values are below 128) but included
 // for readability. Add others as needed.
-constexpr int CTRL_A = 1;
-constexpr int CTRL_D = 4;
-constexpr int CTRL_E = 5;
+constexpr int CTRL_A = 1; // Move to input beginning
+constexpr int CTRL_B = 2; // "Back" i.e. page up
+constexpr int CTRL_C = 3; // Ctrl-C is disabled with ISIG flag but program can quit if it sees this
+constexpr int CTRL_E = 5; // Move to input end
+constexpr int CTRL_F = 6; // "Forward" i.e. page down
 constexpr int TAB = 9;
 constexpr int ENTER = 13;
-constexpr int CTRL_U = 21;
+constexpr int CTRL_U = 21; // clear input
 constexpr int ESC = 27;
 constexpr int SPACE = 43;
 constexpr int BACKSPACE = 127;
@@ -71,12 +85,12 @@ constexpr int UNKNOWN = 1024;
 
 inline int getKeyPress()
 {
+    TerminalGuard terminalGuard; // RAII to save/reset term attrs
     char c;
-    termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    termios term_attrs;
+    tcgetattr(STDIN_FILENO, &term_attrs);
+    term_attrs.c_lflag &= ~(ICANON | ECHO | ISIG);
+    tcsetattr(STDIN_FILENO, TCSANOW, &term_attrs);
     c = readByte();
     if (c == 27) {
         // Use a short timeout to distinguish bare ESC from a sequence
@@ -98,8 +112,6 @@ inline int getKeyPress()
                     }
                 }
                 seq[len] = '\0';
-
-                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 
                 // Decode common sequences
                 if (seq[0] == 'A') {
@@ -156,11 +168,9 @@ inline int getKeyPress()
             } else if (c2 == 'O') {
                 // SS3 sequence — used for F1-F4 in many terminals
                 if (!stdinReady(50)) {
-                    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                     return UNKNOWN;
                 }
                 int c3 = readByte();
-                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
                 switch (c3) {
                     case 'P':
                         return F1;
@@ -178,16 +188,12 @@ inline int getKeyPress()
                         return UNKNOWN;
                 }
             } else {
-                // ESC + something else = Alt+key (Meta key)
-                tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-                return UNKNOWN; // or encode as ALT | c2
+                return UNKNOWN;
             }
         }
         // No follow-up byte — bare ESC
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         return 27;
     }
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return c;
 }
 
