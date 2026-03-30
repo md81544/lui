@@ -18,7 +18,7 @@ std::filesystem::path locateDataDirectory(std::string_view argv0)
         }
         cwd = cwd.parent_path();
     }
-    // If we get here it we could not locate the data needed
+    // If we get here we could not locate the data needed
     throw std::runtime_error("Could not locate data directory");
 }
 } // anonymous namespace
