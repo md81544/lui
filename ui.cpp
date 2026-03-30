@@ -61,7 +61,7 @@ int Ui::run()
         std::string hr;
         for (std::size_t c = 0; c < cols; ++c) {
             if (m_term.utf8Supported()) {
-                hr.append("━");
+                hr.append("─"); // UTF-8 line
             } else {
                 hr.append("-");
             }
