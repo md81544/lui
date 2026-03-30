@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <tuple>
@@ -16,11 +17,12 @@ bool hasUtf8Support()
     for (const char* var : { "LC_ALL", "LC_CTYPE", "LANG" }) {
         const char* val = std::getenv(var);
         if (val && val[0]) {
-            std::string s(val);
-            for (auto& c : s) {
+            std::string_view s(val);
+            for (auto c : s) {
                 c = toupper(c);
             }
-            if (s.find("UTF-8") != std::string::npos || s.find("UTF8") != std::string::npos) {
+            if (s.find("UTF-8") != std::string_view::npos
+                || s.find("UTF8") != std::string_view::npos) {
                 return true;
             }
         }
@@ -223,7 +225,6 @@ std::tuple<std::size_t, std::size_t> Terminal::getTerminalSize()
     }
     return { rows, cols };
 }
-
 
 bool Terminal::utf8Supported()
 {
