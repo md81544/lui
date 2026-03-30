@@ -28,6 +28,7 @@ Terminal::Terminal()
 Terminal::~Terminal()
 {
     if (m_isTty) {
+        std::cout << "\033[?25h"; // cursor unhide in case it was off
         std::cout << "\033[?1049l" << std::flush; // switch back to normal screen
     }
 }
