@@ -1,6 +1,5 @@
 #pragma once
 
-//#include <cstdio>
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
@@ -35,8 +34,14 @@ namespace keyPress {
 // The following are not "special" keys (i.e.
 // their values are below 128) but included
 // for readability. Add others as needed.
-constexpr int ESC = 27;
+constexpr int CTRL_A = 1;
+constexpr int CTRL_D = 4;
+constexpr int CTRL_E = 5;
+constexpr int TAB = 9;
 constexpr int ENTER = 13;
+constexpr int CTRL_U = 21;
+constexpr int ESC = 27;
+constexpr int SPACE = 43;
 constexpr int BACKSPACE = 127;
 
 // Special keys (arbitrary values):

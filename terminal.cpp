@@ -59,10 +59,12 @@ Terminal::~Terminal()
 
 void Terminal::render()
 {
-    std::cout << m_renderString << std::endl;
+    std::cout << m_renderString << std::flush;
     m_renderString.clear();
     if (m_isTty) {
         m_renderString.append("\033[2J\033[H"); // clear screen
+        setFgColour(Colour::Default);
+        setBgColour(Colour::Default);
     }
 }
 
@@ -96,7 +98,7 @@ void Terminal::setFgColour(Colour colour)
 void Terminal::setBgColour(Colour colour)
 {
     if (m_isTty) {
-        m_renderString.append(colourToAnsiFg(colour));
+        m_renderString.append(colourToAnsiBg(colour));
     }
 }
 

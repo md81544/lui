@@ -82,8 +82,10 @@ int main(int, char** argv)
             term.print("\n");
             term.setFgColour(terminal::Colour::Default);
 
+            term.print("\nSelect option (Esc to quit) ");
+
             term.render();
-            std::cout << "Press a key (Esc to quit) " << std::flush;
+
             int keyPress = term.getChar();
             if (keyPress == keyPress::ESC) {
                 break;
@@ -95,6 +97,11 @@ int main(int, char** argv)
                 if (row < rows - 4) {
                     ++row;
                 }
+            } else if (keyPress == keyPress::CTRL_U) {
+                term.setBgColour(terminal::Colour::BrightGreen);
+                term.setFgColour(terminal::Colour::Black);
+                term.printAt(rows -4, 0, "Ctrl-U was pressed");
+                term.setBgColour(terminal::Colour::Default);
             } else {
                 term.bell();
             }
