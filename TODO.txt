@@ -1,0 +1,8 @@
+* Add UI class rather than running everything in main (which was only for testing)
+* UI class should be the only user of Terminal
+*   UI class should handle higher-level interaction, e.g.
+*     string input
+*     status bar
+*     menu
+*     "please wait" messages or spinner in status bar
+*     run loop
