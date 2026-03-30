@@ -62,7 +62,11 @@ int main(int, char** argv)
             auto [rows, cols] = term.getTerminalSize();
             std::string hr;
             for (std::size_t c = 0; c < cols; ++c) {
-                hr.append("━");
+                if (term.utf8Supported()) {
+                    hr.append("━");
+                } else {
+                    hr.append("-");
+                }
             }
 
             term.printAt(rows - 3, 0, hr);

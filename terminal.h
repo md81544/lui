@@ -2,8 +2,8 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <string_view>
 #include <string>
+#include <string_view>
 #include <tuple>
 
 namespace terminal {
@@ -50,7 +50,7 @@ public:
     void restoreCursorPosition();
     void cursorOn();
     void cursorOff();
-    int  getChar();
+    int getChar();
     // Note beep will happen when the next render occurs
     void bell();
     // Helper function that automatically highlights any character in the
@@ -59,12 +59,14 @@ public:
     // Note the size of the terminal can change if the user
     // resizes it, so a safe approach is to query this before each render().
     std::tuple<std::size_t, std::size_t> getTerminalSize();
+    bool utf8Supported();
 
 private:
     std::string colourToAnsiFg(Colour colour);
     std::string colourToAnsiBg(Colour colour);
     std::string m_renderString;
-    bool m_isTty{true};
+    bool m_isTty { true };
+    bool m_utf8Supported { false };
 };
 
-} //namespace terminal
+} // namespace terminal

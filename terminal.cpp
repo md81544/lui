@@ -9,12 +9,36 @@
 #include <tuple>
 #include <unistd.h>
 
+namespace {
+
+bool hasUtf8Support()
+{
+    for (const char* var : { "LC_ALL", "LC_CTYPE", "LANG" }) {
+        const char* val = std::getenv(var);
+        if (val && val[0]) {
+            std::string s(val);
+            for (auto& c : s) {
+                c = toupper(c);
+            }
+            if (s.find("UTF-8") != std::string::npos || s.find("UTF8") != std::string::npos) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+} // anonymous namespace
+
 namespace terminal {
 
 Terminal::Terminal()
 {
     if (!isatty(STDOUT_FILENO)) {
         m_isTty = false;
+    }
+    if (hasUtf8Support()) {
+        m_utf8Supported = true;
     }
     m_renderString.clear();
     if (m_isTty) {
@@ -196,6 +220,12 @@ std::tuple<std::size_t, std::size_t> Terminal::getTerminalSize()
         cols = ws.ws_col;
     }
     return { rows, cols };
+}
+
+
+bool Terminal::utf8Supported()
+{
+    return m_utf8Supported;
 }
 
 // Private member functions:
