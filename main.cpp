@@ -78,7 +78,7 @@ int main(int, char** argv)
             term.printMenuString(
                 terminal::Colour::Yellow,
                 terminal::Colour::BrightWhite,
-                "_File _Edit _Selection _View _Help");
+                "_Lookup _Edit _Selection _View _Help");
             term.print("\n");
             term.setFgColour(terminal::Colour::Default);
 
@@ -102,6 +102,13 @@ int main(int, char** argv)
                 term.setFgColour(terminal::Colour::Black);
                 term.printAt(rows -4, 0, "Ctrl-U was pressed");
                 term.setBgColour(terminal::Colour::Default);
+            } else if (keyPress == 'l' || keyPress == 'L') {
+                auto vec = ws.regexSearch("c.m..t.r");
+                term.goTo(16, 0);
+                term.setFgColour(terminal::Colour::BrightGreen);
+                for (const auto& w: vec) {
+                    term.print(std::format("{} ", w));
+                }
             } else {
                 term.bell();
             }

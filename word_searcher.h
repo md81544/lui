@@ -13,6 +13,7 @@ public:
         std::filesystem::path thesaurusFile,
         std::filesystem::path definitionsFile);
     ~WordSearcher();
+    std::vector<std::string> regexSearch(const std::string& regexString);
 
 private:
     std::vector<std::string> m_words1; // most common words

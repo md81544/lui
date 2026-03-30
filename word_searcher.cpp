@@ -1,6 +1,8 @@
 #include "word_searcher.h"
+#include <algorithm>
 #include <format>
 #include <fstream>
+#include <regex>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -94,3 +96,15 @@ WordSearcher::WordSearcher(
 }
 
 WordSearcher::~WordSearcher() { }
+
+std::vector<std::string> WordSearcher::regexSearch(const std::string& regexString)
+{
+    std::regex regex(regexString);
+    std::vector<std::string> result;
+    std::copy_if(
+        m_words3.begin(),
+        m_words3.end(),
+        std::back_inserter(result),
+        [&regex](const std::string& w) { return std::regex_match(w, regex); });
+    return result;
+}
