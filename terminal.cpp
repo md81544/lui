@@ -138,6 +138,20 @@ void Terminal::restoreCursorPosition()
     }
 }
 
+void Terminal::cursorOn()
+{
+    if (m_isTty) {
+        m_renderString.append("\033[?25h");
+    }
+}
+
+void Terminal::cursorOff()
+{
+    if (m_isTty) {
+        m_renderString.append("\033[?25l");
+    }
+}
+
 int Terminal::getChar()
 {
     if (!m_isTty) {

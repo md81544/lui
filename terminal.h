@@ -48,6 +48,8 @@ public:
     void clearLine();
     void saveCursorPosition();
     void restoreCursorPosition();
+    void cursorOn();
+    void cursorOff();
     int  getChar();
     // Note beep will happen when the next render occurs
     void bell();

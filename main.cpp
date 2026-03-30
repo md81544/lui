@@ -26,6 +26,11 @@ std::filesystem::path locateDataDirectory(std::string_view argv0)
 int main(int, char** argv)
 {
     try {
+        terminal::Terminal term;
+        term.printAt(1, 2, "Loading data...");
+        term.cursorOff();
+        term.render();
+
         auto dataDir = locateDataDirectory(argv[0]);
         WordSearcher ws(
             dataDir / "words_1.txt",
@@ -36,9 +41,10 @@ int main(int, char** argv)
 
         // This is currently just a test for the Terminal
         // class which formats output (and reads key presses)
-        terminal::Terminal term;
 
         std::size_t row = 10;
+
+        term.cursorOn();
 
         while (true) {
 
