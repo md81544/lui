@@ -48,6 +48,8 @@ public:
     void goTo(std::size_t row, std::size_t col);
     void setFgColour(Colour colour);
     void setBgColour(Colour colour);
+    Colour getFgColour();
+    Colour getBgColour();
     void cursorUp(uint8_t n);
     void cursorDown(uint8_t n);
     void cursorRight(uint8_t n);
@@ -81,6 +83,8 @@ private:
     std::string m_savedRenderString;
     bool m_isTty { true };
     bool m_utf8Supported { false };
+    Colour m_currentFgColour{Colour::Default};
+    Colour m_currentBgColour{Colour::Default};
 };
 
 } // namespace terminal

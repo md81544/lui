@@ -92,6 +92,7 @@ void Terminal::goTo(std::size_t row, std::size_t col)
 
 void Terminal::setFgColour(Colour colour)
 {
+    m_currentFgColour = colour;
     if (m_isTty) {
         m_renderString.append(colourToAnsiFg(colour));
     }
@@ -99,10 +100,24 @@ void Terminal::setFgColour(Colour colour)
 
 void Terminal::setBgColour(Colour colour)
 {
+    m_currentBgColour = colour;
     if (m_isTty) {
         m_renderString.append(colourToAnsiBg(colour));
     }
 }
+
+
+Colour Terminal::getFgColour()
+{
+    return m_currentFgColour;
+}
+
+
+Colour Terminal::getBgColour()
+{
+    return m_currentFgColour;
+}
+
 
 void Terminal::cursorUp(uint8_t n)
 {
