@@ -38,17 +38,21 @@ Ui::Ui(std::string_view argv0)
         dataDir / "definitions.txt");
 }
 
+void Ui::checkForTerminalResize()
+{
+    auto [rows, cols] = m_term.getTerminalSize();
+    if (rows < 10 || cols < 20) { // TODO tweak this accordingly when layout is finalised
+        throw(std::runtime_error("Terminal size is too small!"));
+    }
+    m_termSize.rows = rows;
+    m_termSize.cols = cols;
+}
+
 int Ui::run()
 {
     bool finished { false };
     while (!finished) {
-        // Check for terminal resize
-        auto [rows, cols] = m_term.getTerminalSize();
-        if (rows < 10 || cols < 20) { // TODO tweak this accordingly when layout is finalised
-            throw(std::runtime_error("Terminal size is too small!"));
-        }
-        m_termSize.rows = rows;
-        m_termSize.cols = cols;
+        checkForTerminalResize();
         displayHeader();
         displayResults();
         displayMenu();
@@ -178,7 +182,7 @@ void Ui::restart()
     m_foundString.clear();
     m_clue.clear();
     m_comment.clear();
-    m_results.clear();
+    resultsClear();
 }
 
 void Ui::hr(std::size_t row)
