@@ -57,7 +57,7 @@ constexpr int TAB = 9;
 constexpr int ENTER = 10;
 constexpr int CTRL_U = 21; // clear input
 constexpr int ESC = 27;
-constexpr int SPACE = 43;
+constexpr int SPACE = 32;
 constexpr int BACKSPACE = 127;
 
 // Special keys (arbitrary values):
