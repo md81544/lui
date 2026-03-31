@@ -95,7 +95,7 @@ void Ui::displayResults()
         for (const auto& s : m_results) {
             m_term.printAt(currentRow, 1, s);
             ++currentRow;
-            if (currentRow == lastRowInSection -1){
+            if (currentRow == lastRowInSection - 1) {
                 m_term.printAt(currentRow, 1, "...");
                 break;
             }
