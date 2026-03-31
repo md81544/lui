@@ -8,6 +8,7 @@
 #include "terminal.h"
 #include "word_searcher.h"
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -17,6 +18,17 @@ namespace ui {
 struct TerminalSize {
     std::size_t rows;
     std::size_t cols;
+};
+
+struct CurrentInput {
+    bool active { false };
+    std::string value;
+    std::size_t cursorPos;
+    std::size_t displayAtRow;
+    std::size_t displayAtCol;
+    std::size_t maxSize;
+    bool upperCaseOnly { true };
+    std::function<void()> callback; // called when user presses "Enter"
 };
 
 class Ui final {
@@ -29,8 +41,18 @@ private:
     void resultsClear();
     void resultsSet(const std::vector<std::string>& vec);
     void displayHeader();
+    void displayCurrentInput();
     void displayResults();
     void displayMenu();
+    void input(
+        std::size_t row,
+        std::size_t col,
+        std::string defaultValue,
+        std::function<void()> callback,
+        bool upperCase = true,
+        std::size_t maxSize = 0);
+    // When input is active, keypresses are handled by this function:
+    int inputHandleKeyPress(int key);
     void restart();
     void hr(std::size_t row);
     void jumble();
@@ -46,6 +68,7 @@ private:
     std::vector<std::string> m_results;
     std::size_t m_resultsScrollOffset { 0 };
     bool m_resultsScrollAtBottom { true };
+    CurrentInput m_currentInput;
 };
 
 } // namespace ui

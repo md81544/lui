@@ -2,13 +2,16 @@
 #include "keypress.h"
 #include "terminal.h"
 #include "word_searcher.h"
+#include <cctype>
 #include <cstddef>
 #include <filesystem>
 #include <format>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 
 namespace {
+
 std::filesystem::path locateDataDirectory(std::string_view argv0)
 {
     const std::filesystem::path bin(argv0);
@@ -59,9 +62,13 @@ int Ui::run()
         displayHeader();
         displayResults();
         displayMenu();
+        displayCurrentInput(); // call this just before render() as this sets the cursor position
         m_term.render();
         int keyPress = m_term.getChar();
+        keyPress = inputHandleKeyPress(keyPress);
         switch (keyPress) {
+            case keyPress::NO_KEY: // key was consumed by input handler
+                break;
             case keyPress::CTRL_C:
             case 'Q':
             case 'q':
@@ -74,6 +81,14 @@ int Ui::run()
             case 'l':
             case 'L':
                 lookup();
+                break;
+            case 'f':
+            case 'F':
+                input(2, 10, m_foundString, [&]() { m_foundString = m_currentInput.value; });
+                break;
+            case 's':
+            case 'S':
+                input(1, 10, m_searchString, [&]() { m_searchString = m_currentInput.value; });
                 break;
             case keyPress::DOWN:
                 if (!m_resultsScrollAtBottom) {
@@ -113,6 +128,24 @@ void Ui::displayHeader()
     m_term.printAt(2, 1, std::format("Found:   {}", m_foundString));
     m_term.printAt(3, 1, std::format("Comment: {}", m_comment));
     m_term.printAt(4, 1, std::format("Clue:    {}", m_clue));
+}
+
+void Ui::displayCurrentInput()
+{
+    if (!m_currentInput.active) {
+        m_term.cursorOff();
+        return;
+    }
+    terminal::Colour oldColdBgColour = m_term.getBgColour();
+    terminal::Colour oldColdFgColour = m_term.getFgColour();
+    m_term.setBgColour(terminal::Colour::Green);
+    m_term.setFgColour(terminal::Colour::Black);
+    m_term.printAt(m_currentInput.displayAtRow, m_currentInput.displayAtCol, m_currentInput.value);
+    m_term.setBgColour(oldColdBgColour);
+    m_term.setFgColour(oldColdFgColour);
+    m_term.cursorOn();
+    m_term.goTo(
+        m_currentInput.displayAtRow, m_currentInput.displayAtCol + m_currentInput.value.size());
 }
 
 void Ui::displayResults()
@@ -182,6 +215,73 @@ void Ui::displayMenu()
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
         "_Anagram _Lookup _Define _Note st_Ore r_Etrieve re_Start _Quit");
+}
+
+void Ui::input(
+    std::size_t row,
+    std::size_t col,
+    std::string defaultValue,
+    std::function<void()> callback,
+    bool upperCase /* = true */,
+    std::size_t maxSize /* = 0 */)
+{
+    m_currentInput.active = true;
+    m_currentInput.value = defaultValue;
+    m_currentInput.cursorPos = 0;
+    m_currentInput.displayAtRow = row;
+    m_currentInput.displayAtCol = col;
+    m_currentInput.maxSize = maxSize;
+    m_currentInput.callback = callback;
+    m_currentInput.upperCaseOnly = upperCase;
+}
+
+int Ui::inputHandleKeyPress(int key)
+{
+    if (!m_currentInput.active) {
+        return key;
+    }
+    // If we don't handle the key here we return it for higher-level handling
+    // e.g. Ctrl-C
+
+    // Currently just letters for testing... TODO expand handled keys
+    if ((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z')) {
+        if (m_currentInput.upperCaseOnly) {
+            key = toupper(key);
+        }
+        m_currentInput.value += key;
+        return keyPress::NO_KEY; // signifies we've swallowed this key
+    } else {
+        switch (key) {
+            case keyPress::ENTER:
+                m_currentInput.callback();
+                m_currentInput.active = false;
+                return keyPress::NO_KEY;
+            case keyPress::ESC:
+                m_currentInput.active = false;
+                return keyPress::NO_KEY;
+            case keyPress::SPACE:
+                // Currently disallowed
+                return keyPress::NO_KEY;
+            case keyPress::LEFT:
+                // move cursor TODO
+                return keyPress::NO_KEY;
+            case keyPress::RIGHT:
+                // move cursor TODO
+                return keyPress::NO_KEY;
+            case keyPress::CTRL_E:
+                // move to end of line TODO
+                return keyPress::NO_KEY;
+            case keyPress::CTRL_A:
+                // move to start of line TODO
+                return keyPress::NO_KEY;
+            case keyPress::CTRL_U:
+                // clear entry TODO
+                return keyPress::NO_KEY;
+            default:
+                // do nothing; key returned below
+        }
+    }
+    return key;
 }
 
 void Ui::restart()
