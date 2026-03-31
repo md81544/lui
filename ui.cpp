@@ -154,6 +154,8 @@ void Ui::displayResults()
                 }
                 break;
             }
+            // if we didn't break then we must be at the bottom
+            m_resultsScrollAtBottom = true;
         }
         m_term.setFgColour(oldFgColour);
     }
@@ -202,7 +204,7 @@ void Ui::hr(std::size_t row)
 void Ui::jumble()
 {
     if (m_searchString.empty()) {
-        m_results.clear();
+        resultsClear();
         m_results.emplace_back("No search string is set");
     }
 }
@@ -210,7 +212,8 @@ void Ui::jumble()
 void Ui::lookup()
 {
     // TODO this is currently for testing scrolling!
-    std::vector<std::string> vec { "apple",
+    std::vector<std::string> vec { "This is test data!",
+                                   "apple",
                                    "banana",
                                    "cherry",
                                    "date",
