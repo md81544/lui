@@ -1,8 +1,9 @@
-* Add UI class rather than running everything in main (which was only for testing)
-* UI class should be the only user of Terminal
-*   UI class should handle higher-level interaction, e.g.
-*     string input
-*     status bar
-*     menu
-*     "please wait" messages or spinner in status bar
-*     run loop
+* Terminal class needs "store" and "restore" member functions to save
+  or restore the current render string - this would allow caller to
+  restore the screen, then just update one element (e.g. input box)
+  
+* UI class should handle higher-level interaction, e.g.
+    * string input
+    * status bar
+    * menu
+    * "please wait" messages or spinner in status bar
