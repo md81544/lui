@@ -10,6 +10,8 @@ APP_NAME := lui
 BUILD_DIR_DEBUG   := build/Debug
 BUILD_DIR_RELEASE := build/Release
 
+MAKEFLAGS += --no-print-directory
+
 CMAKE       := cmake
 CMAKE_FLAGS :=
 JOBS        := $(shell nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)
