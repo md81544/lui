@@ -84,11 +84,18 @@ int Ui::run()
                 break;
             case 'f':
             case 'F':
+                // Enter "found" string
                 input(2, 10, m_foundString, [&]() { m_foundString = m_currentInput.value; });
                 break;
             case 's':
             case 'S':
-                input(1, 10, m_searchString, [&]() { m_searchString = m_currentInput.value; });
+                // Enter "search" string
+                input(1, 10, m_searchString, [&]() {
+                    m_searchString = m_currentInput.value;
+                    if (m_foundString.empty()) {
+                        m_foundString = std::string(m_searchString.length(), '.');
+                    }
+                });
                 break;
             case keyPress::DOWN:
                 if (!m_resultsScrollAtBottom) {
@@ -248,6 +255,7 @@ int Ui::inputHandleKeyPress(int key)
         if (m_currentInput.upperCaseOnly) {
             key = toupper(key);
         }
+        // We need to handle insertion point (actually overwrite point) TODO
         m_currentInput.value += key;
         return keyPress::NO_KEY; // signifies we've swallowed this key
     } else {
