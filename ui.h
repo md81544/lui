@@ -12,6 +12,11 @@
 #include <string_view>
 #include <vector>
 
+struct TerminalSize {
+    std::size_t rows;
+    std::size_t cols;
+};
+
 class Ui final {
 public:
     explicit Ui(std::string_view argv0);
@@ -26,8 +31,7 @@ private:
     void jumble();
 
     terminal::Terminal m_term;
-    std::size_t m_rows;
-    std::size_t m_cols;
+    TerminalSize m_termSize;
     std::unique_ptr<WordSearcher> m_ws;
     std::string m_searchString;
     std::string m_foundString;
