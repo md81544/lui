@@ -11,8 +11,9 @@
 namespace {
 std::filesystem::path locateDataDirectory(std::string_view argv0)
 {
-    std::filesystem::path bin(argv0);
-    std::filesystem::path cwd = bin.remove_filename();
+    const std::filesystem::path bin(argv0);
+    std::filesystem::path cwd = bin;
+    cwd.remove_filename();
     for (int n = 0; n < 4; ++n) {
         if (std::filesystem::exists(cwd / "words_1.txt")) {
             return cwd;
@@ -26,7 +27,7 @@ std::filesystem::path locateDataDirectory(std::string_view argv0)
 
 Ui::Ui(std::string_view argv0)
 {
-    auto dataDir = locateDataDirectory(argv0);
+    const auto dataDir = locateDataDirectory(argv0);
     m_term.printAt(1, 2, "Loading data...");
     m_term.cursorOff();
     m_term.render();
@@ -111,7 +112,7 @@ void Ui::displayHeader()
 
 void Ui::displayResults()
 {
-    std::size_t resultsTopRow = 6;
+    const std::size_t resultsTopRow = 6;
     std::size_t lastRowInSection = m_termSize.rows - 6; // 6 being the size of the menu section
     hr(resultsTopRow);
     m_term.printAt(resultsTopRow, 1, "Results");
@@ -163,7 +164,7 @@ void Ui::displayResults()
 
 void Ui::displayMenu()
 {
-    auto menuTopRow = m_termSize.rows - 4;
+    const std::size_t menuTopRow = m_termSize.rows - 4;
     hr(menuTopRow);
     m_term.printAt(m_termSize.rows - 4, 1, "Menu");
     m_term.goTo(menuTopRow + 1, 1);

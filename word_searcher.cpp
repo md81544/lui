@@ -99,7 +99,7 @@ WordSearcher::~WordSearcher() { }
 
 std::vector<std::string> WordSearcher::regexSearch(const std::string& regexString)
 {
-    std::regex regex(regexString);
+    const std::regex regex(regexString);
     std::vector<std::string> result;
     std::copy_if(
         m_words3.begin(),
