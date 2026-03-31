@@ -48,8 +48,8 @@ public:
     void goTo(std::size_t row, std::size_t col);
     void setFgColour(Colour colour);
     void setBgColour(Colour colour);
-    Colour getFgColour();
-    Colour getBgColour();
+    Colour getFgColour() const;
+    Colour getBgColour() const;
     void cursorUp(uint8_t n);
     void cursorDown(uint8_t n);
     void cursorRight(uint8_t n);
@@ -69,7 +69,7 @@ public:
     void printMenuString(Colour normal, Colour highlight, std::string_view text);
     // Note the size of the terminal can change if the user
     // resizes it, so a safe approach is to query this before each render().
-    std::tuple<std::size_t, std::size_t> getTerminalSize();
+    std::tuple<std::size_t, std::size_t> getTerminalSize() const;
     bool utf8Supported();
     // Save current screen
     void store();

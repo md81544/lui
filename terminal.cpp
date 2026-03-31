@@ -107,13 +107,13 @@ void Terminal::setBgColour(Colour colour)
 }
 
 
-Colour Terminal::getFgColour()
+Colour Terminal::getFgColour() const
 {
     return m_currentFgColour;
 }
 
 
-Colour Terminal::getBgColour()
+Colour Terminal::getBgColour() const
 {
     return m_currentFgColour;
 }
@@ -233,7 +233,7 @@ void Terminal::printMenuString(Colour normal, Colour highlight, std::string_view
     }
 }
 
-std::tuple<std::size_t, std::size_t> Terminal::getTerminalSize()
+std::tuple<std::size_t, std::size_t> Terminal::getTerminalSize() const
 {
     winsize ws;
     unsigned short rows { 0 };
