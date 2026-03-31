@@ -60,11 +60,16 @@ public:
     // resizes it, so a safe approach is to query this before each render().
     std::tuple<std::size_t, std::size_t> getTerminalSize();
     bool utf8Supported();
+    // Save current screen
+    void store();
+    // Restore saved screen
+    void restore();
 
 private:
     std::string colourToAnsiFg(Colour colour);
     std::string colourToAnsiBg(Colour colour);
     std::string m_renderString;
+    std::string m_savedRenderString;
     bool m_isTty { true };
     bool m_utf8Supported { false };
 };

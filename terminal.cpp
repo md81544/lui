@@ -231,6 +231,16 @@ bool Terminal::utf8Supported()
     return m_utf8Supported;
 }
 
+void Terminal::store()
+{
+    m_renderString = m_savedRenderString;
+}
+
+void Terminal::restore()
+{
+    m_savedRenderString = m_renderString;
+}
+
 // Private member functions:
 
 std::string Terminal::colourToAnsiFg(Colour colour)
