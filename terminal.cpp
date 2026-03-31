@@ -187,7 +187,10 @@ int Terminal::getChar()
         return keyPress::ESC;
     }
     auto key = keyPress::getKeyPress();
-    return key.value_or(0);
+    // key should never been nullopt because
+    // we didn't call getKeyPress() in non-blocking mode
+    assert(key.has_value());
+    return key.value_or(keyPress::NO_KEY);
 }
 
 void Terminal::bell()
