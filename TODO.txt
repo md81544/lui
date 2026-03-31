@@ -1,9 +1,7 @@
-* Terminal class needs "store" and "restore" member functions to save
-  or restore the current render string - this would allow caller to
-  restore the screen, then just update one element (e.g. input box)
   
 * UI class should handle higher-level interaction, e.g.
     * string input
-    * status bar
-    * menu
     * "please wait" messages or spinner in status bar
+
+* Maybe a config file for colours? Currently doesn't display very
+  nicely on a terminal configured with a light background
