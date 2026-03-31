@@ -14,4 +14,3 @@ but with a TUI interface as standard.
     * and more - see terminal.h
 * It uses a Makefile to drive CMake. You can just type `make` and it will do the usual `mkdir build && cd build && cmake .. && make` - much easier to type!
     * You can do `make`, `make debug` (same as `make`), `make release`, and `make clean`.
-* vscode `.vscode/settings.json` included for clangd support
