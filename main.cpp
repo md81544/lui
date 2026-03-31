@@ -4,7 +4,7 @@
 int main(int, char** argv)
 {
     try {
-        Ui ui(argv[0]);
+        ui::Ui ui(argv[0]);
         return ui.run();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

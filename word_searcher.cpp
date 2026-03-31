@@ -81,6 +81,8 @@ void loadDefinitions(std::string_view fileName, std::unordered_map<std::string, 
 
 } // anonymous namespace
 
+namespace wordSearcher {
+
 WordSearcher::WordSearcher(
     std::filesystem::path words1File,
     std::filesystem::path words2File,
@@ -108,3 +110,5 @@ std::vector<std::string> WordSearcher::regexSearch(const std::string& regexStrin
         [&regex](const std::string& w) { return std::regex_match(w, regex); });
     return result;
 }
+
+} // namespace wordSearcher

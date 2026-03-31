@@ -12,6 +12,8 @@
 #include <string_view>
 #include <vector>
 
+namespace ui {
+
 struct TerminalSize {
     std::size_t rows;
     std::size_t cols;
@@ -36,7 +38,7 @@ private:
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;
-    std::unique_ptr<WordSearcher> m_ws;
+    std::unique_ptr<wordSearcher::WordSearcher> m_ws;
     std::string m_searchString;
     std::string m_foundString;
     std::string m_clue;
@@ -45,3 +47,5 @@ private:
     std::size_t m_resultsScrollOffset { 0 };
     bool m_resultsScrollAtBottom { true };
 };
+
+} // namespace ui

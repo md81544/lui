@@ -25,13 +25,15 @@ std::filesystem::path locateDataDirectory(std::string_view argv0)
 }
 } // anonymous namespace
 
+namespace ui {
+
 Ui::Ui(std::string_view argv0)
 {
     const auto dataDir = locateDataDirectory(argv0);
     m_term.printAt(1, 2, "Loading data...");
     m_term.cursorOff();
     m_term.render();
-    m_ws = std::make_unique<WordSearcher>(
+    m_ws = std::make_unique<wordSearcher::WordSearcher>(
         dataDir / "words_1.txt",
         dataDir / "words_2.txt",
         dataDir / "words_3.txt",
@@ -82,6 +84,9 @@ int Ui::run()
                 if (m_resultsScrollOffset > 0) {
                     --m_resultsScrollOffset;
                 }
+                break;
+            case keyPress::ESC:
+                // currently does nothing
                 break;
             default:
                 m_term.bell();
@@ -268,3 +273,5 @@ do eiusmod tempor incididunt ut labore et dolore magna aliqua",
                                    "walnut" };
     resultsSet(vec);
 }
+
+} // namespace ui

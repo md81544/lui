@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace wordSearcher {
+
 class WordSearcher final {
 public:
     WordSearcher(
@@ -22,3 +24,5 @@ private:
     std::unordered_map<std::string, std::vector<std::string>> m_thesaurus;
     std::unordered_map<std::string, std::string> m_definitions;
 };
+
+} // namespace wordSearcher
