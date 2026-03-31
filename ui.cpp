@@ -131,10 +131,18 @@ void Ui::resultsSet(const std::vector<std::string>& vec)
 
 void Ui::displayHeader()
 {
-    m_term.printAt(1, 1, std::format("Search:  {}", m_searchString));
-    m_term.printAt(2, 1, std::format("Found:   {}", m_foundString));
-    m_term.printAt(3, 1, std::format("Comment: {}", m_comment));
-    m_term.printAt(4, 1, std::format("Clue:    {}", m_clue));
+    m_term.goTo(1, 1);
+    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ");
+    m_term.printAt(1, 10, m_searchString);
+    m_term.goTo(2, 1);
+    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ");
+    m_term.printAt(2, 10, m_foundString);
+    m_term.goTo(3, 1);
+    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Comment: ");
+    m_term.printAt(3, 10, m_comment);
+    m_term.goTo(4, 1);
+    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ");
+    m_term.printAt(4, 10, m_clue);
 }
 
 void Ui::displayCurrentInput()
@@ -145,14 +153,14 @@ void Ui::displayCurrentInput()
     }
     terminal::Colour oldColdBgColour = m_term.getBgColour();
     terminal::Colour oldColdFgColour = m_term.getFgColour();
-    m_term.setBgColour(terminal::Colour::Green);
+    m_term.setBgColour(terminal::Colour::BrightCyan);
     m_term.setFgColour(terminal::Colour::Black);
     m_term.printAt(m_currentInput.displayAtRow, m_currentInput.displayAtCol, m_currentInput.value);
     m_term.setBgColour(oldColdBgColour);
     m_term.setFgColour(oldColdFgColour);
     m_term.cursorOn();
     m_term.goTo(
-        m_currentInput.displayAtRow, m_currentInput.displayAtCol + m_currentInput.value.size());
+        m_currentInput.displayAtRow, m_currentInput.displayAtCol + m_currentInput.cursorPos);
 }
 
 void Ui::displayResults()
@@ -257,6 +265,7 @@ int Ui::inputHandleKeyPress(int key)
         }
         // We need to handle insertion point (actually overwrite point) TODO
         m_currentInput.value += key;
+        ++m_currentInput.cursorPos;
         return keyPress::NO_KEY; // signifies we've swallowed this key
     } else {
         switch (key) {
@@ -267,23 +276,26 @@ int Ui::inputHandleKeyPress(int key)
             case keyPress::ESC:
                 m_currentInput.active = false;
                 return keyPress::NO_KEY;
+            case keyPress::BACKSPACE:
+                // TODO
+                return keyPress::NO_KEY;
             case keyPress::SPACE:
                 // Currently disallowed
                 return keyPress::NO_KEY;
             case keyPress::LEFT:
-                // move cursor TODO
+                // TODO move cursor
                 return keyPress::NO_KEY;
             case keyPress::RIGHT:
-                // move cursor TODO
+                // TODO move cursor
                 return keyPress::NO_KEY;
             case keyPress::CTRL_E:
-                // move to end of line TODO
+                // TODO move to end of line
                 return keyPress::NO_KEY;
             case keyPress::CTRL_A:
-                // move to start of line TODO
+                // TODO move to start of line
                 return keyPress::NO_KEY;
             case keyPress::CTRL_U:
-                // clear entry TODO
+                // TODO clear entry
                 return keyPress::NO_KEY;
             default:
                 // do nothing; key returned below
@@ -317,10 +329,8 @@ void Ui::hr(std::size_t row)
 
 void Ui::jumble()
 {
-    if (m_searchString.empty()) {
-        resultsClear();
-        m_results.emplace_back("No search string is set");
-    }
+    resultsClear();
+    m_results.emplace_back("Jumble not implemented yet");
 }
 
 void Ui::lookup()
