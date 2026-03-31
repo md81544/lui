@@ -8,6 +8,14 @@
             "program": "${workspaceRoot}/lui",
             "args": [],
             "cwd": "${workspaceRoot}",
-        }
+        },
+        {
+            "name": "Attach",
+            "type": "lldb",
+            "request": "attach",
+            "program": "${workspaceRoot}/lui",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+        },
     ]
 }
