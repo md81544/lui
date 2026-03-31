@@ -186,7 +186,8 @@ int Terminal::getChar()
     if (!m_isTty) {
         return keyPress::ESC;
     }
-    return keyPress::getKeyPress();
+    auto key = keyPress::getKeyPress();
+    return key.value_or(0);
 }
 
 void Terminal::bell()

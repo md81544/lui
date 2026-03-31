@@ -6,6 +6,15 @@
 #include <string_view>
 #include <tuple>
 
+// Notes:
+//  - This class caches all "prints". Nothing is output to the
+//    physical terminal until .render() is called.
+//  - It is expected that a blocking call (e.g. getChar()) is
+//    called once per display loop otherwise the refresh rate
+//    will be needlessly fast. If the caller doesn't need to
+//    wait for input then it's up to them to introduce a 
+//    suitable delay between calls to .render().
+
 namespace terminal {
 
 enum class Colour : std::uint8_t {
@@ -50,7 +59,7 @@ public:
     void restoreCursorPosition();
     void cursorOn();
     void cursorOff();
-    int getChar();
+    int getChar(); // Blocking call
     // Note beep will happen when the next render occurs
     void bell();
     // Helper function that automatically highlights any character in the
