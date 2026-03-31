@@ -117,8 +117,7 @@ void Ui::displayResults()
         m_term.setFgColour(terminal::Colour::BrightYellow);
         std::size_t currentRow = resultsTopRow + 2;
         if (m_resultsScrollOffset != 0) {
-            m_term.printAt(currentRow, 1, "...");
-            ++currentRow;
+            m_term.printAt(currentRow - 1, 1, "...");
         }
         for (std::size_t p = m_resultsScrollOffset; p < m_results.size(); ++p) {
             m_term.printAt(currentRow, 1, m_results[p]);
