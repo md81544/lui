@@ -49,6 +49,7 @@ int Ui::run()
         m_rows = rows;
         m_cols = cols;
         displayHeader();
+        displayResults();
         displayMenu();
         m_term.render();
         int keyPress = m_term.getChar();
@@ -57,6 +58,10 @@ int Ui::run()
             case 'Q':
             case 'q':
                 finished = true;
+                break;
+            case 'j':
+            case 'J':
+                jumble();
                 break;
             default:
                 m_term.bell();
@@ -72,6 +77,15 @@ void Ui::displayHeader()
     m_term.printAt(3, 1, std::format("Comment: {}", m_comment));
     m_term.printAt(4, 1, std::format("Clue:    {}", m_clue));
     hr(5);
+}
+
+void Ui::displayResults()
+{
+    std::size_t row = 7;
+    // TODO results need to be scrollable
+    for (const auto& s : m_results) {
+        m_term.printAt(row, 1, s);
+    }
 }
 
 void Ui::displayMenu()
@@ -111,4 +125,12 @@ void Ui::hr(std::size_t row)
         }
     }
     m_term.print(hr);
+}
+
+void Ui::jumble()
+{
+    if(m_searchString.empty()){
+    m_results.clear();
+    m_results.emplace_back("No search string is set");
+    }
 }

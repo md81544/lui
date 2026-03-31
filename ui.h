@@ -19,9 +19,11 @@ public:
     int run(); // main application run loop
 private:
     void displayHeader();
+    void displayResults();
     void displayMenu();
     void restart();
     void hr(std::size_t row);
+    void jumble();
 
     terminal::Terminal m_term;
     std::size_t m_rows;
