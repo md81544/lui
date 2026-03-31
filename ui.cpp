@@ -243,8 +243,8 @@ void Ui::lookup()
                                    "dragonfruit",
                                    "eggplant",
                                    "fennel",
-                                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed "
-                                   "do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+                                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed \
+do eiusmod tempor incididunt ut labore et dolore magna aliqua",
                                    "guava",
                                    "huckleberry",
                                    "ivory",
