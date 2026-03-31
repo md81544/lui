@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
@@ -46,6 +47,7 @@ namespace keyPress {
 // The following are not "special" keys (i.e.
 // their values are below 128) but included
 // for readability. Add others as needed.
+constexpr int NO_KEY = 0;
 constexpr int CTRL_A = 1; // Move to input beginning
 constexpr int CTRL_B = 2; // "Back" i.e. page up
 constexpr int CTRL_C = 3; // Ctrl-C is disabled with ISIG flag but program can quit if it sees this
@@ -83,15 +85,24 @@ constexpr int F11 = 276;
 constexpr int F12 = 277;
 constexpr int UNKNOWN = 1024;
 
-inline int getKeyPress()
+// If called with blocking = false then returns
+// nullopt if no keypress is in the input queue
+inline std::optional<int> getKeyPress(bool blocking = true)
 {
     TerminalGuard terminalGuard; // RAII to save/reset term attrs
     char c;
     termios term_attrs;
     tcgetattr(STDIN_FILENO, &term_attrs);
     term_attrs.c_lflag &= ~(ICANON | ECHO | ISIG);
+    if (!blocking) {
+        term_attrs.c_cc[VMIN] = 0;
+        term_attrs.c_cc[VTIME] = 0;
+    }
     tcsetattr(STDIN_FILENO, TCSANOW, &term_attrs);
     c = readByte();
+    if (!blocking && c == 0) {
+        return std::nullopt;
+    }
     if (c == 27) {
         // Use a short timeout to distinguish bare ESC from a sequence
         if (stdinReady(50)) {
