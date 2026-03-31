@@ -13,8 +13,8 @@ std::filesystem::path locateDataDirectory(std::string_view argv0)
 {
     const std::filesystem::path bin(argv0);
     std::filesystem::path cwd = bin;
-    cwd.remove_filename();
-    for (int n = 0; n < 4; ++n) {
+    cwd = cwd.parent_path();
+    for (int n = 0; n < 3; ++n) {
         if (std::filesystem::exists(cwd / "words_1.txt")) {
             return cwd;
         }
