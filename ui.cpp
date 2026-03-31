@@ -64,11 +64,37 @@ int Ui::run()
             case 'J':
                 jumble();
                 break;
+            case 'l':
+            case 'L':
+                lookup();
+                break;
+            case keyPress::DOWN:
+                if (!m_resultsScrollAtBottom) {
+                    ++m_resultsScrollOffset;
+                }
+                break;
+            case keyPress::UP:
+                if (m_resultsScrollOffset > 0) {
+                    --m_resultsScrollOffset;
+                }
+                break;
             default:
                 m_term.bell();
         }
     }
     return 0;
+}
+
+void Ui::resultsClear()
+{
+    m_results.clear();
+    m_resultsScrollOffset = 0;
+}
+
+void Ui::resultsSet(const std::vector<std::string>& vec)
+{
+    m_results = vec;
+    m_resultsScrollOffset = 0;
 }
 
 void Ui::displayHeader()
@@ -90,13 +116,21 @@ void Ui::displayResults()
         terminal::Colour oldFgColour = m_term.getFgColour();
         m_term.setFgColour(terminal::Colour::BrightYellow);
         std::size_t currentRow = resultsTopRow + 2;
-        // TODO results need to be scrollable, currently just stops
-        // and prints ellipsis at final row if overflow occurs
-        for (const auto& s : m_results) {
-            m_term.printAt(currentRow, 1, s);
+        if (m_resultsScrollOffset != 0) {
+            m_term.printAt(currentRow, 1, "...");
             ++currentRow;
-            if (currentRow == lastRowInSection - 1) {
-                m_term.printAt(currentRow, 1, "...");
+        }
+        for (std::size_t p = m_resultsScrollOffset; p < m_results.size(); ++p) {
+            m_term.printAt(currentRow, 1, m_results[p]);
+            ++currentRow;
+            if (currentRow == lastRowInSection) {
+                if (p < m_results.size() - 1) {
+                    // It wasn't the last row in m_results
+                    m_term.printAt(currentRow, 1, "...");
+                    m_resultsScrollAtBottom = false;
+                } else {
+                    m_resultsScrollAtBottom = true;
+                }
                 break;
             }
         }
@@ -150,4 +184,21 @@ void Ui::jumble()
         m_results.clear();
         m_results.emplace_back("No search string is set");
     }
+}
+
+void Ui::lookup()
+{
+    // TODO this is currently for testing scrolling!
+    std::vector<std::string> vec {
+        "apple",       "banana",      "cherry",     "date",        "elderberry", "fig",
+        "grape",       "honeydew",    "kiwi",       "lemon",       "mango",      "nectarine",
+        "orange",      "papaya",      "quince",     "raspberry",   "strawberry", "tangerine",
+        "ugli",        "vanilla",     "watermelon", "xigua",       "yam",        "zucchini",
+        "apricot",     "blueberry",   "cantaloupe", "dragonfruit", "eggplant",   "fennel",
+        "guava",       "huckleberry", "ivory",      "jackfruit",   "kumquat",    "lime",
+        "mulberry",    "nutmeg",      "olive",      "peach",       "pear",       "plum",
+        "pomegranate", "quinoa",      "radish",     "spinach",     "turnip",     "ugni",
+        "vine",        "walnut"
+    };
+    resultsSet(vec);
 }

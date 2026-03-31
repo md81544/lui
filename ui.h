@@ -23,12 +23,15 @@ public:
     ~Ui() { };
     int run(); // main application run loop
 private:
+    void resultsClear();
+    void resultsSet(const std::vector<std::string>& vec);
     void displayHeader();
     void displayResults();
     void displayMenu();
     void restart();
     void hr(std::size_t row);
     void jumble();
+    void lookup();
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;
@@ -38,4 +41,6 @@ private:
     std::string m_clue;
     std::string m_comment;
     std::vector<std::string> m_results;
+    std::size_t m_resultsScrollOffset { 0 };
+    bool m_resultsScrollAtBottom { true };
 };
