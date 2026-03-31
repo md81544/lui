@@ -117,15 +117,33 @@ void Ui::displayResults()
         m_term.setFgColour(terminal::Colour::BrightYellow);
         std::size_t currentRow = resultsTopRow + 2;
         if (m_resultsScrollOffset != 0) {
-            m_term.printAt(currentRow - 1, 1, "...");
+            if (m_term.utf8Supported()) {
+                m_term.printAt(currentRow - 1, 1, "…");
+            } else {
+                m_term.printAt(currentRow - 1, 1, "...");
+            }
         }
         for (std::size_t p = m_resultsScrollOffset; p < m_results.size(); ++p) {
-            m_term.printAt(currentRow, 1, m_results[p]);
+            if (m_results[p].size() > m_termSize.cols - 2) {
+                if (m_term.utf8Supported()) {
+                    m_term.printAt(
+                        currentRow, 1, m_results[p].substr(0, m_termSize.cols - 3) + "…");
+                } else {
+                    m_term.printAt(
+                        currentRow, 1, m_results[p].substr(0, m_termSize.cols - 5) + "...");
+                }
+            } else {
+                m_term.printAt(currentRow, 1, m_results[p]);
+            }
             ++currentRow;
             if (currentRow == lastRowInSection) {
                 if (p < m_results.size() - 1) {
                     // It wasn't the last row in m_results
-                    m_term.printAt(currentRow, 1, "...");
+                    if (m_term.utf8Supported()) {
+                        m_term.printAt(currentRow, 1, "…");
+                    } else {
+                        m_term.printAt(currentRow, 1, "...");
+                    }
                     m_resultsScrollAtBottom = false;
                 } else {
                     m_resultsScrollAtBottom = true;
@@ -188,16 +206,57 @@ void Ui::jumble()
 void Ui::lookup()
 {
     // TODO this is currently for testing scrolling!
-    std::vector<std::string> vec {
-        "apple",       "banana",      "cherry",     "date",        "elderberry", "fig",
-        "grape",       "honeydew",    "kiwi",       "lemon",       "mango",      "nectarine",
-        "orange",      "papaya",      "quince",     "raspberry",   "strawberry", "tangerine",
-        "ugli",        "vanilla",     "watermelon", "xigua",       "yam",        "zucchini",
-        "apricot",     "blueberry",   "cantaloupe", "dragonfruit", "eggplant",   "fennel",
-        "guava",       "huckleberry", "ivory",      "jackfruit",   "kumquat",    "lime",
-        "mulberry",    "nutmeg",      "olive",      "peach",       "pear",       "plum",
-        "pomegranate", "quinoa",      "radish",     "spinach",     "turnip",     "ugni",
-        "vine",        "walnut"
-    };
+    std::vector<std::string> vec { "apple",
+                                   "banana",
+                                   "cherry",
+                                   "date",
+                                   "elderberry",
+                                   "fig",
+                                   "grape",
+                                   "honeydew",
+                                   "kiwi",
+                                   "lemon",
+                                   "mango",
+                                   "nectarine",
+                                   "orange",
+                                   "papaya",
+                                   "quince",
+                                   "raspberry",
+                                   "strawberry",
+                                   "tangerine",
+                                   "ugli",
+                                   "vanilla",
+                                   "watermelon",
+                                   "xigua",
+                                   "yam",
+                                   "zucchini",
+                                   "apricot",
+                                   "blueberry",
+                                   "cantaloupe",
+                                   "dragonfruit",
+                                   "eggplant",
+                                   "fennel",
+                                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed "
+                                   "do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+                                   "guava",
+                                   "huckleberry",
+                                   "ivory",
+                                   "jackfruit",
+                                   "kumquat",
+                                   "lime",
+                                   "mulberry",
+                                   "nutmeg",
+                                   "olive",
+                                   "peach",
+                                   "pear",
+                                   "plum",
+                                   "pomegranate",
+                                   "quinoa",
+                                   "radish",
+                                   "spinach",
+                                   "turnip",
+                                   "ugni",
+                                   "vine",
+                                   "walnut" };
     resultsSet(vec);
 }
