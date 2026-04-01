@@ -153,6 +153,7 @@ void Ui::displayCurrentInput()
     m_term.printAt(m_currentInput.displayAtRow, m_currentInput.displayAtCol, m_currentInput.value);
     m_term.setBgColour(oldColdBgColour);
     m_term.setFgColour(oldColdFgColour);
+    m_term.clearToEndOfLine();
     m_term.cursorOn();
     m_term.goTo(
         m_currentInput.displayAtRow, m_currentInput.displayAtCol + m_currentInput.cursorPos);
@@ -247,50 +248,71 @@ void Ui::input(
 
 int Ui::inputHandleKeyPress(int key)
 {
-    if (!m_currentInput.active) {
+    CurrentInput& ci = m_currentInput; // just for readbility
+    if (!ci.active) {
         return key;
     }
     // If we don't handle the key here we return it for higher-level handling
     // e.g. Ctrl-C
 
-    // Currently just letters for testing... TODO expand handled keys
+    // Substitute space for wildcard:
+    if (key == keyPress::SPACE) {
+        key = '.';
+    }
+
+    // Regular letters:
     if ((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z')) {
-        if (m_currentInput.upperCaseOnly) {
+        if (ci.upperCaseOnly) {
             key = toupper(key);
         }
-        // We need to handle insertion point (actually overwrite point) TODO
-        m_currentInput.value += key;
-        ++m_currentInput.cursorPos;
+        if (ci.cursorPos == ci.value.size()) {
+            ci.value += key;
+        } else {
+            ci.value[ci.cursorPos] = key;
+        }
+        ++ci.cursorPos;
         return keyPress::NO_KEY; // signifies we've swallowed this key
     } else {
+        // Special keys
         switch (key) {
             case keyPress::ENTER:
-                m_currentInput.callback();
-                m_currentInput.active = false;
+                ci.callback();
+                ci.active = false;
                 return keyPress::NO_KEY;
             case keyPress::ESC:
-                m_currentInput.active = false;
+                ci.active = false;
+                return keyPress::NO_KEY;
+            case '/':
+                ci.value.insert(ci.cursorPos, 1, key);
+                ++ci.cursorPos;
                 return keyPress::NO_KEY;
             case keyPress::BACKSPACE:
-                // TODO
+                ci.value.erase(ci.cursorPos, 1);
+                if (ci.cursorPos > 0) {
+                    --ci.cursorPos;
+                }
                 return keyPress::NO_KEY;
             case keyPress::SPACE:
-                // Currently disallowed
                 return keyPress::NO_KEY;
             case keyPress::LEFT:
-                // TODO move cursor
+                if (ci.cursorPos > 0) {
+                    --ci.cursorPos;
+                }
                 return keyPress::NO_KEY;
             case keyPress::RIGHT:
-                // TODO move cursor
+                if (ci.cursorPos < m_currentInput.value.size()) {
+                    ++ci.cursorPos;
+                }
                 return keyPress::NO_KEY;
             case keyPress::CTRL_E:
-                // TODO move to end of line
+                ci.cursorPos = ci.value.size();
                 return keyPress::NO_KEY;
             case keyPress::CTRL_A:
-                // TODO move to start of line
+                ci.cursorPos = 0;
                 return keyPress::NO_KEY;
             case keyPress::CTRL_U:
-                // TODO clear entry
+                ci.value.clear();
+                ci.cursorPos = 0;
                 return keyPress::NO_KEY;
             default:
                 // do nothing; key returned below
@@ -400,7 +422,7 @@ void Ui::log(std::string_view logEntry [[maybe_unused]])
 
 std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
 {
-    const std::filesystem::path bin  = std::filesystem::canonical(argv0);
+    const std::filesystem::path bin = std::filesystem::canonical(argv0);
     log(std::format("argv[0] = {}", bin.string()));
     std::filesystem::path cwd = bin.parent_path();
     for (int n = 0; n < 3; ++n) {
