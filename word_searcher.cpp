@@ -36,10 +36,15 @@ void loadThesaurus(
     }
     std::string line;
     while (std::getline(file, line)) {
-        auto words = line | std::views::split(',') | std::ranges::to<std::vector<std::string>>();
-        if (words.size() > 0) {
+        // Note: not using std::ranges::to below because it's not yet supported
+        // on some of my machines (Linux Mint Zena) without using a different libstdc++
+        std::vector<std::string> tokens;
+        for (auto subrange : line | std::views::split(',')) {
+            tokens.emplace_back(subrange.begin(), subrange.end());
+        }
+        if (tokens.size() > 0) {
             map.emplace(
-                words.front(), std::vector<std::string>(std::next(words.begin()), words.end()));
+                tokens.front(), std::vector<std::string>(std::next(tokens.begin()), tokens.end()));
         }
     }
 }
@@ -53,10 +58,14 @@ void loadDefinitions(std::string_view fileName, std::unordered_map<std::string, 
     }
     std::string line;
     while (std::getline(file, line)) {
-        auto split
-            = line | std::ranges::views::split('|') | std::ranges::to<std::vector<std::string>>();
-        assert(split.size() == 2);
-        map.insert({ split[0], split[1] });
+        // Note: not using std::ranges::to below because it's not yet supported
+        // on some of my machines (Linux Mint Zena) without using a different libstdc++
+        std::vector<std::string> tokens;
+        for (auto subrange : line | std::ranges::views::split('|')) {
+            tokens.emplace_back(subrange.begin(), subrange.end());
+        }
+        assert(tokens.size() == 2);
+        map.emplace(tokens[0], tokens[1]);
     }
 }
 
