@@ -36,21 +36,11 @@ void loadThesaurus(
     }
     std::string line;
     while (std::getline(file, line)) {
-        bool first = true;
-        std::size_t pos = 0;
-        std::string key;
-        std::vector<std::string> values;
-        while (pos < line.size()) {
-            auto const next_pos = line.find(",", pos);
-            if (first) {
-                key = line.substr(pos, next_pos - pos);
-                first = false;
-            } else {
-                values.push_back(line.substr(pos, next_pos - pos));
-            }
-            pos = next_pos == std::string::npos ? line.size() : next_pos + 1;
+        auto words = line | std::views::split(',') | std::ranges::to<std::vector<std::string>>();
+        if (words.size() > 0) {
+            map.emplace(
+                words.front(), std::vector<std::string>(std::next(words.begin()), words.end()));
         }
-        map.insert({ key, values });
     }
 }
 
@@ -66,7 +56,7 @@ void loadDefinitions(std::string_view fileName, std::unordered_map<std::string, 
         auto split
             = line | std::ranges::views::split('|') | std::ranges::to<std::vector<std::string>>();
         assert(split.size() == 2);
-        map.insert({split[0], split[1]});
+        map.insert({ split[0], split[1] });
     }
 }
 
