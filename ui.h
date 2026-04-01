@@ -20,6 +20,11 @@ struct TerminalSize {
     std::size_t cols;
 };
 
+enum class InputMode {
+    Append,
+    Overwrite,
+};
+
 struct CurrentInput {
     bool active { false };
     std::string value;
@@ -29,6 +34,7 @@ struct CurrentInput {
     std::size_t maxSize;
     bool upperCaseOnly { true };
     std::function<void()> callback; // called when user presses "Enter"
+    InputMode inputMode;
 };
 
 class Ui final {
@@ -49,8 +55,8 @@ private:
         std::size_t col,
         std::string defaultValue,
         std::function<void()> callback,
-        bool upperCase = true,
-        std::size_t maxSize = 0);
+        std::size_t maxSize = 0,
+        bool upperCase = true);
     // When input is active, keypresses are handled by this function:
     int inputHandleKeyPress(int key);
     void restart();

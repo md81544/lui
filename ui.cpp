@@ -76,7 +76,12 @@ int Ui::run()
             case 'f':
             case 'F':
                 // Enter "found" string
-                input(2, 10, m_foundString, [&]() { m_foundString = m_currentInput.value; });
+                input(
+                    2,
+                    10,
+                    m_foundString,
+                    [&]() { m_foundString = m_currentInput.value; },
+                    m_searchString.size()); // no larger than search string (if entered));
                 break;
             case 's':
             case 'S':
@@ -233,12 +238,20 @@ void Ui::input(
     std::size_t col,
     std::string defaultValue,
     std::function<void()> callback,
-    bool upperCase /* = true */,
-    std::size_t maxSize /* = 0 */)
+    std::size_t maxSize, /* = 0 */
+    bool upperCase /* = true */)
 {
+    m_currentInput.inputMode = InputMode::Append;
+    if (!defaultValue.empty()) {
+        m_currentInput.inputMode = InputMode::Overwrite;
+    }
     m_currentInput.active = true;
     m_currentInput.value = defaultValue;
-    m_currentInput.cursorPos = 0;
+    if (m_currentInput.inputMode == InputMode::Overwrite) {
+        m_currentInput.cursorPos = 0;
+    } else {
+        m_currentInput.cursorPos = m_currentInput.value.size();
+    }
     m_currentInput.displayAtRow = row;
     m_currentInput.displayAtCol = col;
     m_currentInput.maxSize = maxSize;
@@ -261,16 +274,20 @@ int Ui::inputHandleKeyPress(int key)
     }
 
     // Regular letters:
-    if ((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z')) {
+    if (((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z')) || key == '.') {
         if (ci.upperCaseOnly) {
             key = toupper(key);
         }
         if (ci.cursorPos == ci.value.size()) {
-            ci.value += key;
+            // Only add characters if we haven't hit max size
+            if (ci.maxSize == 0 || ci.value.size() < ci.maxSize) {
+                ci.value += key;
+                ++ci.cursorPos;
+            }
         } else {
             ci.value[ci.cursorPos] = key;
+            ++ci.cursorPos;
         }
-        ++ci.cursorPos;
         return keyPress::NO_KEY; // signifies we've swallowed this key
     } else {
         // Special keys
@@ -284,16 +301,15 @@ int Ui::inputHandleKeyPress(int key)
                 return keyPress::NO_KEY;
             case '/':
                 ci.value.insert(ci.cursorPos, 1, key);
+                if (ci.maxSize != 0) {
+                    ++ci.maxSize;
+                }
                 ++ci.cursorPos;
                 return keyPress::NO_KEY;
-            case keyPress::BACKSPACE:
-                ci.value.erase(ci.cursorPos, 1);
-                if (ci.cursorPos > 0) {
-                    --ci.cursorPos;
-                }
                 return keyPress::NO_KEY;
             case keyPress::SPACE:
                 return keyPress::NO_KEY;
+            case keyPress::BACKSPACE:
             case keyPress::LEFT:
                 if (ci.cursorPos > 0) {
                     --ci.cursorPos;
