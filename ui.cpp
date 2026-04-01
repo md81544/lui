@@ -3,6 +3,7 @@
 #include "terminal.h"
 #include "word_searcher.h"
 #include <cctype>
+#include <chrono>
 #include <cstddef>
 #include <filesystem>
 #include <format>
@@ -42,6 +43,7 @@ Ui::Ui(std::string_view argv0)
         dataDir / "words_3.txt",
         dataDir / "thesaurus.txt",
         dataDir / "definitions.txt");
+    log("DEBUG LOG");
 }
 
 void Ui::checkForTerminalResize()
@@ -50,8 +52,11 @@ void Ui::checkForTerminalResize()
     if (rows < 10 || cols < 20) { // TODO tweak this accordingly when layout is finalised
         throw(std::runtime_error("Terminal size is too small!"));
     }
-    m_termSize.rows = rows;
-    m_termSize.cols = cols;
+    if (m_termSize.rows != rows || m_termSize.cols != cols) {
+        log(std::format("Terminal size changed to {} rows by {} cols", rows, cols));
+        m_termSize.rows = rows;
+        m_termSize.cols = cols;
+    }
 }
 
 int Ui::run()
@@ -65,6 +70,7 @@ int Ui::run()
         displayCurrentInput(); // call this just before render() as this sets the cursor position
         m_term.render();
         int keyPress = m_term.getChar();
+        log(std::format("Key press: {}", keyPress));
         keyPress = inputHandleKeyPress(keyPress);
         switch (keyPress) {
             case keyPress::NO_KEY: // key was consumed by input handler
@@ -106,6 +112,9 @@ int Ui::run()
                 if (m_resultsScrollOffset > 0) {
                     --m_resultsScrollOffset;
                 }
+                break;
+            case keyPress::F12:
+                m_results = m_debugLog;
                 break;
             case keyPress::ESC:
                 // currently does nothing
@@ -390,6 +399,20 @@ do eiusmod tempor incididunt ut labore et dolore magna aliqua",
                                    "vine",
                                    "walnut" };
     resultsSet(vec);
+}
+
+void Ui::log(std::string_view logEntry [[maybe_unused]])
+{
+#ifndef NDEBUG
+    const auto now = std::chrono::system_clock::now();
+    m_debugLog.push_back(std::format("{:%H:%M:%S}: {}",
+        std::chrono::floor<std::chrono::milliseconds>(now),
+        logEntry));
+#else
+    if(m_debugLog.empty()) {
+        m_debugLog.push_back("Debug log disabled in release build");
+    }
+#endif
 }
 
 } // namespace ui

@@ -57,6 +57,7 @@ private:
     void hr(std::size_t row);
     void jumble();
     void lookup();
+    void log(std::string_view logEntry);
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;
@@ -69,6 +70,7 @@ private:
     std::size_t m_resultsScrollOffset { 0 };
     bool m_resultsScrollAtBottom { true };
     CurrentInput m_currentInput;
+    std::vector<std::string> m_debugLog;
 };
 
 } // namespace ui
