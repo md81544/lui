@@ -38,7 +38,7 @@ void Ui::checkForTerminalResize()
         throw(std::runtime_error("Terminal size is too small!"));
     }
     if (m_termSize.rows != rows || m_termSize.cols != cols) {
-        log(std::format("Terminal size changed to {} rows by {} cols", rows, cols));
+        log(std::format("Terminal size is now {} rows by {} cols", rows, cols));
         m_termSize.rows = rows;
         m_termSize.cols = cols;
     }
