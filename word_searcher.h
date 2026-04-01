@@ -15,6 +15,10 @@ public:
         std::filesystem::path thesaurusFile,
         std::filesystem::path definitionsFile);
     ~WordSearcher();
+    // Doesn't make sense to copy this class:
+    WordSearcher(const WordSearcher&) = delete;
+    WordSearcher& operator=(const WordSearcher&) = delete;
+
     std::vector<std::string> regexSearch(const std::string& regexString);
 
 private:

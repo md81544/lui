@@ -12,7 +12,7 @@
 //  - It is expected that a blocking call (e.g. getChar()) is
 //    called once per display loop otherwise the refresh rate
 //    will be needlessly fast. If the caller doesn't need to
-//    wait for input then it's up to them to introduce a 
+//    wait for input then it's up to them to introduce a
 //    suitable delay between calls to .render().
 
 namespace terminal {
@@ -41,6 +41,9 @@ class Terminal final {
 public:
     Terminal();
     ~Terminal();
+    // There can only be one terminal:
+    Terminal(const Terminal&) = delete;
+    Terminal& operator=(const Terminal&) = delete;
     void render();
     void printAt(std::size_t row, std::size_t col, std::string_view text);
     void print(std::string_view text);
@@ -86,8 +89,8 @@ private:
     std::string m_savedRenderString;
     bool m_isTty { true };
     bool m_utf8Supported { false };
-    Colour m_currentFgColour{Colour::Default};
-    Colour m_currentBgColour{Colour::Default};
+    Colour m_currentFgColour { Colour::Default };
+    Colour m_currentBgColour { Colour::Default };
 };
 
 } // namespace terminal
