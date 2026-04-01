@@ -404,13 +404,25 @@ void Ui::jumble()
 
 void Ui::lookup()
 {
+    m_term.messageBox(8, 3, "Searching..."); // draws immediately, disappears on next m_term.render()
     resultsClear();
-    // TODO results should be filtered to only include letters in the
-    // search string (maybe implemented via the regex in regexSearch()???
-    // Or more easily as a second pass
     std::string lowerCase { m_foundString };
     std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);
-    resultsSet(m_ws->regexSearch(lowerCase));
+    auto results = m_ws->regexSearch(lowerCase);
+    std::string sortedSearchString { m_searchString };
+    std::transform(
+        sortedSearchString.begin(),
+        sortedSearchString.end(),
+        sortedSearchString.begin(),
+        ::tolower);
+    std::ranges::sort(sortedSearchString);
+    for (auto word : results) {
+        std::string sortedWord { word };
+        std::ranges::sort(sortedWord);
+        if (sortedWord == sortedSearchString) {
+            m_results.push_back(word);
+        }
+    }
     if (m_results.empty()) {
         resultsSet({ "-- no matches found --" });
     }
