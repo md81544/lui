@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "word_searcher.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstddef>
 #include <filesystem>
@@ -368,61 +369,13 @@ void Ui::jumble()
 
 void Ui::lookup()
 {
-    // TODO this is currently for testing scrolling!
-    std::vector<std::string> vec { "This is test data!",
-                                   "apple",
-                                   "banana",
-                                   "cherry",
-                                   "date",
-                                   "elderberry",
-                                   "fig",
-                                   "grape",
-                                   "honeydew",
-                                   "kiwi",
-                                   "lemon",
-                                   "mango",
-                                   "nectarine",
-                                   "orange",
-                                   "papaya",
-                                   "quince",
-                                   "raspberry",
-                                   "strawberry",
-                                   "tangerine",
-                                   "ugli",
-                                   "vanilla",
-                                   "watermelon",
-                                   "xigua",
-                                   "yam",
-                                   "zucchini",
-                                   "apricot",
-                                   "blueberry",
-                                   "cantaloupe",
-                                   "dragonfruit",
-                                   "eggplant",
-                                   "fennel",
-                                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed \
-do eiusmod tempor incididunt ut labore et dolore magna aliqua",
-                                   "guava",
-                                   "huckleberry",
-                                   "ivory",
-                                   "jackfruit",
-                                   "kumquat",
-                                   "lime",
-                                   "mulberry",
-                                   "nutmeg",
-                                   "olive",
-                                   "peach",
-                                   "pear",
-                                   "plum",
-                                   "pomegranate",
-                                   "quinoa",
-                                   "radish",
-                                   "spinach",
-                                   "turnip",
-                                   "ugni",
-                                   "vine",
-                                   "walnut" };
-    resultsSet(vec);
+    resultsClear();
+    // TODO results should be filtered to only include letters in the
+    // search string (maybe implemented via the regex in regexSearch()???
+    // Or more easily as a second pass
+    std::string lowerCase { m_foundString };
+    std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);
+    resultsSet(m_ws->regexSearch(lowerCase));
 }
 
 void Ui::log(std::string_view logEntry [[maybe_unused]])
