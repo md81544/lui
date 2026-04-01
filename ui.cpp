@@ -12,28 +12,11 @@
 #include <memory>
 #include <stdexcept>
 
-namespace {
-
-std::filesystem::path locateDataDirectory(std::string_view argv0)
-{
-    const std::filesystem::path bin(argv0);
-    std::filesystem::path cwd = bin;
-    cwd = cwd.parent_path();
-    for (int n = 0; n < 3; ++n) {
-        if (std::filesystem::exists(cwd / "words_1.txt")) {
-            return cwd;
-        }
-        cwd = cwd.parent_path();
-    }
-    // If we get here we could not locate the data needed
-    throw std::runtime_error("Could not locate data directory");
-}
-} // anonymous namespace
-
 namespace ui {
 
 Ui::Ui(std::string_view argv0)
 {
+    log("DEBUG LOG");
     const auto dataDir = locateDataDirectory(argv0);
     m_term.printAt(1, 2, "Loading data...");
     m_term.cursorOff();
@@ -44,7 +27,6 @@ Ui::Ui(std::string_view argv0)
         dataDir / "words_3.txt",
         dataDir / "thesaurus.txt",
         dataDir / "definitions.txt");
-    log("DEBUG LOG");
 }
 
 void Ui::checkForTerminalResize()
@@ -406,14 +388,31 @@ do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 void Ui::log(std::string_view logEntry [[maybe_unused]])
 {
 #ifndef NDEBUG
-    m_debugLog.push_back(std::format("{}: {}",
-        utils::currentTimeString(),
-        logEntry));
+    m_debugLog.push_back(std::format("{}: {}", utils::currentTimeString(), logEntry));
 #else
-    if(m_debugLog.empty()) {
+    if (m_debugLog.empty()) {
         m_debugLog.push_back("Debug log disabled in release build");
     }
 #endif
 }
+
+
+std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
+{
+    const std::filesystem::path bin(argv0);
+    std::filesystem::path cwd = bin;
+    cwd = cwd.parent_path();
+    for (int n = 0; n < 3; ++n) {
+        log(std::format("Searching for data files in {}", cwd.string()));
+        if (std::filesystem::exists(cwd / "words_1.txt")) {
+            log(std::format("Data files found in {}", cwd.string()));
+            return cwd;
+        }
+        cwd = cwd.parent_path();
+    }
+    // If we get here we could not locate the data needed
+    throw std::runtime_error("Could not locate data directory");
+}
+
 
 } // namespace ui
