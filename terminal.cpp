@@ -106,18 +106,15 @@ void Terminal::setBgColour(Colour colour)
     }
 }
 
-
 Colour Terminal::getFgColour() const
 {
     return m_currentFgColour;
 }
 
-
 Colour Terminal::getBgColour() const
 {
     return m_currentFgColour;
 }
-
 
 void Terminal::cursorUp(uint8_t n)
 {
@@ -258,6 +255,59 @@ void Terminal::store()
 void Terminal::restore()
 {
     m_savedRenderString = m_renderString;
+}
+
+void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg)
+{
+    if (!m_isTty) {
+        return;
+    }
+    // Go to position:
+    std::cout << "\033[" + std::to_string(row + 1) + ";" + std::to_string(col + 1) + "H";
+    if (utf8Supported()) {
+        std::cout << "┌─";
+    } else {
+        std::cout << "+-";
+    }
+    for (std::size_t n = 0; n < msg.size(); ++n) {
+        if (utf8Supported()) {
+            std::cout << "─";
+        } else {
+            std::cout << "-";
+        }
+    }
+    if (utf8Supported()) {
+        std::cout << "─┐";
+    } else {
+        std::cout << "-+";
+    }
+    // next row
+    std::cout << "\033[" + std::to_string(row + 2) + ";" + std::to_string(col + 1) + "H";
+    if (utf8Supported()) {
+        std::cout << "│ " << msg << " │";
+    } else {
+        std::cout << "| " << msg << " |";
+    }
+    // next row
+    std::cout << "\033[" + std::to_string(row + 3) + ";" + std::to_string(col + 1) + "H";
+    if (utf8Supported()) {
+        std::cout << "└─";
+    } else {
+        std::cout << "+-";
+    }
+    for (std::size_t n = 0; n < msg.size(); ++n) {
+        if (utf8Supported()) {
+            std::cout << "─";
+        } else {
+            std::cout << "-";
+        }
+    }
+    if (utf8Supported()) {
+        std::cout << "─┘";
+    } else {
+        std::cout << "-+";
+    }
+    std::cout << std::flush;
 }
 
 // Private member functions:

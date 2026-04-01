@@ -75,6 +75,9 @@ public:
     void store();
     // Restore saved screen
     void restore();
+    // Writes DIRECTLY to the terminal, will disappear on next render().
+    // Useful for "Processing, please wait" type messages
+    void messageBox(std::size_t row, std::size_t col, std::string_view msg);
 
 private:
     std::string colourToAnsiFg(Colour colour);
