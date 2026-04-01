@@ -1,7 +1,9 @@
 #include "word_searcher.h"
 #include <algorithm>
+#include <cassert>
 #include <format>
 #include <fstream>
+#include <ranges>
 #include <regex>
 #include <stdexcept>
 #include <string>
@@ -61,21 +63,10 @@ void loadDefinitions(std::string_view fileName, std::unordered_map<std::string, 
     }
     std::string line;
     while (std::getline(file, line)) {
-        bool first = true;
-        std::size_t pos = 0;
-        std::string key;
-        std::string value;
-        while (pos < line.size()) {
-            auto const next_pos = line.find(",", pos);
-            if (first) {
-                key = line.substr(pos, next_pos - pos);
-                first = false;
-            } else {
-                value = line.substr(pos, next_pos - pos);
-            }
-            pos = next_pos == std::string::npos ? line.size() : next_pos + 1;
-        }
-        map.insert({ key, value });
+        auto split
+            = line | std::ranges::views::split('|') | std::ranges::to<std::vector<std::string>>();
+        assert(split.size() == 2);
+        map.insert({split[0], split[1]});
     }
 }
 
