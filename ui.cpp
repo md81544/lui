@@ -81,7 +81,7 @@ int Ui::run()
                     2,
                     10,
                     m_foundString,
-                    [&](int key) { return checkFoundCharacterAllowed(key, m_currentInput.value); },
+                    [&](int key) { return foundInputValidator(key, m_currentInput.value); },
                     [&]() { m_foundString = m_currentInput.value; },
                     m_searchString.size()); // no larger than search string (if entered));
                 break;
@@ -92,7 +92,7 @@ int Ui::run()
                     1,
                     10,
                     m_searchString,
-                    [&](int) { return true; }, // validator
+                    [&](int key) { return generalInputValidator(key, m_currentInput.value); },
                     [&]() {
                         m_searchString = m_currentInput.value;
                         if (m_foundString.empty()) {
@@ -295,6 +295,9 @@ int Ui::inputHandleKeyPress(int key)
                     ++ci.cursorPos;
                 }
             } else {
+                if (ci.value[ci.cursorPos] == '/') {
+                    ci.value.erase(ci.cursorPos, 1);
+                }
                 ci.value[ci.cursorPos] = key;
                 ++ci.cursorPos;
             }
@@ -311,16 +314,38 @@ int Ui::inputHandleKeyPress(int key)
                 ci.active = false;
                 return keyPress::NO_KEY;
             case '/':
-                ci.value.insert(ci.cursorPos, 1, key);
-                if (ci.maxSize != 0) {
-                    ++ci.maxSize;
+                // Don't allow a separator immediately next
+                // to an existing one or at the very end or start
+                if (ci.cursorPos > 0 && ci.cursorPos < ci.value.size()
+                    && !(
+                        ci.value[ci.cursorPos] == '/' || ci.value[ci.cursorPos - 1] == '/'
+                        || ci.value[ci.cursorPos + 1] == '/')) {
+                    ci.value.insert(ci.cursorPos, 1, key);
+                    if (ci.maxSize != 0) {
+                        ++ci.maxSize;
+                    }
+                    ++ci.cursorPos;
                 }
-                ++ci.cursorPos;
-                return keyPress::NO_KEY;
                 return keyPress::NO_KEY;
             case keyPress::SPACE:
                 return keyPress::NO_KEY;
             case keyPress::BACKSPACE:
+                if (ci.value[ci.cursorPos] == '/') {
+                    ci.value.erase(ci.cursorPos, 1);
+                    return keyPress::NO_KEY;
+                }
+                if (ci.inputMode == InputMode::Overwrite) {
+                    if (ci.cursorPos > 0) {
+                        --ci.cursorPos;
+                    }
+                    ci.value[ci.cursorPos] = '.';
+                } else {
+                    if (ci.cursorPos > 0) {
+                        --ci.cursorPos;
+                    }
+                    ci.value.erase(ci.cursorPos, 1);
+                }
+                return keyPress::NO_KEY;
             case keyPress::LEFT:
                 if (ci.cursorPos > 0) {
                     --ci.cursorPos;
@@ -386,6 +411,9 @@ void Ui::lookup()
     std::string lowerCase { m_foundString };
     std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);
     resultsSet(m_ws->regexSearch(lowerCase));
+    if (m_results.empty()) {
+        resultsSet({ "-- no matches found --" });
+    }
 }
 
 void Ui::log(std::string_view logEntry [[maybe_unused]])
@@ -416,13 +444,18 @@ std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
     throw std::runtime_error("Could not locate data directory");
 }
 
-bool Ui::checkFoundCharacterAllowed(int key, std::string_view currentFoundString [[maybe_unused]])
+bool Ui::foundInputValidator(int key, std::string_view currentFoundString)
 {
-    // This is used in the validator for "found" string input.
+    // This is used in the validator specifically for "found" string input.
     // A key is only allowed if it exists in the search string and
     // hasn't already been used in the currentFoundString.
     // For example "REPMUCOT" would return true for 'R' but a second 'R'
     // would return false.
+
+    // First chain the general input validator
+    if (!generalInputValidator(key, currentFoundString)) {
+        return false;
+    }
     if (key == '.' || m_searchString.empty()) {
         return true;
     }
@@ -436,6 +469,17 @@ bool Ui::checkFoundCharacterAllowed(int key, std::string_view currentFoundString
     }
     m_term.bell();
     return false;
+}
+
+bool Ui::generalInputValidator(
+    int key [[maybe_unused]],
+    std::string_view currentFoundString [[maybe_unused]])
+{
+    // General validation
+    // Intended to be chained from other validators or used directly
+    // by input().
+    // Currently does nothing
+    return true;
 }
 
 } // namespace ui

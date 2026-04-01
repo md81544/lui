@@ -67,7 +67,8 @@ private:
     void lookup();
     void log(std::string_view logEntry);
     std::filesystem::path locateDataDirectory(std::string_view argv0);
-    bool checkFoundCharacterAllowed(int key, std::string_view currentFoundString);
+    bool foundInputValidator(int key, std::string_view currentFoundString);
+    bool generalInputValidator(int key, std::string_view currentFoundString);
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;
