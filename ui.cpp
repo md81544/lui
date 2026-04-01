@@ -1,9 +1,10 @@
 #include "ui.h"
 #include "keypress.h"
 #include "terminal.h"
+#include "utils.h"
 #include "word_searcher.h"
+
 #include <cctype>
-#include <chrono>
 #include <cstddef>
 #include <filesystem>
 #include <format>
@@ -114,6 +115,7 @@ int Ui::run()
                 }
                 break;
             case keyPress::F12:
+                resultsClear();
                 m_results = m_debugLog;
                 break;
             case keyPress::ESC:
@@ -404,9 +406,8 @@ do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 void Ui::log(std::string_view logEntry [[maybe_unused]])
 {
 #ifndef NDEBUG
-    const auto now = std::chrono::system_clock::now();
-    m_debugLog.push_back(std::format("{:%H:%M:%S}: {}",
-        std::chrono::floor<std::chrono::milliseconds>(now),
+    m_debugLog.push_back(std::format("{}: {}",
+        utils::currentTimeString(),
         logEntry));
 #else
     if(m_debugLog.empty()) {
