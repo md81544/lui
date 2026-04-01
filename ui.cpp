@@ -21,12 +21,14 @@ Ui::Ui(std::string_view argv0)
     m_term.printAt(1, 2, "Loading data...");
     m_term.cursorOff();
     m_term.render();
+    log("Loading data...");
     m_ws = std::make_unique<wordSearcher::WordSearcher>(
         dataDir / "words_1.txt",
         dataDir / "words_2.txt",
         dataDir / "words_3.txt",
         dataDir / "thesaurus.txt",
         dataDir / "definitions.txt");
+    log("Finished loading data");
 }
 
 void Ui::checkForTerminalResize()
@@ -396,12 +398,11 @@ void Ui::log(std::string_view logEntry [[maybe_unused]])
 #endif
 }
 
-
 std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
 {
-    const std::filesystem::path bin(argv0);
-    std::filesystem::path cwd = bin;
-    cwd = cwd.parent_path();
+    const std::filesystem::path bin  = std::filesystem::canonical(argv0);
+    log(std::format("argv[0] = {}", bin.string()));
+    std::filesystem::path cwd = bin.parent_path();
     for (int n = 0; n < 3; ++n) {
         log(std::format("Searching for data files in {}", cwd.string()));
         if (std::filesystem::exists(cwd / "words_1.txt")) {
@@ -413,6 +414,5 @@ std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
     // If we get here we could not locate the data needed
     throw std::runtime_error("Could not locate data directory");
 }
-
 
 } // namespace ui
