@@ -34,6 +34,7 @@ struct CurrentInput {
     std::size_t maxSize;
     bool upperCaseOnly { true };
     std::function<void()> callback; // called when user presses "Enter"
+    std::function<bool(int key)> validator; // called to validate each key entered
     InputMode inputMode;
 };
 
@@ -54,6 +55,7 @@ private:
         std::size_t row,
         std::size_t col,
         std::string defaultValue,
+        std::function<bool(int key)> validator,
         std::function<void()> callback,
         std::size_t maxSize = 0,
         bool upperCase = true);
@@ -65,6 +67,7 @@ private:
     void lookup();
     void log(std::string_view logEntry);
     std::filesystem::path locateDataDirectory(std::string_view argv0);
+    bool checkFoundCharacterAllowed(int key, std::string_view currentFoundString);
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;

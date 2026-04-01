@@ -81,18 +81,24 @@ int Ui::run()
                     2,
                     10,
                     m_foundString,
+                    [&](int key) { return checkFoundCharacterAllowed(key, m_currentInput.value); },
                     [&]() { m_foundString = m_currentInput.value; },
                     m_searchString.size()); // no larger than search string (if entered));
                 break;
             case 's':
             case 'S':
                 // Enter "search" string
-                input(1, 10, m_searchString, [&]() {
-                    m_searchString = m_currentInput.value;
-                    if (m_foundString.empty()) {
-                        m_foundString = std::string(m_searchString.length(), '.');
-                    }
-                });
+                input(
+                    1,
+                    10,
+                    m_searchString,
+                    [&](int) { return true; }, // validator
+                    [&]() {
+                        m_searchString = m_currentInput.value;
+                        if (m_foundString.empty()) {
+                            m_foundString = std::string(m_searchString.length(), '.');
+                        }
+                    });
                 break;
             case keyPress::DOWN:
                 if (!m_resultsScrollAtBottom) {
@@ -238,6 +244,7 @@ void Ui::input(
     std::size_t row,
     std::size_t col,
     std::string defaultValue,
+    std::function<bool(int key)> validator,
     std::function<void()> callback,
     std::size_t maxSize, /* = 0 */
     bool upperCase /* = true */)
@@ -257,6 +264,7 @@ void Ui::input(
     m_currentInput.displayAtCol = col;
     m_currentInput.maxSize = maxSize;
     m_currentInput.callback = callback;
+    m_currentInput.validator = validator;
     m_currentInput.upperCaseOnly = upperCase;
 }
 
@@ -276,18 +284,20 @@ int Ui::inputHandleKeyPress(int key)
 
     // Regular letters:
     if (((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z')) || key == '.') {
-        if (ci.upperCaseOnly) {
-            key = toupper(key);
-        }
-        if (ci.cursorPos == ci.value.size()) {
-            // Only add characters if we haven't hit max size
-            if (ci.maxSize == 0 || ci.value.size() < ci.maxSize) {
-                ci.value += key;
+        if (ci.validator(key)) {
+            if (ci.upperCaseOnly) {
+                key = toupper(key);
+            }
+            if (ci.cursorPos == ci.value.size()) {
+                // Only add characters if we haven't hit max size
+                if (ci.maxSize == 0 || ci.value.size() < ci.maxSize) {
+                    ci.value += key;
+                    ++ci.cursorPos;
+                }
+            } else {
+                ci.value[ci.cursorPos] = key;
                 ++ci.cursorPos;
             }
-        } else {
-            ci.value[ci.cursorPos] = key;
-            ++ci.cursorPos;
         }
         return keyPress::NO_KEY; // signifies we've swallowed this key
     } else {
@@ -404,6 +414,28 @@ std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
     }
     // If we get here we could not locate the data needed
     throw std::runtime_error("Could not locate data directory");
+}
+
+bool Ui::checkFoundCharacterAllowed(int key, std::string_view currentFoundString [[maybe_unused]])
+{
+    // This is used in the validator for "found" string input.
+    // A key is only allowed if it exists in the search string and
+    // hasn't already been used in the currentFoundString.
+    // For example "REPMUCOT" would return true for 'R' but a second 'R'
+    // would return false.
+    if (key == '.' || m_searchString.empty()) {
+        return true;
+    }
+    int upperKey = ::toupper(key);
+    if (m_searchString.contains(::toupper(upperKey))) {
+        // Check it hasn't already been used
+        if (std::ranges::count(currentFoundString, upperKey)
+            < std::ranges::count(m_searchString, upperKey)) {
+            return true;
+        }
+    }
+    m_term.bell();
+    return false;
 }
 
 } // namespace ui
