@@ -5,6 +5,7 @@
         "/definitions.txt": true,
         "/LICENSE": true,
         "/thesaurus.txt": true,
-        "/words*.txt": true
+        "/words*.txt": true,
+        "/phrases.txt": true,
     },
 }
