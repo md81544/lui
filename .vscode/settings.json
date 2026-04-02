@@ -1,5 +1,10 @@
 {
     "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
     "cmake.installPrefix": "${workspaceFolder}/install",
-]
+    "search.exclude": {
+        "/definitions.txt": true,
+        "/LICENSE": true,
+        "/thesaurus.txt": true,
+        "/words*.txt": true
+    },
 }
