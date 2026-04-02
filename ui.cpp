@@ -191,7 +191,10 @@ void Ui::displayHeader()
 {
     m_term.goTo(1, 1);
     m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ");
-    m_term.printAt(1, 10, m_searchString);
+    if (!m_searchString.empty()) {
+        m_term.printAt(
+            1, 10, std::format("{}  ({} letters)", m_searchString, m_searchString.size()));
+    }
     m_term.goTo(2, 1);
     m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ");
     m_term.printAt(2, 10, m_foundString);
@@ -477,7 +480,7 @@ void Ui::jumble()
     resultsClear();
     m_results.emplace_back("");
     for (const auto& s : grid) {
-        m_results.emplace_back("  " + s);
+        m_results.emplace_back(" " + s);
     }
     m_results.emplace_back("");
     m_results.emplace_back("");
@@ -496,7 +499,6 @@ void Ui::jumble()
             alreadFound.append("_ ");
         }
     }
-    alreadFound.append(std::format(" ({} letters)", m_searchString.size()));
     m_results.emplace_back(alreadFound);
 }
 
