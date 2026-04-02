@@ -6,12 +6,62 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstddef>
 #include <filesystem>
 #include <format>
 #include <functional>
 #include <memory>
+#include <numbers>
+#include <random>
 #include <stdexcept>
+#include <string_view>
+#include <vector>
+
+namespace {
+
+std::vector<std::string> lettersInACircle(std::string_view letters)
+{
+    std::string localLetters { letters };
+    if (localLetters.size() % 2 == 1) {
+        // We need a even number of characters
+        localLetters.push_back(' ');
+    }
+    const std::size_t len = localLetters.size();
+    const std::size_t radius = static_cast<std::size_t>(
+        std::ceil(std::sqrt(static_cast<float>(len) / std::numbers::pi_v<float>)));
+
+    const std::size_t rows = radius * 2 + 1;
+    const std::size_t cols = radius * 4 + 1;
+    std::vector<std::string> grid(rows, std::string(cols, ' '));
+
+    for (std::size_t i = 0; i < len / 2; ++i) {
+        const std::size_t halfLength = len / 2;
+        const float angle
+            = (static_cast<float>(i) / static_cast<float>(halfLength)) * std::numbers::pi_v<float>;
+
+        const auto x1 = static_cast<std::ptrdiff_t>(std::round(std::cos(angle) * radius));
+        const auto y1 = static_cast<std::ptrdiff_t>(std::round(std::sin(angle) * radius));
+        const auto x2 = -x1;
+        const auto y2 = -y1;
+
+        const std::size_t row1 = static_cast<std::size_t>(y1 + static_cast<std::ptrdiff_t>(radius));
+        const std::size_t col1
+            = static_cast<std::size_t>(x1 * 2 + static_cast<std::ptrdiff_t>(radius) * 2);
+        const std::size_t row2 = static_cast<std::size_t>(y2 + static_cast<std::ptrdiff_t>(radius));
+        const std::size_t col2
+            = static_cast<std::size_t>(x2 * 2 + static_cast<std::ptrdiff_t>(radius) * 2);
+
+        grid[row1][col1]
+            = static_cast<char>(std::toupper(static_cast<unsigned char>(localLetters[i * 2])));
+        grid[row2][col2]
+            = static_cast<char>(std::toupper(static_cast<unsigned char>(localLetters[i * 2 + 1])));
+    }
+
+    return grid;
+}
+
+} // anonymous namespace
 
 namespace ui {
 
@@ -399,13 +449,61 @@ void Ui::hr(std::size_t row)
 
 void Ui::jumble()
 {
+    std::string foundLetters;
+
+    // What are our found letters? Exclude '.' and '/'
+    std::ranges::copy_if(m_foundString, std::back_inserter(foundLetters), [](char c) {
+        return c != '.' && c != '/';
+    });
+    // Which letters are remaining in the search string?
+    std::unordered_map<char, int> freq;
+    for (char c : foundLetters) {
+        ++freq[c];
+    }
+    std::string remainingLetters;
+    std::ranges::copy_if(m_searchString, std::back_inserter(remainingLetters), [&freq](char c) {
+        auto it = freq.find(c);
+        if (it != freq.end() && it->second > 0) {
+            --it->second;
+            return false;
+        }
+        return true;
+    });
+    // Shuffle remainingLetters:
+    std::random_device rd;
+    std::mt19937 gen { rd() };
+    std::ranges::shuffle(remainingLetters, gen);
+    auto grid = lettersInACircle(remainingLetters);
     resultsClear();
-    m_results.emplace_back("Jumble not implemented yet");
+    m_results.emplace_back("");
+    for (const auto& s : grid) {
+        m_results.emplace_back("  " + s);
+    }
+    m_results.emplace_back("");
+    m_results.emplace_back("");
+
+    std::string alreadFound;
+    std::size_t length = m_searchString.length();
+    for (std::size_t n = 0; n < length; ++n) {
+        if (n < m_foundString.length()) {
+            std::string s;
+            if (m_foundString[n] == '.') {
+                alreadFound.append("_ ");
+            } else {
+                alreadFound.append(std::format("{} ", m_foundString[n]));
+            }
+        } else {
+            alreadFound.append("_ ");
+        }
+    }
+    alreadFound.append(std::format(" ({} letters)", m_searchString.size()));
+    m_results.emplace_back(alreadFound);
 }
 
 void Ui::lookup()
 {
-    m_term.messageBox(8, 3, "Searching..."); // draws immediately, disappears on next m_term.render()
+    m_term.messageBox(
+        8, 3, "Searching..."); // draws immediately, disappears on next m_term.render()
     resultsClear();
     std::string lowerCase { m_foundString };
     std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);
