@@ -485,21 +485,15 @@ void Ui::jumble()
     m_results.emplace_back("");
     m_results.emplace_back("");
 
-    std::string alreadFound;
-    std::size_t length = m_searchString.length();
-    for (std::size_t n = 0; n < length; ++n) {
-        if (n < m_foundString.length()) {
-            std::string s;
-            if (m_foundString[n] == '.') {
-                alreadFound.append("_ ");
-            } else {
-                alreadFound.append(std::format("{} ", m_foundString[n]));
-            }
+    std::string alreadyFound;
+    for (const auto& c : m_foundString) {
+        if (c == '.') {
+            alreadyFound.append("_ ");
         } else {
-            alreadFound.append("_ ");
+            alreadyFound.append(std::format("{} ", c));
         }
     }
-    m_results.emplace_back(alreadFound);
+    m_results.emplace_back(alreadyFound);
 }
 
 void Ui::lookup()
