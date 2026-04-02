@@ -87,7 +87,8 @@ int Ui::run()
                 break;
             case 's':
             case 'S':
-                // Enter "search" string
+                // Enter "search" string; implies a restart
+                restart();
                 input(
                     1,
                     10,
