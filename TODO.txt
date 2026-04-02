@@ -1,4 +1,2 @@
-* Entering a new search string should reset the "found" string  
-
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
