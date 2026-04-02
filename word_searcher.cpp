@@ -74,6 +74,7 @@ void loadDefinitions(std::string_view fileName, std::unordered_map<std::string, 
 namespace wordSearcher {
 
 WordSearcher::WordSearcher(
+    // TODO need to load phrases too
     std::filesystem::path words1File,
     std::filesystem::path words2File,
     std::filesystem::path words3File,
