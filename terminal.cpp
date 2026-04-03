@@ -354,6 +354,12 @@ std::string Terminal::input(InputOptions& opts)
                 opts.cursorPos = value.size();
                 break;
             case keyPress::CTRL_U:
+                // need to clear the display, not using clear to end
+                // of line as it might invalidate other parts of the UI
+                goTo(opts.row, opts.col, imm);
+                for(std::size_t n = 0; n < value.size(); ++n) {
+                    std::cout << " ";
+                }
                 value.clear();
                 opts.cursorPos = 0;
                 break;
