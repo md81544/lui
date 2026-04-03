@@ -81,12 +81,12 @@ void Terminal::print(std::string_view text)
     m_renderString.append(text);
 }
 
-void Terminal::goTo(std::size_t row, std::size_t col)
+void Terminal::goTo(std::size_t row, std::size_t col, OutputMode mode)
 {
     // Note this function is 0-based whereas ANSI codes are 1-based
+    std::string text = std::format("\033[{};{}H", row + 1, col + 1);
     if (m_isTty) {
-        m_renderString.append(
-            "\033[" + std::to_string(row + 1) + ";" + std::to_string(col + 1) + "H");
+        output(text, mode);
     }
 }
 
@@ -165,10 +165,11 @@ void Terminal::clearLine()
     }
 }
 
-void Terminal::saveCursorPosition()
+void Terminal::saveCursorPosition(OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[s");
+        std::string text = "\033[s";
+        output(text, mode);
     }
 }
 
@@ -263,51 +264,44 @@ void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg
         return;
     }
     // Go to position:
-    std::cout << "\033[" + std::to_string(row + 1) + ";" + std::to_string(col + 1) + "H";
-    if (utf8Supported()) {
-        std::cout << "┌─";
-    } else {
-        std::cout << "+-";
-    }
+    goTo(row, col, OutputMode::immediate);
+    std::cout << utfOrAscii("┌─", "+-");
     for (std::size_t n = 0; n < msg.size(); ++n) {
-        if (utf8Supported()) {
-            std::cout << "─";
-        } else {
-            std::cout << "-";
-        }
+        std::cout << utfOrAscii("─", "-");
     }
-    if (utf8Supported()) {
-        std::cout << "─┐";
-    } else {
-        std::cout << "-+";
-    }
-    // next row
-    std::cout << "\033[" + std::to_string(row + 2) + ";" + std::to_string(col + 1) + "H";
-    if (utf8Supported()) {
-        std::cout << "│ " << msg << " │";
-    } else {
-        std::cout << "| " << msg << " |";
-    }
-    // next row
-    std::cout << "\033[" + std::to_string(row + 3) + ";" + std::to_string(col + 1) + "H";
-    if (utf8Supported()) {
-        std::cout << "└─";
-    } else {
-        std::cout << "+-";
-    }
+    std::cout << utfOrAscii("─┐", "-+");
+    goTo(row + 1, col, OutputMode::immediate);
+    std::cout << utfOrAscii("│ ", "| ") << msg << utfOrAscii(" │", " |");
+    goTo(row + 2, col, OutputMode::immediate);
+    std::cout << utfOrAscii("└─", "+-");
     for (std::size_t n = 0; n < msg.size(); ++n) {
-        if (utf8Supported()) {
-            std::cout << "─";
-        } else {
-            std::cout << "-";
-        }
+        std::cout << utfOrAscii("─", "-");
     }
-    if (utf8Supported()) {
-        std::cout << "─┘";
-    } else {
-        std::cout << "-+";
-    }
+    std::cout << utfOrAscii("─┘", "-+");
     std::cout << std::flush;
+}
+
+std::string Terminal::input(InputOptions opts)
+{
+    if (!m_isTty) {
+        return std::string {};
+    }
+    std::string value { opts.defaultValue };
+    saveCursorPosition(OutputMode::immediate);
+    while (true) {
+        int key = getChar();
+        if (key == keyPress::ENTER) {
+            break;
+        }
+    }
+    // TODO stuff
+    return value;
+}
+
+std::string Terminal::inputAt(std::size_t row, std::size_t col, InputOptions opts)
+{
+    goTo(row, col, OutputMode::immediate);
+    return input(opts);
 }
 
 // Private member functions:
@@ -434,6 +428,23 @@ std::string Terminal::colourToAnsiBg(Colour colour)
             rc.clear();
     }
     return rc;
+}
+
+std::string_view Terminal::utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion)
+{
+    if (m_utf8Supported) {
+        return utfVersion;
+    }
+    return asciiVersion;
+}
+
+void Terminal::output(std::string_view text, OutputMode mode)
+{
+    if (mode == OutputMode::immediate) {
+        std::cout << text << std::flush;
+    } else {
+        m_renderString.append(text);
+    }
 }
 
 } // namespace terminal

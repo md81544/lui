@@ -1,2 +1,6 @@
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
+
+* Command line options
+  - word file to use
+  - force ASCII rather than UTF-8 output in terminal

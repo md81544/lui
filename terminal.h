@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -14,8 +15,16 @@
 //    will be needlessly fast. If the caller doesn't need to
 //    wait for input then it's up to them to introduce a
 //    suitable delay between calls to .render().
+//  - A few functions (e.g. messageBox and input) are "immediate"
+//    and write directly to the terminal, bypassing the usual
+//    write, write, render flow.
 
 namespace terminal {
+
+enum class OutputMode {
+    render,
+    immediate,
+};
 
 enum class Colour : std::uint8_t {
     Default,
@@ -37,6 +46,25 @@ enum class Colour : std::uint8_t {
     BrightWhite,
 };
 
+enum class Mode {
+    Insert,
+    Overwrite,
+};
+
+struct InputOptions {
+    std::string prompt{};
+    std::size_t maxLen { 0 };
+    std::string defaultValue{};
+    Mode mode { Mode::Insert };
+    Colour fgColour { Colour::Default };
+    Colour bgColour { Colour::Default };
+    bool capitalsOnly { false };
+    bool alphaOnly { false };
+    bool numericOnly { false };
+    bool numericIntegerOnly { false };
+    std::function<char(char c, std::string)> hook { [](char c, std::string) { return c; } };
+};
+
 class Terminal final {
 public:
     Terminal();
@@ -48,7 +76,7 @@ public:
     void printAt(std::size_t row, std::size_t col, std::string_view text);
     void print(std::string_view text);
     // Note! ANSI row/cols are 1-based but we use 0-based here
-    void goTo(std::size_t row, std::size_t col);
+    void goTo(std::size_t row, std::size_t col, OutputMode mode = OutputMode::render);
     void setFgColour(Colour colour);
     void setBgColour(Colour colour);
     Colour getFgColour() const;
@@ -60,7 +88,7 @@ public:
     void clearToEndOfLine();
     void clearToStartOfLine();
     void clearLine();
-    void saveCursorPosition();
+    void saveCursorPosition(OutputMode mode = OutputMode::render);
     void restoreCursorPosition();
     void cursorOn();
     void cursorOff();
@@ -81,8 +109,15 @@ public:
     // Writes DIRECTLY to the terminal, will disappear on next render().
     // Useful for "Processing, please wait" type messages
     void messageBox(std::size_t row, std::size_t col, std::string_view msg);
+    // These also are *immediate* mode:
+    std::string input(InputOptions opts);
+    std::string inputAt(std::size_t row, std::size_t col, InputOptions opts);
 
 private:
+    // if UTF is supported, return utfVersion, otherwise return asciiVersion
+    std::string_view utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion);
+    // Output either to render string or direct depending on mode:
+    void output(std::string_view text, OutputMode mode = OutputMode::render);
     std::string colourToAnsiFg(Colour colour);
     std::string colourToAnsiBg(Colour colour);
     std::string m_renderString;
