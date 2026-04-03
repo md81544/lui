@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cctype>
 #include <cstdint>
+#include <format>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -309,7 +310,7 @@ std::string Terminal::input(InputOptions& opts)
         // If it's a fixed size then we print underscores
         // to show available space for entry
         if (value.size() < opts.maxLen) {
-            for(std::size_t n = 0; n < opts.maxLen - value.size(); ++n) {
+            for (std::size_t n = 0; n < opts.maxLen - value.size(); ++n) {
                 std::cout << "_";
             }
         }
@@ -320,7 +321,7 @@ std::string Terminal::input(InputOptions& opts)
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
         if (opts.restriction == InputRestriction::NumericOnly && ::isalpha(key)
-            && !::isnumber(key)) {
+            && !::isdigit(key)) {
             key = keyPress::NO_KEY;
         }
         if (opts.restriction == InputRestriction::CapitalsOnly && ::isalpha(key)) {
