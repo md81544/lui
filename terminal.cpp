@@ -320,11 +320,11 @@ std::string Terminal::input(InputOptions& opts)
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
-        if (opts.restriction == InputRestriction::NumericOnly && ::isalpha(key)
+        if (opts.restriction & InputRestrict::NumericOnly && ::isalpha(key)
             && !::isdigit(key)) {
             key = keyPress::NO_KEY;
         }
-        if (opts.restriction == InputRestriction::CapitalsOnly && ::isalpha(key)) {
+        if (opts.restriction & InputRestrict::CapitalsOnly && ::isalpha(key)) {
             key = ::toupper(key);
         }
         // Call any hook the caller set:
