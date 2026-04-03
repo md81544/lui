@@ -307,12 +307,9 @@ std::string Terminal::input(InputOptions& opts)
         setFgColour(oldFg, imm);
         setBgColour(oldBg, imm);
         std::cout << " "; // in case of backspace
-        // Position cursor at end of input
-        goTo(opts.row, opts.col + value.size(), imm);
-        // TODO lots of stuff
+        // Position cursor
+        goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
-        // Call any hook the caller set:
-        key = opts.hook(key, value);
         if (opts.restriction == InputRestriction::NumericOnly && ::isalpha(key)
             && !::isnumber(key)) {
             key = keyPress::NO_KEY;
@@ -320,13 +317,30 @@ std::string Terminal::input(InputOptions& opts)
         if (opts.restriction == InputRestriction::CapitalsOnly && ::isalpha(key)) {
             key = ::toupper(key);
         }
+        // Call any hook the caller set:
+        key = opts.hook(key, value);
         // Handle all the non-ascii keys, e.g. Esc or Ctrl-C
         switch (key) {
             case keyPress::ENTER:
                 done = true;
                 break;
             case keyPress::BACKSPACE:
-                value.pop_back(); // TODO need to handle case where cursor is not at end
+                if (!value.empty() && opts.cursorPos > 0) {
+                    if (opts.cursorPos == value.size()) {
+                        value.pop_back();
+                    } else {
+                        if (opts.cursorPos > 0) {
+                            value.erase(
+                                value.begin() + opts.cursorPos - 1, value.begin() + opts.cursorPos);
+                        }
+                    }
+                    --opts.cursorPos;
+                }
+                break;
+            case keyPress::DELETE:
+                if (opts.cursorPos < value.size()) {
+                    value.erase(value.begin() + opts.cursorPos, value.begin() + opts.cursorPos + 1);
+                }
                 break;
             case keyPress::ESC:
             case keyPress::CTRL_C:
@@ -334,16 +348,36 @@ std::string Terminal::input(InputOptions& opts)
                 done = true;
                 break;
             case keyPress::CTRL_A:
+                opts.cursorPos = 0;
+                break;
             case keyPress::CTRL_E:
+                opts.cursorPos = value.size();
+                break;
             case keyPress::CTRL_U:
-                // TODO handle these
+                value.clear();
+                opts.cursorPos = 0;
+                break;
+            case keyPress::LEFT:
+                if (opts.cursorPos > 0) {
+                    --opts.cursorPos;
+                }
+                break;
+            case keyPress::RIGHT:
+                if (opts.cursorPos < value.size()) {
+                    ++opts.cursorPos;
+                }
                 break;
             default:
                 // do nothing
         }
         // Finally add to value
         if (!done && key != keyPress::NO_KEY && ::isalnum(key)) {
-            value.push_back(key);
+            if (opts.cursorPos == value.size()) {
+                value.push_back(key);
+            } else {
+                value.insert(value.begin() + opts.cursorPos, key);
+            }
+            ++opts.cursorPos;
         }
     }
     cursorOff(imm);

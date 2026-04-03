@@ -71,7 +71,7 @@ Ui::Ui(std::string_view argv0)
     const auto dataDir = locateDataDirectory(argv0);
     m_term.printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
-    m_term.printAt(3, 2, "*** DEBUG BUILD ***");
+    m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slow)");
 #endif
     m_term.cursorOff();
     m_term.render();
