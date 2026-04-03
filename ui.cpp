@@ -137,7 +137,7 @@ int Ui::run()
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
                     opts.fgColour = terminal::Colour::Black;
-                    opts.restriction = terminal::InputRestrict::CapitalsOnly;
+                    opts.restriction = terminal::InputRestriction::CapitalsOnly;
                     opts.hook = [&](int key, std::string_view) -> int {
                         // Disallow spaces
                         if (key == ' ') {
@@ -188,7 +188,7 @@ int Ui::run()
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
                     opts.fgColour = terminal::Colour::Black;
-                    opts.restriction = terminal::InputRestrict::CapitalsOnly;
+                    opts.restriction = terminal::InputRestriction::CapitalsOnly;
                     opts.hook = [&](int key, std::string_view) -> int {
                         // Disallow spaces
                         if (key == ' ') {
