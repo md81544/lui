@@ -147,7 +147,8 @@ int Ui::run()
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
                     opts.fgColour = terminal::Colour::Black;
-                    opts.restriction = terminal::InputRestriction::CapitalsOnly;
+                    //opts.restriction = terminal::InputRestriction::CapitalsOnly;
+                    opts.mode = terminal::Mode::Overwrite;
                     opts.hook = [&](int key, std::string_view) -> int {
                         // Example hook to disallow a specific character
                         if (key == ' ') {

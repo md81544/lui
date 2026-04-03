@@ -357,7 +357,7 @@ std::string Terminal::input(InputOptions& opts)
                 // need to clear the display, not using clear to end
                 // of line as it might invalidate other parts of the UI
                 goTo(opts.row, opts.col, imm);
-                for(std::size_t n = 0; n < value.size(); ++n) {
+                for (std::size_t n = 0; n < value.size(); ++n) {
                     std::cout << " ";
                 }
                 value.clear();
@@ -381,7 +381,11 @@ std::string Terminal::input(InputOptions& opts)
             if (opts.cursorPos == value.size()) {
                 value.push_back(key);
             } else {
-                value.insert(value.begin() + opts.cursorPos, key);
+                if (opts.mode == Mode::Overwrite) {
+                    value[opts.cursorPos] = key;
+                } else {
+                    value.insert(value.begin() + opts.cursorPos, key);
+                }
             }
             ++opts.cursorPos;
         }
