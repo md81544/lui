@@ -52,7 +52,6 @@ enum class InputRestriction {
     None,
     CapitalsOnly, // lower case will be converted
     NumericOnly,  // non-numerics will be ignored,
-    // TODO these should be ORable, not an enum
 };
 
 struct InputOptions {
