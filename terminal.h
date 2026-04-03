@@ -69,8 +69,8 @@ struct InputOptions {
     // Hook is called after a key is pressed, before it is appended to
     // the input string. Default does nothing. To disallow a key,
     // return keyPress::NO_KEY.
-    std::function<int(int key, const std::string_view currentString)> hook {
-        [](int key, const std::string_view) -> int { return key; }
+    std::function<int(int key, std::string_view currentString)> hook {
+        [](int key, std::string_view) -> int { return key; }
     };
 };
 

@@ -148,7 +148,7 @@ int Ui::run()
                     opts.bgColour = terminal::Colour::BrightCyan;
                     opts.fgColour = terminal::Colour::Black;
                     opts.restriction = terminal::InputRestriction::CapitalsOnly;
-                    opts.hook = [&](int key, const std::string_view) -> int {
+                    opts.hook = [&](int key, std::string_view) -> int {
                         // Example hook to disallow a specific character
                         if (key == ' ') {
                             m_term.bell(terminal::OutputMode::immediate);
@@ -157,6 +157,7 @@ int Ui::run()
                         return key;
                     };
                     std::string foo = m_term.input(opts);
+                    log(std::format("string entered: '{}'", foo));
                     break;
                 }
             case 's':
