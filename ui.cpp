@@ -499,7 +499,10 @@ void Ui::jumble()
 void Ui::lookup()
 {
     m_term.messageBox(
-        8, 3, "Searching..."); // draws immediately, disappears on next m_term.render()
+        8,
+        3,
+        "Searching...",
+        terminal::OutputMode::immediate); // draws immediately, disappears on next m_term.render()
     resultsClear();
     std::string lowerCase { m_foundString };
     std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);

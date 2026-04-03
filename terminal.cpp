@@ -70,15 +70,15 @@ void Terminal::render()
     }
 }
 
-void Terminal::printAt(std::size_t row, std::size_t col, std::string_view text)
+void Terminal::printAt(std::size_t row, std::size_t col, std::string_view text, OutputMode mode)
 {
-    goTo(row, col);
-    m_renderString.append(text);
+    goTo(row, col, mode);
+    output(text, mode);
 }
 
-void Terminal::print(std::string_view text)
+void Terminal::print(std::string_view text, OutputMode mode)
 {
-    m_renderString.append(text);
+    output(text, mode);
 }
 
 void Terminal::goTo(std::size_t row, std::size_t col, OutputMode mode)
@@ -90,19 +90,19 @@ void Terminal::goTo(std::size_t row, std::size_t col, OutputMode mode)
     }
 }
 
-void Terminal::setFgColour(Colour colour)
+void Terminal::setFgColour(Colour colour, OutputMode mode)
 {
     m_currentFgColour = colour;
     if (m_isTty) {
-        m_renderString.append(colourToAnsiFg(colour));
+        output(colourToAnsiFg(colour), mode);
     }
 }
 
-void Terminal::setBgColour(Colour colour)
+void Terminal::setBgColour(Colour colour, OutputMode mode)
 {
     m_currentBgColour = colour;
     if (m_isTty) {
-        m_renderString.append(colourToAnsiBg(colour));
+        output(colourToAnsiBg(colour), mode);
     }
 }
 
@@ -116,81 +116,80 @@ Colour Terminal::getBgColour() const
     return m_currentFgColour;
 }
 
-void Terminal::cursorUp(uint8_t n)
+void Terminal::cursorUp(uint8_t n, OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[" + std::to_string(n) + "A");
+        output("\033[" + std::to_string(n) + "A", mode);
     }
 }
 
-void Terminal::cursorDown(uint8_t n)
+void Terminal::cursorDown(uint8_t n, OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[" + std::to_string(n) + "B");
+        output("\033[" + std::to_string(n) + "B", mode);
     }
 }
 
-void Terminal::cursorRight(uint8_t n)
+void Terminal::cursorRight(uint8_t n, OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[" + std::to_string(n) + "C");
+        output("\033[" + std::to_string(n) + "C", mode);
     }
 }
 
-void Terminal::cursorLeft(uint8_t n)
+void Terminal::cursorLeft(uint8_t n, OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[" + std::to_string(n) + "D");
+        output("\033[" + std::to_string(n) + "D", mode);
     }
 }
 
-void Terminal::clearToEndOfLine()
+void Terminal::clearToEndOfLine(OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[K");
+        output("\033[K", mode);
     }
 }
 
-void Terminal::clearToStartOfLine()
+void Terminal::clearToStartOfLine(OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[1K");
+        output("\033[1K", mode);
     }
 }
 
-void Terminal::clearLine()
+void Terminal::clearLine(OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[2K");
+        output("\033[2K", mode);
     }
 }
 
 void Terminal::saveCursorPosition(OutputMode mode)
 {
     if (m_isTty) {
-        std::string text = "\033[s";
-        output(text, mode);
+        output("\033[s", mode);
     }
 }
 
-void Terminal::restoreCursorPosition()
+void Terminal::restoreCursorPosition(OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[u");
+        output("\033[u", mode);
     }
 }
 
-void Terminal::cursorOn()
+void Terminal::cursorOn(OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[?25h");
+        output("\033[?25h", mode);
     }
 }
 
-void Terminal::cursorOff()
+void Terminal::cursorOff(OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\033[?25l");
+        output("\033[?25l", mode);
     }
 }
 
@@ -206,26 +205,26 @@ int Terminal::getChar()
     return key.value_or(keyPress::NO_KEY);
 }
 
-void Terminal::bell()
+void Terminal::bell(OutputMode mode)
 {
     if (m_isTty) {
-        m_renderString.append("\007");
+        output("\007", mode);
     }
 }
 
-void Terminal::printMenuString(Colour normal, Colour highlight, std::string_view text)
+void Terminal::printMenuString(Colour normal, Colour highlight, std::string_view text, OutputMode mode)
 {
     bool highlighting { false };
-    setFgColour(normal);
+    setFgColour(normal, mode);
     for (const char c : text) {
         if (c == '_') {
             highlighting = true;
-            setFgColour(highlight);
+            setFgColour(highlight, mode);
         } else {
-            print(std::string { c });
+            print(std::string { c }, mode);
             if (highlighting) {
                 highlighting = false;
-                setFgColour(normal);
+                setFgColour(normal, mode);
             }
         }
     }
@@ -258,27 +257,27 @@ void Terminal::restore()
     m_savedRenderString = m_renderString;
 }
 
-void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg)
+void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg, OutputMode mode)
 {
     if (!m_isTty) {
         return;
     }
     // Go to position:
-    goTo(row, col, OutputMode::immediate);
-    std::cout << utfOrAscii("┌─", "+-");
+    goTo(row, col, mode);
+    output( utfOrAscii("┌─", "+-"), mode);
     for (std::size_t n = 0; n < msg.size(); ++n) {
-        std::cout << utfOrAscii("─", "-");
+        output( utfOrAscii("─", "-"), mode);
     }
-    std::cout << utfOrAscii("─┐", "-+");
-    goTo(row + 1, col, OutputMode::immediate);
-    std::cout << utfOrAscii("│ ", "| ") << msg << utfOrAscii(" │", " |");
-    goTo(row + 2, col, OutputMode::immediate);
-    std::cout << utfOrAscii("└─", "+-");
+    output(utfOrAscii("─┐", "-+"), mode);
+    goTo(row + 1, col, mode);
+    std::string s = std::format("{} {} {}", utfOrAscii("│", "|"), msg, utfOrAscii("│", "|"));
+    output(s, mode);
+    goTo(row + 2, col, mode);
+    output(utfOrAscii("└─", "+-"), mode);
     for (std::size_t n = 0; n < msg.size(); ++n) {
-        std::cout << utfOrAscii("─", "-");
+        output(utfOrAscii("─", "-"), mode);
     }
-    std::cout << utfOrAscii("─┘", "-+");
-    std::cout << std::flush;
+    output(utfOrAscii("─┘", "-+"), mode);
 }
 
 std::string Terminal::input(InputOptions opts)

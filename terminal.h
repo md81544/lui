@@ -15,9 +15,6 @@
 //    will be needlessly fast. If the caller doesn't need to
 //    wait for input then it's up to them to introduce a
 //    suitable delay between calls to .render().
-//  - A few functions (e.g. messageBox and input) are "immediate"
-//    and write directly to the terminal, bypassing the usual
-//    write, write, render flow.
 
 namespace terminal {
 
@@ -52,9 +49,9 @@ enum class Mode {
 };
 
 struct InputOptions {
-    std::string prompt{};
+    std::string prompt {};
     std::size_t maxLen { 0 };
-    std::string defaultValue{};
+    std::string defaultValue {};
     Mode mode { Mode::Insert };
     Colour fgColour { Colour::Default };
     Colour bgColour { Colour::Default };
@@ -73,31 +70,38 @@ public:
     Terminal(const Terminal&) = delete;
     Terminal& operator=(const Terminal&) = delete;
     void render();
-    void printAt(std::size_t row, std::size_t col, std::string_view text);
-    void print(std::string_view text);
+    void printAt(
+        std::size_t row,
+        std::size_t col,
+        std::string_view text,
+        OutputMode mode = OutputMode::render);
+    void print(std::string_view text, OutputMode mode = OutputMode::render);
     // Note! ANSI row/cols are 1-based but we use 0-based here
     void goTo(std::size_t row, std::size_t col, OutputMode mode = OutputMode::render);
-    void setFgColour(Colour colour);
-    void setBgColour(Colour colour);
+    void setFgColour(Colour colour, OutputMode mode = OutputMode::render);
+    void setBgColour(Colour colour, OutputMode mode = OutputMode::render);
     Colour getFgColour() const;
     Colour getBgColour() const;
-    void cursorUp(uint8_t n);
-    void cursorDown(uint8_t n);
-    void cursorRight(uint8_t n);
-    void cursorLeft(uint8_t n);
-    void clearToEndOfLine();
-    void clearToStartOfLine();
-    void clearLine();
+    void cursorUp(uint8_t n, OutputMode mode = OutputMode::render);
+    void cursorDown(uint8_t n, OutputMode mode = OutputMode::render);
+    void cursorRight(uint8_t n, OutputMode mode = OutputMode::render);
+    void cursorLeft(uint8_t n, OutputMode mode = OutputMode::render);
+    void clearToEndOfLine(OutputMode mode = OutputMode::render);
+    void clearToStartOfLine(OutputMode mode = OutputMode::render);
+    void clearLine(OutputMode mode = OutputMode::render);
     void saveCursorPosition(OutputMode mode = OutputMode::render);
-    void restoreCursorPosition();
-    void cursorOn();
-    void cursorOff();
+    void restoreCursorPosition(OutputMode mode = OutputMode::render);
+    void cursorOn(OutputMode mode = OutputMode::render);
+    void cursorOff(OutputMode mode = OutputMode::render);
     int getChar(); // Blocking call
-    // Note beep will happen when the next render occurs
-    void bell();
+    void bell(OutputMode mode = OutputMode::render);
     // Helper function that automatically highlights any character in the
     // given string which is preceded by an underscore
-    void printMenuString(Colour normal, Colour highlight, std::string_view text);
+    void printMenuString(
+        Colour normal,
+        Colour highlight,
+        std::string_view text,
+        OutputMode mode = OutputMode::render);
     // Note the size of the terminal can change if the user
     // resizes it, so a safe approach is to query this before each render().
     std::tuple<std::size_t, std::size_t> getTerminalSize() const;
@@ -106,10 +110,12 @@ public:
     void store();
     // Restore saved screen
     void restore();
-    // Writes DIRECTLY to the terminal, will disappear on next render().
-    // Useful for "Processing, please wait" type messages
-    void messageBox(std::size_t row, std::size_t col, std::string_view msg);
-    // These also are *immediate* mode:
+    void messageBox(
+        std::size_t row,
+        std::size_t col,
+        std::string_view msg,
+        OutputMode mode = OutputMode::render);
+    // Input is always immediate mode:
     std::string input(InputOptions opts);
     std::string inputAt(std::size_t row, std::size_t col, InputOptions opts);
 
