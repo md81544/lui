@@ -130,6 +130,15 @@ int Ui::run()
                 {
                     // Enter "found" string
                     terminal::InputOptions opts;
+                    opts.mode = terminal::Mode::Overwrite;
+                    opts.maxLen = m_searchString.size();
+                    opts.defaultValue = m_foundString;
+                    // Right-pad the default value with dots
+                    if (opts.defaultValue.size() < opts.maxLen) {
+                        for (std::size_t n = opts.defaultValue.size(); n < opts.maxLen; ++n) {
+                            opts.defaultValue.push_back('.');
+                        }
+                    }
                     opts.row = 2;
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
@@ -145,6 +154,7 @@ int Ui::run()
                     };
                     opts.maxLen = m_searchString.size();
                     m_foundString = m_term.input(opts);
+                    log(std::format("m_foundString input: '{}'", m_foundString));
                 }
                 break;
             case 'c':
@@ -177,6 +187,7 @@ int Ui::run()
                     // Enter "search" string; implies a restart
                     restart();
                     terminal::InputOptions opts;
+                    opts.defaultValue = m_searchString;
                     opts.row = 1;
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
@@ -191,6 +202,7 @@ int Ui::run()
                         return key;
                     };
                     m_searchString = m_term.input(opts);
+                    log(std::format("m_searchString input: '{}'", m_searchString));
                 }
                 break;
             case keyPress::DOWN:
@@ -392,7 +404,8 @@ void Ui::lookup()
         8,
         3,
         "Searching...",
-        terminal::OutputMode::immediate); // draws immediately, disappears on next m_term.render()
+        terminal::OutputMode::immediate); // draws immediately, disappears on next
+                                          // m_term.render()
     resultsClear();
     std::string lowerCase { m_foundString };
     std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);
