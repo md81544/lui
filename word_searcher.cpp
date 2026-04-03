@@ -18,6 +18,9 @@ void loadFile(std::string_view fileName, std::vector<std::string>& vec)
     if (!file) {
         throw std::runtime_error(std::format("Could not load file {}", fileName));
     }
+    // A large reservation to minimise early re-allocations
+    // as the vector grows
+    vec.reserve(0xFFFF); 
     std::string line;
     while (std::getline(file, line)) {
         vec.emplace_back(line);
@@ -81,11 +84,8 @@ WordSearcher::WordSearcher(
     std::filesystem::path thesaurusFile,
     std::filesystem::path definitionsFile)
 {
-    m_words1.reserve(0xffff);
     loadFile(words1File.string(), m_words1);
-    m_words2.reserve(0xffff);
     loadFile(words2File.string(), m_words2);
-    m_words3.reserve(0xffff);
     loadFile(words3File.string(), m_words3);
     loadThesaurus(thesaurusFile.string(), m_thesaurus);
     loadDefinitions(definitionsFile.string(), m_definitions);
