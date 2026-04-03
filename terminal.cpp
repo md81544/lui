@@ -357,9 +357,11 @@ std::string Terminal::input(InputOptions& opts)
                 done = true;
                 break;
             case keyPress::CTRL_A:
+            case keyPress::HOME:
                 opts.cursorPos = 0;
                 break;
             case keyPress::CTRL_E:
+            case keyPress::END:
                 opts.cursorPos = value.size();
                 break;
             case keyPress::CTRL_U:
