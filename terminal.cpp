@@ -4,6 +4,7 @@
 #include <cctype>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <sys/ioctl.h>
@@ -300,14 +301,22 @@ std::string Terminal::input(InputOptions& opts)
     cursorOn(imm);
     bool done = false;
     while (!done) {
+        // Print the current value
         goTo(opts.row, opts.col, imm);
         setBgColour(opts.bgColour, imm);
         setFgColour(opts.fgColour, imm);
         std::cout << value;
+        // If it's a fixed size then we print underscores
+        // to show available space for entry
+        if (value.size() < opts.maxLen) {
+            for(std::size_t n = 0; n < opts.maxLen - value.size(); ++n) {
+                std::cout << "_";
+            }
+        }
         setFgColour(oldFg, imm);
         setBgColour(oldBg, imm);
-        std::cout << " "; // in case of backspace
-        // Position cursor
+        std::cout << " "; // in case of backspace to overwrite what's left behind
+        // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
         if (opts.restriction == InputRestriction::NumericOnly && ::isalpha(key)
@@ -376,18 +385,28 @@ std::string Terminal::input(InputOptions& opts)
             default:
                 // do nothing
         }
-        // Finally add to value
+        // Finally add/insert to value
         if (!done && key != keyPress::NO_KEY && ::isalnum(key)) {
+            std::size_t localMaxLen = opts.maxLen;
+            if (localMaxLen == 0) {
+                localMaxLen = std::numeric_limits<std::size_t>::max();
+            }
             if (opts.cursorPos == value.size()) {
-                value.push_back(key);
+                if (value.size() < localMaxLen) {
+                    value.push_back(key);
+                }
             } else {
                 if (opts.mode == Mode::Overwrite) {
                     value[opts.cursorPos] = key;
                 } else {
-                    value.insert(value.begin() + opts.cursorPos, key);
+                    if (value.size() < localMaxLen) {
+                        value.insert(value.begin() + opts.cursorPos, key);
+                    }
                 }
             }
-            ++opts.cursorPos;
+            if (opts.cursorPos < localMaxLen) {
+                ++opts.cursorPos;
+            }
         }
     }
     cursorOff(imm);
