@@ -144,6 +144,7 @@ int Ui::run()
                             m_term.bell(terminal::OutputMode::immediate);
                             return keyPress::NO_KEY;
                         }
+                        // TODO: if word separator is added we need to increase the maxLen
                         return key;
                     };
                     opts.maxLen = m_searchString.size();
