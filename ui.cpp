@@ -106,11 +106,9 @@ int Ui::run()
         displayHeader();
         displayResults();
         displayMenu();
-        displayCurrentInput(); // call this just before render() as this sets the cursor position
         m_term.render();
         int keyPress = m_term.getChar();
         log(std::format("Key press: {}", keyPress));
-        keyPress = inputHandleKeyPress(keyPress);
         switch (keyPress) {
             case keyPress::NO_KEY: // key was consumed by input handler
                 break;
@@ -129,14 +127,25 @@ int Ui::run()
                 break;
             case 'f':
             case 'F':
-                // Enter "found" string
-                input(
-                    2,
-                    10,
-                    m_foundString,
-                    [&](int key) { return foundInputValidator(key, m_currentInput.value); },
-                    [&]() { m_foundString = m_currentInput.value; },
-                    m_searchString.size()); // no larger than search string (if entered));
+                {
+                    // Enter "found" string
+                    terminal::InputOptions opts;
+                    opts.row = 2;
+                    opts.col = 10;
+                    opts.bgColour = terminal::Colour::BrightCyan;
+                    opts.fgColour = terminal::Colour::Black;
+                    opts.restriction = terminal::InputRestriction::CapitalsOnly;
+                    opts.hook = [&](int key, std::string_view) -> int {
+                        // Disallow spaces
+                        if (key == ' ') {
+                            m_term.bell(terminal::OutputMode::immediate);
+                            return keyPress::NO_KEY;
+                        }
+                        return key;
+                    };
+                    opts.maxLen = m_searchString.size();
+                    m_foundString = m_term.input(opts);
+                }
                 break;
             case 'c':
             case 'C':
@@ -147,7 +156,7 @@ int Ui::run()
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
                     opts.fgColour = terminal::Colour::Black;
-                    //opts.restriction = terminal::InputRestriction::CapitalsOnly;
+                    // opts.restriction = terminal::InputRestriction::CapitalsOnly;
                     opts.mode = terminal::Mode::Overwrite;
                     opts.maxLen = 10;
                     opts.hook = [&](int key, std::string_view) -> int {
@@ -164,19 +173,25 @@ int Ui::run()
                 }
             case 's':
             case 'S':
-                // Enter "search" string; implies a restart
-                restart();
-                input(
-                    1,
-                    10,
-                    m_searchString,
-                    [&](int key) { return generalInputValidator(key, m_currentInput.value); },
-                    [&]() {
-                        m_searchString = m_currentInput.value;
-                        if (m_foundString.empty()) {
-                            m_foundString = std::string(m_searchString.length(), '.');
+                {
+                    // Enter "search" string; implies a restart
+                    restart();
+                    terminal::InputOptions opts;
+                    opts.row = 1;
+                    opts.col = 10;
+                    opts.bgColour = terminal::Colour::BrightCyan;
+                    opts.fgColour = terminal::Colour::Black;
+                    opts.restriction = terminal::InputRestriction::CapitalsOnly;
+                    opts.hook = [&](int key, std::string_view) -> int {
+                        // Disallow spaces
+                        if (key == ' ') {
+                            m_term.bell(terminal::OutputMode::immediate);
+                            return keyPress::NO_KEY;
                         }
-                    });
+                        return key;
+                    };
+                    m_searchString = m_term.input(opts);
+                }
                 break;
             case keyPress::DOWN:
                 if (!m_resultsScrollAtBottom) {
@@ -231,25 +246,6 @@ void Ui::displayHeader()
     m_term.goTo(4, 1);
     m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ");
     m_term.printAt(4, 10, m_clue);
-}
-
-void Ui::displayCurrentInput()
-{
-    if (!m_currentInput.active) {
-        m_term.cursorOff();
-        return;
-    }
-    terminal::Colour oldColdBgColour = m_term.getBgColour();
-    terminal::Colour oldColdFgColour = m_term.getFgColour();
-    m_term.setBgColour(terminal::Colour::BrightCyan);
-    m_term.setFgColour(terminal::Colour::Black);
-    m_term.printAt(m_currentInput.displayAtRow, m_currentInput.displayAtCol, m_currentInput.value);
-    m_term.setBgColour(oldColdBgColour);
-    m_term.setFgColour(oldColdFgColour);
-    m_term.clearToEndOfLine();
-    m_term.cursorOn();
-    m_term.goTo(
-        m_currentInput.displayAtRow, m_currentInput.displayAtCol + m_currentInput.cursorPos);
 }
 
 void Ui::displayResults()
@@ -319,139 +315,6 @@ void Ui::displayMenu()
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
         "_Anagram _Lookup _Define _Note st_Ore r_Etrieve re_Start _Quit");
-}
-
-void Ui::input(
-    std::size_t row,
-    std::size_t col,
-    std::string defaultValue,
-    std::function<bool(int key)> validator,
-    std::function<void()> callback,
-    std::size_t maxSize, /* = 0 */
-    bool upperCase /* = true */)
-{
-    m_currentInput.inputMode = InputMode::Append;
-    if (!defaultValue.empty()) {
-        m_currentInput.inputMode = InputMode::Overwrite;
-    }
-    m_currentInput.active = true;
-    m_currentInput.value = defaultValue;
-    if (m_currentInput.inputMode == InputMode::Overwrite) {
-        m_currentInput.cursorPos = 0;
-    } else {
-        m_currentInput.cursorPos = m_currentInput.value.size();
-    }
-    m_currentInput.displayAtRow = row;
-    m_currentInput.displayAtCol = col;
-    m_currentInput.maxSize = maxSize;
-    m_currentInput.callback = callback;
-    m_currentInput.validator = validator;
-    m_currentInput.upperCaseOnly = upperCase;
-}
-
-int Ui::inputHandleKeyPress(int key)
-{
-    CurrentInput& ci = m_currentInput; // just for readbility
-    if (!ci.active) {
-        return key;
-    }
-    // If we don't handle the key here we return it for higher-level handling
-    // e.g. Ctrl-C
-
-    // Substitute space for wildcard:
-    if (key == keyPress::SPACE) {
-        key = '.';
-    }
-
-    // Regular letters:
-    if (((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z')) || key == '.') {
-        if (ci.validator(key)) {
-            if (ci.upperCaseOnly) {
-                key = toupper(key);
-            }
-            if (ci.cursorPos == ci.value.size()) {
-                // Only add characters if we haven't hit max size
-                if (ci.maxSize == 0 || ci.value.size() < ci.maxSize) {
-                    ci.value += key;
-                    ++ci.cursorPos;
-                }
-            } else {
-                if (ci.value[ci.cursorPos] == '/') {
-                    ci.value.erase(ci.cursorPos, 1);
-                }
-                ci.value[ci.cursorPos] = key;
-                ++ci.cursorPos;
-            }
-        }
-        return keyPress::NO_KEY; // signifies we've swallowed this key
-    } else {
-        // Special keys
-        switch (key) {
-            case keyPress::ENTER:
-                ci.callback();
-                ci.active = false;
-                return keyPress::NO_KEY;
-            case keyPress::ESC:
-                ci.active = false;
-                return keyPress::NO_KEY;
-            case '/':
-                // Don't allow a separator immediately next
-                // to an existing one or at the very end or start
-                if (ci.cursorPos > 0 && ci.cursorPos < ci.value.size()
-                    && !(
-                        ci.value[ci.cursorPos] == '/' || ci.value[ci.cursorPos - 1] == '/'
-                        || ci.value[ci.cursorPos + 1] == '/')) {
-                    ci.value.insert(ci.cursorPos, 1, key);
-                    if (ci.maxSize != 0) {
-                        ++ci.maxSize;
-                    }
-                    ++ci.cursorPos;
-                }
-                return keyPress::NO_KEY;
-            case keyPress::SPACE:
-                return keyPress::NO_KEY;
-            case keyPress::BACKSPACE:
-                if (ci.value[ci.cursorPos] == '/') {
-                    ci.value.erase(ci.cursorPos, 1);
-                    return keyPress::NO_KEY;
-                }
-                if (ci.inputMode == InputMode::Overwrite) {
-                    if (ci.cursorPos > 0) {
-                        --ci.cursorPos;
-                    }
-                    ci.value[ci.cursorPos] = '.';
-                } else {
-                    if (ci.cursorPos > 0) {
-                        --ci.cursorPos;
-                    }
-                    ci.value.erase(ci.cursorPos, 1);
-                }
-                return keyPress::NO_KEY;
-            case keyPress::LEFT:
-                if (ci.cursorPos > 0) {
-                    --ci.cursorPos;
-                }
-                return keyPress::NO_KEY;
-            case keyPress::RIGHT:
-                if (ci.cursorPos < m_currentInput.value.size()) {
-                    ++ci.cursorPos;
-                }
-                return keyPress::NO_KEY;
-            case keyPress::CTRL_E:
-                ci.cursorPos = ci.value.size();
-                return keyPress::NO_KEY;
-            case keyPress::CTRL_A:
-                ci.cursorPos = 0;
-                return keyPress::NO_KEY;
-            case keyPress::CTRL_U:
-                ci.value.clear();
-                ci.cursorPos = 0;
-                return keyPress::NO_KEY;
-            default:
-                // do nothing; key returned below
-        }
-    }
-    return key;
 }
 
 void Ui::restart()
@@ -579,44 +442,6 @@ std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
     }
     // If we get here we could not locate the data needed
     throw std::runtime_error("Could not locate data directory");
-}
-
-bool Ui::foundInputValidator(int key, std::string_view currentFoundString)
-{
-    // This is used in the validator specifically for "found" string input.
-    // A key is only allowed if it exists in the search string and
-    // hasn't already been used in the currentFoundString.
-    // For example "REPMUCOT" would return true for 'R' but a second 'R'
-    // would return false.
-
-    // First chain the general input validator
-    if (!generalInputValidator(key, currentFoundString)) {
-        return false;
-    }
-    if (key == '.' || m_searchString.empty()) {
-        return true;
-    }
-    int upperKey = ::toupper(key);
-    if (m_searchString.contains(::toupper(upperKey))) {
-        // Check it hasn't already been used
-        if (std::ranges::count(currentFoundString, upperKey)
-            < std::ranges::count(m_searchString, upperKey)) {
-            return true;
-        }
-    }
-    m_term.bell();
-    return false;
-}
-
-bool Ui::generalInputValidator(
-    int key [[maybe_unused]],
-    std::string_view currentFoundString [[maybe_unused]])
-{
-    // General validation
-    // Intended to be chained from other validators or used directly
-    // by input().
-    // Currently does nothing
-    return true;
 }
 
 } // namespace ui
