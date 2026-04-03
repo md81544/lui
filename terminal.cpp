@@ -262,7 +262,6 @@ void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg
     if (!m_isTty) {
         return;
     }
-    // Go to position:
     goTo(row, col, mode);
     output( utfOrAscii("┌─", "+-"), mode);
     for (std::size_t n = 0; n < msg.size(); ++n) {
