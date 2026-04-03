@@ -2,8 +2,6 @@
 
 // Ui is intended to be the main program interface.
 // This controls output via the Terminal class
-// and adds some higher-level functions for that
-// e.g. string input.
 
 #include "terminal.h"
 #include "word_searcher.h"
