@@ -28,7 +28,7 @@ private:
     void checkForTerminalResize();
     void resultsClear();
     void resultsSet(const std::vector<std::string>& vec);
-    void displayHeader();
+    void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayResults();
     void displayMenu();
     void restart();

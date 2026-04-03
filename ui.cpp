@@ -133,12 +133,6 @@ int Ui::run()
                     opts.mode = terminal::Mode::Overwrite;
                     opts.maxLen = m_searchString.size();
                     opts.defaultValue = m_foundString;
-                    // Right-pad the default value with dots
-                    if (opts.defaultValue.size() < opts.maxLen) {
-                        for (std::size_t n = opts.defaultValue.size(); n < opts.maxLen; ++n) {
-                            opts.defaultValue.push_back('.');
-                        }
-                    }
                     opts.row = 2;
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
@@ -186,6 +180,7 @@ int Ui::run()
                 {
                     // Enter "search" string; implies a restart
                     restart();
+                    displayHeader(terminal::OutputMode::immediate);
                     terminal::InputOptions opts;
                     opts.defaultValue = m_searchString;
                     opts.row = 1;
@@ -202,6 +197,7 @@ int Ui::run()
                         return key;
                     };
                     m_searchString = m_term.input(opts);
+                    m_foundString = std::string(m_searchString.size(), '.');
                     log(std::format("m_searchString input: '{}'", m_searchString));
                 }
                 break;
@@ -241,23 +237,30 @@ void Ui::resultsSet(const std::vector<std::string>& vec)
     m_resultsScrollOffset = 0;
 }
 
-void Ui::displayHeader()
+void Ui::displayHeader(terminal::OutputMode mode)
 {
-    m_term.goTo(1, 1);
-    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ");
+    // Can use immediate mode to clear the header before an input (which is immediate)
+    m_term.goTo(1, 1, mode);
+    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ", mode);
     if (!m_searchString.empty()) {
         m_term.printAt(
-            1, 10, std::format("{}  ({} letters)", m_searchString, m_searchString.size()));
+            1, 10, std::format("{}  ({} letters)", m_searchString, m_searchString.size()), mode);
     }
-    m_term.goTo(2, 1);
-    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ");
-    m_term.printAt(2, 10, m_foundString);
-    m_term.goTo(3, 1);
-    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Comment: ");
-    m_term.printAt(3, 10, m_comment);
-    m_term.goTo(4, 1);
-    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ");
-    m_term.printAt(4, 10, m_clue);
+    m_term.clearToEndOfLine(mode);
+    m_term.goTo(2, 1, mode);
+    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ", mode);
+    m_term.clearToEndOfLine(mode);
+    m_term.printAt(2, 10, m_foundString, mode);
+    m_term.clearToEndOfLine(mode);
+    m_term.goTo(3, 1, mode);
+    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Comment: ", mode);
+    m_term.clearToEndOfLine(mode);
+    m_term.printAt(3, 10, m_comment, mode);
+    m_term.clearToEndOfLine(mode);
+    m_term.goTo(4, 1, mode);
+    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ", mode);
+    m_term.printAt(4, 10, m_clue, mode);
+    m_term.clearToEndOfLine(mode);
 }
 
 void Ui::displayResults()
