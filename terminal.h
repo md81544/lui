@@ -48,11 +48,17 @@ enum class Mode {
     Overwrite,
 };
 
-enum class InputRestriction {
-    None,
-    CapitalsOnly, // lower case will be converted
-    NumericOnly,  // non-numerics will be ignored,
+// Input keys allowed; these are for convenience. The caller is free
+// to add more complex rules via the hook callback.
+// clang-format off
+enum class KeysAllowed {
+    All,             // No restriction
+    Alphanum,        // Alphas and numerics only allowed
+    CapitalAlpha,    // lower case will be CONVERTED, numbers ignored
+    Numeric,         // non-numerics will be ignored
+    CapitalAlphanum, // lower case will be CONVERTED, numbers allowed
 };
+// clang-format on
 
 struct InputOptions {
     std::size_t row;
@@ -65,7 +71,7 @@ struct InputOptions {
     Colour bgColour { Colour::Default };
     // Restriction is for convenience, the caller is free to use
     // more logic in the hook callback.
-    InputRestriction restriction { InputRestriction::None };
+    KeysAllowed keysAllowed { KeysAllowed::All };
     // Hook is called after a key is pressed, before it is appended to
     // the input string. Default does nothing. To disallow a key,
     // return keyPress::NO_KEY.
