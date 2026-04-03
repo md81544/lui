@@ -294,6 +294,10 @@ std::string Terminal::input(InputOptions& opts)
     }
     constexpr OutputMode imm = OutputMode::immediate;
     std::string value { opts.defaultValue };
+    Colour oldFg = getFgColour();
+    Colour oldBg = getBgColour();
+    setBgColour(opts.bgColour, imm);
+    setFgColour(opts.fgColour, imm);
     cursorOn(imm);
     while (true) {
         goTo(opts.row, opts.col, imm);
@@ -313,6 +317,8 @@ std::string Terminal::input(InputOptions& opts)
             break;
         }
     }
+    setFgColour(oldFg, imm);
+    setBgColour(oldBg, imm);
     cursorOff(imm);
     return value;
 }
