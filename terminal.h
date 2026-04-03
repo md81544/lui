@@ -49,8 +49,10 @@ enum class Mode {
 };
 
 struct InputOptions {
-    std::string prompt {};
+    std::size_t row;
+    std::size_t col;
     std::size_t maxLen { 0 };
+    std::size_t cursorPos { 0 };
     std::string defaultValue {};
     Mode mode { Mode::Insert };
     Colour fgColour { Colour::Default };
@@ -59,7 +61,11 @@ struct InputOptions {
     bool alphaOnly { false };
     bool numericOnly { false };
     bool numericIntegerOnly { false };
-    std::function<char(char c, std::string)> hook { [](char c, std::string) { return c; } };
+    // Hook is called after a key is pressed, before it is appended to
+    // the input string. Default does nothing.
+    std::function<int(int key, const std::string_view currentString)> hook {
+        [](int key, const std::string_view) -> int { return key; }
+    };
 };
 
 class Terminal final {
@@ -115,14 +121,13 @@ public:
         std::size_t col,
         std::string_view msg,
         OutputMode mode = OutputMode::render);
-    // Input is always immediate mode:
-    std::string input(InputOptions opts);
-    std::string inputAt(std::size_t row, std::size_t col, InputOptions opts);
+    // input() is always immediate mode:
+    std::string input(InputOptions& opts);
 
 private:
     // if UTF is supported, return utfVersion, otherwise return asciiVersion
     std::string_view utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion);
-    // Output either to render string or direct depending on mode:
+    // Output either to render string or direct depending on mode parameter:
     void output(std::string_view text, OutputMode mode = OutputMode::render);
     std::string colourToAnsiFg(Colour colour);
     std::string colourToAnsiBg(Colour colour);

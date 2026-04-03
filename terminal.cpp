@@ -212,7 +212,11 @@ void Terminal::bell(OutputMode mode)
     }
 }
 
-void Terminal::printMenuString(Colour normal, Colour highlight, std::string_view text, OutputMode mode)
+void Terminal::printMenuString(
+    Colour normal,
+    Colour highlight,
+    std::string_view text,
+    OutputMode mode)
 {
     bool highlighting { false };
     setFgColour(normal, mode);
@@ -263,9 +267,9 @@ void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg
         return;
     }
     goTo(row, col, mode);
-    output( utfOrAscii("┌─", "+-"), mode);
+    output(utfOrAscii("┌─", "+-"), mode);
     for (std::size_t n = 0; n < msg.size(); ++n) {
-        output( utfOrAscii("─", "-"), mode);
+        output(utfOrAscii("─", "-"), mode);
     }
     output(utfOrAscii("─┐", "-+"), mode);
     goTo(row + 1, col, mode);
@@ -279,7 +283,7 @@ void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg
     output(utfOrAscii("─┘", "-+"), mode);
 }
 
-std::string Terminal::input(InputOptions opts)
+std::string Terminal::input(InputOptions& opts)
 {
     // Note, not using readline library here. While readline (GNU especially)
     // has hooks to probably cover needs, it IS a separate dependency which
@@ -288,22 +292,29 @@ std::string Terminal::input(InputOptions opts)
     if (!m_isTty) {
         return std::string {};
     }
+    constexpr OutputMode imm = OutputMode::immediate;
     std::string value { opts.defaultValue };
-    saveCursorPosition(OutputMode::immediate);
+    cursorOn(imm);
     while (true) {
+        goTo(opts.row, opts.col, imm);
+        std::cout << value << " ";
+        // Position cursor at end of input
+        goTo(opts.row, opts.col + value.size(), imm);
         // TODO lots of stuff
         int key = getChar();
+        // Call any hook the caller set:
+        key = opts.hook(key, value);
+        if (key != keyPress::NO_KEY) {
+            if (::isascii(key)) {
+                value.push_back(key);
+            }
+        }
         if (key == keyPress::ENTER) {
             break;
         }
     }
+    cursorOff(imm);
     return value;
-}
-
-std::string Terminal::inputAt(std::size_t row, std::size_t col, InputOptions opts)
-{
-    goTo(row, col, OutputMode::immediate);
-    return input(opts);
 }
 
 // Private member functions:

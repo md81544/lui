@@ -135,6 +135,23 @@ int Ui::run()
                     [&]() { m_foundString = m_currentInput.value; },
                     m_searchString.size()); // no larger than search string (if entered));
                 break;
+            case 'c':
+            case 'C':
+                {
+                    // TODO: This is just test code for the new Terminal::input()
+                    terminal::InputOptions opts;
+                    opts.row = 3;
+                    opts.col = 10; 
+                    opts.hook = [&](int key, const std::string_view) -> int {
+                        // Example hook to disallow a specific character
+                        if (key == ' ') {
+                            m_term.bell(terminal::OutputMode::immediate);
+                            return keyPress::NO_KEY;
+                        }
+                        return key;};
+                    std::string foo = m_term.input(opts);
+                    break;
+                }
             case 's':
             case 'S':
                 // Enter "search" string; implies a restart
