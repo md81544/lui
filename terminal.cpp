@@ -283,18 +283,22 @@ void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg
 
 std::string Terminal::input(InputOptions opts)
 {
+    // Note, not using readline library here. While readline (GNU especially)
+    // has hooks to probably cover needs, it IS a separate dependency which
+    // may or may not be available when compiling (and will need -I locations
+    // determining, especially if installed by homebrew). This should suffice.
     if (!m_isTty) {
         return std::string {};
     }
     std::string value { opts.defaultValue };
     saveCursorPosition(OutputMode::immediate);
     while (true) {
+        // TODO lots of stuff
         int key = getChar();
         if (key == keyPress::ENTER) {
             break;
         }
     }
-    // TODO stuff
     return value;
 }
 
