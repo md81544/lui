@@ -70,6 +70,9 @@ Ui::Ui(std::string_view argv0)
     log("DEBUG LOG");
     const auto dataDir = locateDataDirectory(argv0);
     m_term.printAt(1, 2, "Loading data...");
+#ifndef NDEBUG
+    m_term.printAt(3, 2, "*** DEBUG BUILD ***");
+#endif
     m_term.cursorOff();
     m_term.render();
     log("Loading data...");
@@ -141,16 +144,18 @@ int Ui::run()
                     // TODO: This is just test code for the new Terminal::input()
                     terminal::InputOptions opts;
                     opts.row = 3;
-                    opts.col = 10; 
+                    opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
                     opts.fgColour = terminal::Colour::Black;
+                    opts.restriction = terminal::InputRestriction::CapitalsOnly;
                     opts.hook = [&](int key, const std::string_view) -> int {
                         // Example hook to disallow a specific character
                         if (key == ' ') {
                             m_term.bell(terminal::OutputMode::immediate);
                             return keyPress::NO_KEY;
                         }
-                        return key;};
+                        return key;
+                    };
                     std::string foo = m_term.input(opts);
                     break;
                 }

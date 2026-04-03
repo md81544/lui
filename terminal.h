@@ -48,6 +48,12 @@ enum class Mode {
     Overwrite,
 };
 
+enum class InputRestriction {
+    None,
+    CapitalsOnly, // lower case will be converted
+    NumericOnly,  // non-numerics will be ignored
+};
+
 struct InputOptions {
     std::size_t row;
     std::size_t col;
@@ -57,12 +63,12 @@ struct InputOptions {
     Mode mode { Mode::Insert };
     Colour fgColour { Colour::Default };
     Colour bgColour { Colour::Default };
-    bool capitalsOnly { false };
-    bool alphaOnly { false };
-    bool numericOnly { false };
-    bool numericIntegerOnly { false };
+    // Restriction is for convenience, the caller is free to use
+    // more logic in the hook callback.
+    InputRestriction restriction { InputRestriction::None };
     // Hook is called after a key is pressed, before it is appended to
-    // the input string. Default does nothing.
+    // the input string. Default does nothing. To disallow a key,
+    // return keyPress::NO_KEY.
     std::function<int(int key, const std::string_view currentString)> hook {
         [](int key, const std::string_view) -> int { return key; }
     };

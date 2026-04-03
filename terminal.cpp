@@ -1,6 +1,7 @@
 #include "terminal.h"
 #include "keypress.h"
 #include <cassert>
+#include <cctype>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -296,29 +297,55 @@ std::string Terminal::input(InputOptions& opts)
     std::string value { opts.defaultValue };
     Colour oldFg = getFgColour();
     Colour oldBg = getBgColour();
-    setBgColour(opts.bgColour, imm);
-    setFgColour(opts.fgColour, imm);
     cursorOn(imm);
-    while (true) {
+    bool done = false;
+    while (!done) {
         goTo(opts.row, opts.col, imm);
-        std::cout << value << " ";
+        setBgColour(opts.bgColour, imm);
+        setFgColour(opts.fgColour, imm);
+        std::cout << value;
+        setFgColour(oldFg, imm);
+        setBgColour(oldBg, imm);
+        std::cout << " "; // in case of backspace
         // Position cursor at end of input
         goTo(opts.row, opts.col + value.size(), imm);
         // TODO lots of stuff
         int key = getChar();
         // Call any hook the caller set:
         key = opts.hook(key, value);
-        if (key != keyPress::NO_KEY) {
-            if (::isascii(key)) {
-                value.push_back(key);
-            }
+        if (opts.restriction == InputRestriction::NumericOnly && ::isalpha(key)
+            && !::isnumber(key)) {
+            key = keyPress::NO_KEY;
         }
-        if (key == keyPress::ENTER) {
-            break;
+        if (opts.restriction == InputRestriction::CapitalsOnly && ::isalpha(key)) {
+            key = ::toupper(key);
+        }
+        // Handle all the non-ascii keys, e.g. Esc or Ctrl-C
+        switch (key) {
+            case keyPress::ENTER:
+                done = true;
+                break;
+            case keyPress::BACKSPACE:
+                value.pop_back(); // TODO need to handle case where cursor is not at end
+                break;
+            case keyPress::ESC:
+            case keyPress::CTRL_C:
+                value = opts.defaultValue;
+                done = true;
+                break;
+            case keyPress::CTRL_A:
+            case keyPress::CTRL_E:
+            case keyPress::CTRL_U:
+                // TODO handle these
+                break;
+            default:
+                // do nothing
+        }
+        // Finally add to value
+        if (!done && key != keyPress::NO_KEY && ::isalnum(key)) {
+            value.push_back(key);
         }
     }
-    setFgColour(oldFg, imm);
-    setBgColour(oldBg, imm);
     cursorOff(imm);
     return value;
 }
