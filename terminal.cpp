@@ -320,16 +320,51 @@ std::string Terminal::input(InputOptions& opts)
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
-        if (opts.keysAllowed == KeysAllowed::CapitalAlpha && ::isdigit(key)) {
-            key = keyPress::NO_KEY;
-        }
-        if (opts.keysAllowed == KeysAllowed::CapitalAlpha && ::isalpha(key)) {
-            key = ::toupper(key);
+        // <cctype> functions' behaviour is undefined if key is not an unsigned char,
+        // so we only check if key is convertible:
+        if (key >= 32 && key < 127) {
+            switch (opts.keysAllowed) {
+                case terminal::KeysAllowed::All:
+                    // Nothing to do, all keys allowed
+                    break;
+                case terminal::KeysAllowed::Alphanum:
+                    if (!std::isalnum(key)) {
+                        key = keyPress::NO_KEY;
+                    }
+                    break;
+                case terminal::KeysAllowed::CapitalAlphanum:
+                    if (std::isalnum(key)) {
+                        key = std::toupper(key);
+                    } else {
+                        key = keyPress::NO_KEY;
+                    }
+                    break;
+                case terminal::KeysAllowed::Numeric:
+                    if (!std::isdigit(key)) {
+                        key = keyPress::NO_KEY;
+                    }
+                    break;
+                case terminal::KeysAllowed::CapitalAlpha:
+                    if (std::isalpha(key)) {
+                        key = std::toupper(key);
+                    } else {
+                        key = keyPress::NO_KEY;
+                    }
+                    break;
+                default:
+                    // Unhandled enum
+                    assert(false);
+            }
         }
         // Call any hook the caller set:
         key = opts.hook(key, value);
-        // Handle all the non-ascii keys, e.g. Esc or Ctrl-C
-        switch (key) {
+        // Handle all the "special" keys.
+        // We set key to NO_KEY and only restore it
+        // in the default: section of the switch below so
+        // that key is automatically NO_KEY if handled.
+        int keyOrig = key;
+        key = keyPress::NO_KEY;
+        switch (keyOrig) {
             case keyPress::ENTER:
                 done = true;
                 break;
@@ -385,10 +420,11 @@ std::string Terminal::input(InputOptions& opts)
                 }
                 break;
             default:
-                // do nothing
+                // key was not handled so reset key to keyOrig
+                key = keyOrig;
         }
         // Finally add/insert to value
-        if (!done && key != keyPress::NO_KEY && ::isalnum(key)) {
+        if (!done && key != keyPress::NO_KEY) {
             std::size_t localMaxLen = opts.maxLen;
             if (localMaxLen == 0) {
                 localMaxLen = std::numeric_limits<std::size_t>::max();
