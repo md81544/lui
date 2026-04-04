@@ -49,7 +49,11 @@ enum class Mode {
 };
 
 // Input keys allowed; these are for convenience. The caller is free
-// to add more complex rules via the hook callback.
+// to add more complex rules via the hook callback. Note extended characters
+// are supported, if this is not required then add a check for the key value
+// being between 32 and 126 inclusive in the pre hook.
+// Uses <cctype> checks which probably won't be compatible with many locales. TODO.
+
 // clang-format off
 enum class KeysAllowed {
     All,             // No restriction
@@ -72,13 +76,22 @@ struct InputOptions {
     // Restriction is for convenience, the caller is free to use
     // more logic in the hook callback.
     KeysAllowed keysAllowed { KeysAllowed::All };
-    // Hook is called after a key is pressed, before it is appended to
-    // the input string. Default does nothing. To disallow a key,
-    // return keyPress::NO_KEY.
+    // currentValue allows the hook caller to see the current
+    // state of the input string (and modify it as required).
+    std::string currentValue{};
+    // Hooks are called after a key is pressed, before it is inserted to
+    // the input string (for pre-) and after it is inserted (for post-).
+    // Defaults do nothing. To disallow a key (or cancel the operation
+    // in the post hook), return keyPress::NO_KEY.
     // Note that opts is passed in to input() by reference, so the
     // caller can modify it as part of the hook if needed.
-    std::function<int(int key, std::string_view currentString)> hook {
-        [](int key, std::string_view) -> int { return key; }
+    std::function<int(int key)> preInsertHook {
+        [](int key) -> int { return key; }
+    };
+    // Note post hook returns a bool. A false return indicates the
+    // caller wants to cancel the insertion.
+    std::function<bool()> postInsertHook {
+        []() -> bool { return true; }
     };
 };
 

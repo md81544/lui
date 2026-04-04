@@ -296,7 +296,7 @@ std::string Terminal::input(InputOptions& opts)
         return std::string {};
     }
     constexpr OutputMode imm = OutputMode::immediate;
-    std::string value { opts.defaultValue };
+    opts.currentValue = opts.defaultValue;
     Colour oldFg = getFgColour();
     Colour oldBg = getBgColour();
     cursorOn(imm);
@@ -306,11 +306,11 @@ std::string Terminal::input(InputOptions& opts)
         goTo(opts.row, opts.col, imm);
         setBgColour(opts.bgColour, imm);
         setFgColour(opts.fgColour, imm);
-        std::cout << value;
+        std::cout << opts.currentValue;
         // If it's a fixed size then we print underscores
         // to show available space for entry
-        if (value.size() < opts.maxLen) {
-            for (std::size_t n = 0; n < opts.maxLen - value.size(); ++n) {
+        if (opts.currentValue.size() < opts.maxLen) {
+            for (std::size_t n = 0; n < opts.maxLen - opts.currentValue.size(); ++n) {
                 std::cout << "_";
             }
         }
@@ -356,8 +356,8 @@ std::string Terminal::input(InputOptions& opts)
                     assert(false);
             }
         }
-        // Call any hook the caller set:
-        key = opts.hook(key, value);
+        // Call any pre hook the caller set:
+        key = opts.preInsertHook(key);
         // Handle all the "special" keys.
         // We set key to NO_KEY and only restore it
         // in the default: section of the switch below so
@@ -369,26 +369,29 @@ std::string Terminal::input(InputOptions& opts)
                 done = true;
                 break;
             case keyPress::BACKSPACE:
-                if (!value.empty() && opts.cursorPos > 0) {
-                    if (opts.cursorPos == value.size()) {
-                        value.pop_back();
+                if (!opts.currentValue.empty() && opts.cursorPos > 0) {
+                    if (opts.cursorPos == opts.currentValue.size()) {
+                        opts.currentValue.pop_back();
                     } else {
                         if (opts.cursorPos > 0) {
-                            value.erase(
-                                value.begin() + opts.cursorPos - 1, value.begin() + opts.cursorPos);
+                            opts.currentValue.erase(
+                                opts.currentValue.begin() + opts.cursorPos - 1,
+                                opts.currentValue.begin() + opts.cursorPos);
                         }
                     }
                     --opts.cursorPos;
                 }
                 break;
             case keyPress::DELETE:
-                if (opts.cursorPos < value.size()) {
-                    value.erase(value.begin() + opts.cursorPos, value.begin() + opts.cursorPos + 1);
+                if (opts.cursorPos < opts.currentValue.size()) {
+                    opts.currentValue.erase(
+                        opts.currentValue.begin() + opts.cursorPos,
+                        opts.currentValue.begin() + opts.cursorPos + 1);
                 }
                 break;
             case keyPress::ESC:
             case keyPress::CTRL_C:
-                value = opts.defaultValue;
+                opts.currentValue = opts.defaultValue;
                 done = true;
                 break;
             case keyPress::CTRL_A:
@@ -397,16 +400,21 @@ std::string Terminal::input(InputOptions& opts)
                 break;
             case keyPress::CTRL_E:
             case keyPress::END:
-                opts.cursorPos = value.size();
+                opts.cursorPos = opts.currentValue.size();
+                if (opts.mode == Mode::Overwrite && opts.cursorPos > opts.currentValue.size()
+                    && opts.cursorPos > 0) {
+                    // Don't move cursor outside "box" in overwrite mode
+                    --opts.cursorPos;
+                }
                 break;
             case keyPress::CTRL_U:
                 // need to clear the display, not using clear to end
                 // of line as it might invalidate other parts of the UI
                 goTo(opts.row, opts.col, imm);
-                for (std::size_t n = 0; n < value.size(); ++n) {
+                for (std::size_t n = 0; n < opts.currentValue.size(); ++n) {
                     std::cout << " ";
                 }
-                value.clear();
+                opts.currentValue.clear();
                 opts.cursorPos = 0;
                 break;
             case keyPress::LEFT:
@@ -415,7 +423,7 @@ std::string Terminal::input(InputOptions& opts)
                 }
                 break;
             case keyPress::RIGHT:
-                if (opts.cursorPos < value.size()) {
+                if (opts.cursorPos < opts.currentValue.size()) {
                     ++opts.cursorPos;
                 }
                 break;
@@ -424,21 +432,22 @@ std::string Terminal::input(InputOptions& opts)
                 key = keyOrig;
         }
         // Finally add/insert to value
+        std::string oldValue = opts.currentValue; // for restoration if caller cancels in post hook
         if (!done && key != keyPress::NO_KEY) {
             std::size_t localMaxLen = opts.maxLen;
             if (localMaxLen == 0) {
                 localMaxLen = std::numeric_limits<std::size_t>::max();
             }
-            if (opts.cursorPos == value.size()) {
-                if (value.size() < localMaxLen) {
-                    value.push_back(key);
+            if (opts.cursorPos == opts.currentValue.size()) {
+                if (opts.currentValue.size() < localMaxLen) {
+                    opts.currentValue.push_back(key);
                 }
             } else {
                 if (opts.mode == Mode::Overwrite) {
-                    value[opts.cursorPos] = key;
+                    opts.currentValue[opts.cursorPos] = key;
                 } else {
-                    if (value.size() < localMaxLen) {
-                        value.insert(value.begin() + opts.cursorPos, key);
+                    if (opts.currentValue.size() < localMaxLen) {
+                        opts.currentValue.insert(opts.currentValue.begin() + opts.cursorPos, key);
                     }
                 }
             }
@@ -446,9 +455,14 @@ std::string Terminal::input(InputOptions& opts)
                 ++opts.cursorPos;
             }
         }
+        // Call any post hook the caller set:
+        if(!opts.postInsertHook()){ 
+            // false signifies the caller wants to abort the insertion
+            opts.currentValue = oldValue;
+        }
     }
     cursorOff(imm);
-    return value;
+    return opts.currentValue;
 }
 
 // Private member functions:

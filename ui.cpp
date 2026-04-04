@@ -137,15 +137,37 @@ int Ui::run()
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::BrightCyan;
                     opts.fgColour = terminal::Colour::Black;
-                    opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
-                    opts.hook = [&](int key, std::string_view) -> int {
-                        // Disallow spaces
-                        if (key == ' ') {
-                            m_term.bell(terminal::OutputMode::immediate);
+                    // Because we have a special use case here we allow all entry
+                    // and handle it specifically in the callback hook
+                    opts.keysAllowed = terminal::KeysAllowed::All;
+                    opts.preInsertHook = [&](int key) -> int {
+                        if (key < keyPress::NO_KEY) {
+                            // disallow extended characters, e.g. 'é'
                             return keyPress::NO_KEY;
                         }
-                        // TODO: if word separator is added we need to increase the maxLen
+                        if (key >= 32 && key < 127) {
+                            // Disallow spaces
+                            if (key == ' ') {
+                                m_term.bell(terminal::OutputMode::immediate);
+                                return keyPress::NO_KEY;
+                            }
+                            if (key == '/') {
+                                ++opts.maxLen;
+                                // TODO disallow '/' at beginning, end, or adjacent to another '/'
+                            } else {
+                                if (!std::isalpha(key)) {
+                                    return keyPress::NO_KEY;
+                                } else {
+                                    return std::toupper(key);
+                                }
+                            }
+                        }
                         return key;
+                    };
+                    opts.postInsertHook = [&]() -> bool {
+                        auto debugtmp = std::string(opts.maxLen - opts.currentValue.size(), '.');
+                        opts.currentValue.append(debugtmp);
+                        return true;
                     };
                     opts.maxLen = m_searchString.size();
                     m_foundString = m_term.input(opts);
@@ -179,10 +201,14 @@ int Ui::run()
                     opts.bgColour = terminal::Colour::BrightCyan;
                     opts.fgColour = terminal::Colour::Black;
                     opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
-                    opts.hook = [&](int key, std::string_view) -> int {
+                    opts.preInsertHook = [&](int key) -> int {
                         // Disallow spaces
                         if (key == ' ') {
                             m_term.bell(terminal::OutputMode::immediate);
+                            return keyPress::NO_KEY;
+                        }
+                        if (key < keyPress::NO_KEY) {
+                            // disallow extended characters
                             return keyPress::NO_KEY;
                         }
                         return key;
@@ -232,24 +258,28 @@ void Ui::displayHeader(terminal::OutputMode mode)
 {
     // Can use immediate mode to clear the header before an input (which is immediate)
     m_term.goTo(1, 1, mode);
-    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ", mode);
+    m_term.printMenuString(
+        terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ", mode);
     if (!m_searchString.empty()) {
         m_term.printAt(
             1, 10, std::format("{}  ({} letters)", m_searchString, m_searchString.size()), mode);
     }
     m_term.clearToEndOfLine(mode);
     m_term.goTo(2, 1, mode);
-    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ", mode);
+    m_term.printMenuString(
+        terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ", mode);
     m_term.clearToEndOfLine(mode);
     m_term.printAt(2, 10, m_foundString, mode);
     m_term.clearToEndOfLine(mode);
     m_term.goTo(3, 1, mode);
-    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "_Comment: ", mode);
+    m_term.printMenuString(
+        terminal::Colour::Default, terminal::Colour::BrightWhite, "_Comment: ", mode);
     m_term.clearToEndOfLine(mode);
     m_term.printAt(3, 10, m_comment, mode);
     m_term.clearToEndOfLine(mode);
     m_term.goTo(4, 1, mode);
-    m_term.printMenuString(terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ", mode);
+    m_term.printMenuString(
+        terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ", mode);
     m_term.printAt(4, 10, m_clue, mode);
     m_term.clearToEndOfLine(mode);
 }
