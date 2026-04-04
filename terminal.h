@@ -55,6 +55,7 @@ enum class Mode {
 // Uses <cctype> checks which probably won't be compatible with many locales. TODO.
 
 // clang-format off
+// TODO: this should be a std::bitset to allow for combination of options
 enum class KeysAllowed {
     All,             // No restriction
     Alphanum,        // Alphas and numerics only allowed
