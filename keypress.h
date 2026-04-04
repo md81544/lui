@@ -137,10 +137,14 @@ inline std::optional<int> getKeyPress(bool blocking = true)
                     return HOME;
                 } else if (seq[0] == 'F') {
                     return END;
+                } else if (seq[0] == '1' && seq[1] == '~') { // VT220 variant for home
+                    return HOME;
                 } else if (seq[0] == '2' && seq[1] == '~') {
                     return INSERT;
                 } else if (seq[0] == '3' && seq[1] == '~') {
                     return DELETE;
+                } else if (seq[0] == '4' && seq[1] == '~') { // VT220 variant for end
+                    return END;
                 } else if (seq[0] == '5' && seq[1] == '~') {
                     return PGUP;
                 } else if (seq[0] == '6' && seq[1] == '~') {

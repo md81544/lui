@@ -320,6 +320,9 @@ std::string Terminal::input(InputOptions& opts)
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
+        if (key == keyPress::UNKNOWN) {
+            key = keyPress::NO_KEY;
+        }
         // <cctype> functions' behaviour is undefined if key is not an unsigned char,
         // so we only check if key is convertible:
         if (key >= 32 && key < 127) {
@@ -400,11 +403,11 @@ std::string Terminal::input(InputOptions& opts)
                 break;
             case keyPress::CTRL_E:
             case keyPress::END:
-                opts.cursorPos = opts.currentValue.size();
-                if (opts.mode == Mode::Overwrite && opts.cursorPos > opts.currentValue.size()
-                    && opts.cursorPos > 0) {
+                if (opts.mode == Mode::Overwrite) {
                     // Don't move cursor outside "box" in overwrite mode
-                    --opts.cursorPos;
+                    opts.cursorPos = opts.currentValue.size() - 1;
+                } else {
+                    opts.cursorPos = opts.currentValue.size();
                 }
                 break;
             case keyPress::CTRL_U:
@@ -456,7 +459,7 @@ std::string Terminal::input(InputOptions& opts)
             }
         }
         // Call any post hook the caller set:
-        if(!opts.postInsertHook()){ 
+        if (!opts.postInsertHook()) {
             // false signifies the caller wants to abort the insertion
             opts.currentValue = oldValue;
         }
