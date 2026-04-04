@@ -14,8 +14,6 @@
             "type": "lldb",
             "request": "attach",
             "program": "${workspaceRoot}/lui",
-            "args": [],
-            "cwd": "${workspaceRoot}",
         },
     ]
 }
