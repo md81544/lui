@@ -354,7 +354,8 @@ std::string Terminal::input(InputOptions& opts)
         }
         setFgColour(oldFg, imm);
         setBgColour(oldBg, imm);
-        std::cout << " "; // in case of backspace to overwrite what's left behind
+        clearToEndOfLine(imm); // See note in header; this works around tmux behaviour;
+                               // Downside is anything after the input will be cleared.
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();

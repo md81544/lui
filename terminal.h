@@ -157,6 +157,11 @@ public:
         std::string_view msg,
         OutputMode mode = OutputMode::render);
     // input() is always immediate mode:
+    // NOTE! As it stands, input will clear to end of line
+    // as characters are entered. This is deliberate to avoid an
+    // issue where tmux displays *pasted* input (which might be
+    // longer than a fixed-width input) before we even get a chance
+    // to see each individual "key press" from the pasted string.
     std::string input(InputOptions& opts);
 
 private:

@@ -144,7 +144,7 @@ int Ui::run()
                     // and handle it specifically in the callback hook
                     opts.keysAllowed = terminal::KeysAllowed::All;
                     opts.preInsertHook = [&](int key) -> int {
-                        if (key < keyPress::NO_KEY) {
+                        if (key < 0) {
                             // disallow extended characters, e.g. 'é'
                             return keyPress::NO_KEY;
                         }
