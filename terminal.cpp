@@ -58,6 +58,7 @@ Terminal::~Terminal()
 {
     if (m_isTty) {
         std::cout << "\033[?25h"; // cursor unhide in case it was off
+        setCursorType(CursorType::Default, OutputMode::immediate); // reset any cursor change
         std::cout << "\033[?1049l" << std::flush; // switch back to normal screen
     }
 }
@@ -145,6 +146,41 @@ void Terminal::cursorLeft(uint8_t n, OutputMode mode)
     if (m_isTty) {
         output("\033[" + std::to_string(n) + "D", mode);
     }
+}
+
+void Terminal::setCursorType(CursorType type, OutputMode mode)
+{
+    if (!m_isTty) {
+        return;
+    }
+    output("\033[", mode);
+    switch (type) {
+        case CursorType::Default:
+            output("0", mode);
+            break;
+        case CursorType::BlockBlinking:
+            output("1", mode);
+            break;
+        case CursorType::BlockSteady:
+            output("2", mode);
+            break;
+        case CursorType::UnderlineBlinking:
+            output("3", mode);
+            break;
+        case CursorType::UnderlineSteady:
+            output("4", mode);
+            break;
+        case CursorType::VLineBlinking:
+            output("5", mode);
+            break;
+        case CursorType::VlineSteady:
+            output("6", mode);
+            break;
+        default:
+            output("0", mode);
+            assert("Unhandled CursorType enum");
+    }
+    output(" q", mode);
 }
 
 void Terminal::clearToEndOfLine(OutputMode mode)
@@ -298,6 +334,11 @@ std::string Terminal::input(InputOptions& opts)
     Colour oldBg = getBgColour();
     cursorOn(imm);
     bool done = false;
+    if (opts.mode == Mode::Insert) {
+        setCursorType(CursorType::VLineBlinking, imm);
+    } else {
+        setCursorType(CursorType::BlockBlinking, imm);
+    }
     while (!done) {
         // Print the current value
         goTo(opts.row, opts.col, imm);

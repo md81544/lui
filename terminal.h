@@ -43,6 +43,16 @@ enum class Colour : std::uint8_t {
     BrightWhite,
 };
 
+enum class CursorType {
+    Default,
+    BlockBlinking,
+    BlockSteady,
+    UnderlineBlinking,
+    UnderlineSteady,
+    VLineBlinking,
+    VlineSteady,
+};
+
 enum class Mode {
     Insert,
     Overwrite,
@@ -79,21 +89,17 @@ struct InputOptions {
     KeysAllowed keysAllowed { KeysAllowed::All };
     // currentValue allows the hook caller to see the current
     // state of the input string (and modify it as required).
-    std::string currentValue{};
+    std::string currentValue {};
     // Hooks are called after a key is pressed, before it is inserted to
     // the input string (for pre-) and after it is inserted (for post-).
     // Defaults do nothing. To disallow a key (or cancel the operation
     // in the post hook), return keyPress::NO_KEY.
     // Note that opts is passed in to input() by reference, so the
     // caller can modify it as part of the hook if needed.
-    std::function<int(int key)> preInsertHook {
-        [](int key) -> int { return key; }
-    };
+    std::function<int(int key)> preInsertHook { [](int key) -> int { return key; } };
     // Note post hook returns a bool. A false return indicates the
     // caller wants to cancel the insertion.
-    std::function<bool()> postInsertHook {
-        []() -> bool { return true; }
-    };
+    std::function<bool()> postInsertHook { []() -> bool { return true; } };
 };
 
 class Terminal final {
@@ -120,6 +126,7 @@ public:
     void cursorDown(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorRight(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorLeft(uint8_t n, OutputMode mode = OutputMode::render);
+    void setCursorType(CursorType type, OutputMode = OutputMode::render);
     void clearToEndOfLine(OutputMode mode = OutputMode::render);
     void clearToStartOfLine(OutputMode mode = OutputMode::render);
     void clearLine(OutputMode mode = OutputMode::render);

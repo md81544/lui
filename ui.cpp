@@ -135,8 +135,8 @@ int Ui::run()
                     opts.defaultValue = m_foundString;
                     opts.row = 2;
                     opts.col = 10;
-                    opts.bgColour = terminal::Colour::BrightCyan;
-                    opts.fgColour = terminal::Colour::Black;
+                    opts.bgColour = terminal::Colour::Grey;
+                    opts.fgColour = terminal::Colour::White;
                     // Because we have a special use case here we allow all entry
                     // and handle it specifically in the callback hook
                     opts.keysAllowed = terminal::KeysAllowed::All;
@@ -152,8 +152,13 @@ int Ui::run()
                                 return keyPress::NO_KEY;
                             }
                             if (key == '/') {
+                                // Disallow entry of separator at beginning or end
+                                if (opts.cursorPos == 0
+                                    || opts.cursorPos > opts.currentValue.size() - 1) {
+                                    return keyPress::NO_KEY;
+                                }
                                 ++opts.maxLen;
-                                // TODO disallow '/' at beginning, end, or adjacent to another '/'
+                                // TODO disallow adjacent to another '/'
                             } else {
                                 if (!std::isalpha(key)) {
                                     return keyPress::NO_KEY;
@@ -165,6 +170,7 @@ int Ui::run()
                         return key;
                     };
                     opts.postInsertHook = [&]() -> bool {
+                        // Always pad out with dots
                         auto debugtmp = std::string(opts.maxLen - opts.currentValue.size(), '.');
                         opts.currentValue.append(debugtmp);
                         return true;
@@ -181,8 +187,8 @@ int Ui::run()
                     terminal::InputOptions opts;
                     opts.row = 3;
                     opts.col = 10;
-                    opts.bgColour = terminal::Colour::BrightCyan;
-                    opts.fgColour = terminal::Colour::Black;
+                    opts.bgColour = terminal::Colour::Grey;
+                    opts.fgColour = terminal::Colour::White;
                     opts.mode = terminal::Mode::Overwrite;
                     std::string foo = m_term.input(opts);
                     log(std::format("string entered: '{}'", foo));
@@ -198,8 +204,8 @@ int Ui::run()
                     opts.defaultValue = m_searchString;
                     opts.row = 1;
                     opts.col = 10;
-                    opts.bgColour = terminal::Colour::BrightCyan;
-                    opts.fgColour = terminal::Colour::Black;
+                    opts.bgColour = terminal::Colour::Grey;
+                    opts.fgColour = terminal::Colour::White;
                     opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
                     opts.preInsertHook = [&](int key) -> int {
                         // Disallow spaces
