@@ -202,9 +202,6 @@ int Terminal::getChar()
         return keyPress::ESC;
     }
     auto key = keyPress::getKeyPress();
-    // key should never been nullopt because
-    // we didn't call getKeyPress() in non-blocking mode
-    assert(key.has_value());
     return key.value_or(keyPress::NO_KEY);
 }
 
@@ -320,9 +317,6 @@ std::string Terminal::input(InputOptions& opts)
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
-        if (key == keyPress::UNKNOWN) {
-            key = keyPress::NO_KEY;
-        }
         // <cctype> functions' behaviour is undefined if key is not an unsigned char,
         // so we only check if key is convertible:
         if (key >= 32 && key < 127) {

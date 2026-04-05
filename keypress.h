@@ -83,7 +83,6 @@ constexpr int F9 = 274;
 constexpr int F10 = 275;
 constexpr int F11 = 276;
 constexpr int F12 = 277;
-constexpr int UNKNOWN = 1024;
 
 // If called with blocking = false then returns
 // nullopt if no keypress is in the input queue
@@ -177,13 +176,13 @@ inline std::optional<int> getKeyPress(bool blocking = true)
                 } else if (seq[0] == '2' && seq[1] == '4' && seq[2] == '~') {
                     return F12;
                 } else {
-                    return UNKNOWN;
+                    return std::nullopt;
                 }
 
             } else if (c2 == 'O') {
                 // SS3 sequence — used for F1-F4 in many terminals
                 if (!stdinReady(50)) {
-                    return UNKNOWN;
+                    return std::nullopt;
                 }
                 int c3 = readByte();
                 switch (c3) {
@@ -200,10 +199,10 @@ inline std::optional<int> getKeyPress(bool blocking = true)
                     case 'F':
                         return END; // some terminals
                     default:
-                        return UNKNOWN;
+                        return std::nullopt;
                 }
             } else {
-                return UNKNOWN;
+                return std::nullopt;
             }
         }
         // No follow-up byte — bare ESC
