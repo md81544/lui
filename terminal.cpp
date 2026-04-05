@@ -461,8 +461,14 @@ std::string Terminal::input(InputOptions& opts)
                 }
                 break;
             case keyPress::RIGHT:
-                if (opts.cursorPos < opts.currentValue.size()) {
-                    ++opts.cursorPos;
+                {
+                    std::size_t max = opts.currentValue.size();
+                    if (opts.mode == Mode::Overwrite && max > 0) {
+                        --max;
+                    }
+                    if (opts.cursorPos < max) {
+                        ++opts.cursorPos;
+                    }
                 }
                 break;
             default:
@@ -489,7 +495,8 @@ std::string Terminal::input(InputOptions& opts)
                     }
                 }
             }
-            if (opts.cursorPos < localMaxLen) {
+            if ((opts.mode == Mode::Insert && opts.cursorPos < localMaxLen)
+                || (opts.mode == Mode::Overwrite && opts.cursorPos < localMaxLen - 1)) {
                 ++opts.cursorPos;
             }
         }

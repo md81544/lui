@@ -136,7 +136,7 @@ int Ui::run()
                     opts.row = 2;
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::Grey;
-                    opts.fgColour = terminal::Colour::White;
+                    opts.fgColour = terminal::Colour::BrightWhite;
                     // Because we have a special use case here we allow all entry
                     // and handle it specifically in the callback hook
                     opts.keysAllowed = terminal::KeysAllowed::All;
@@ -183,13 +183,13 @@ int Ui::run()
             case 'c':
             case 'C':
                 {
-                    // TODO: This is just test code for the new Terminal::input()
+                    // TODO: Not implemented fully yet
                     terminal::InputOptions opts;
                     opts.row = 3;
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::Grey;
-                    opts.fgColour = terminal::Colour::White;
-                    opts.mode = terminal::Mode::Overwrite;
+                    opts.fgColour = terminal::Colour::BrightWhite;
+                    opts.mode = terminal::Mode::Insert;
                     std::string foo = m_term.input(opts);
                     log(std::format("string entered: '{}'", foo));
                     break;
@@ -205,7 +205,7 @@ int Ui::run()
                     opts.row = 1;
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::Grey;
-                    opts.fgColour = terminal::Colour::White;
+                    opts.fgColour = terminal::Colour::BrightWhite;
                     opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
                     opts.preInsertHook = [&](int key) -> int {
                         // Disallow spaces
