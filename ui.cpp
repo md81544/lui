@@ -203,7 +203,7 @@ int Ui::run()
                     opts.mode = terminal::Mode::Insert;
                     opts.defaultValue = m_comment;
                     m_comment = m_term.input(opts);
-                    log(std::format("Comment entered: '{}'", m_comment));
+                    log(std::format("m_comment input: '{}'", m_comment));
                     break;
                 }
             case 's':
