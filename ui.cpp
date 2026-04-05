@@ -135,7 +135,6 @@ int Ui::run()
                     // Enter "found" string
                     terminal::InputOptions opts;
                     opts.mode = terminal::Mode::Overwrite;
-                    opts.maxLen = m_searchString.size();
                     opts.defaultValue = m_foundString;
                     opts.row = 2;
                     opts.col = 10;
@@ -149,6 +148,15 @@ int Ui::run()
                             // disallow extended characters, e.g. 'é'
                             return keyPress::NO_KEY;
                         }
+                        if (key == '/') {
+                            // Disallow entry of separator at beginning or end
+                            if (opts.cursorPos == 0
+                                || opts.cursorPos > opts.currentValue.size() - 1) {
+                                return keyPress::NO_KEY;
+                            }
+                            ++opts.maxLen;
+                            return key;
+                        }
                         if (key >= 32 && key < 127) {
                             // Disallow any character not in search string
                             auto c1 = std::count(
@@ -160,20 +168,10 @@ int Ui::run()
                             if (c1 == 0 || c2 == c1) {
                                 return keyPress::NO_KEY;
                             }
-                            if (key == '/') { // TODO this is buggy, to investigate
-                                // Disallow entry of separator at beginning or end
-                                if (opts.cursorPos == 0
-                                    || opts.cursorPos > opts.currentValue.size() - 1) {
-                                    return keyPress::NO_KEY;
-                                }
-                                ++opts.maxLen;
-                                // TODO disallow adjacent to another '/'
+                            if (!std::isalpha(key)) {
+                                return keyPress::NO_KEY;
                             } else {
-                                if (!std::isalpha(key)) {
-                                    return keyPress::NO_KEY;
-                                } else {
-                                    return std::toupper(key);
-                                }
+                                return std::toupper(key);
                             }
                         }
                         return key;
@@ -184,7 +182,12 @@ int Ui::run()
                         opts.currentValue.append(debugtmp);
                         return true;
                     };
-                    opts.maxLen = m_searchString.size();
+                    if (!m_foundString.empty()) {
+                        // May have been extended with word separators
+                        opts.maxLen = m_foundString.size();
+                    } else {
+                        opts.maxLen = m_searchString.size();
+                    }
                     m_foundString = m_term.input(opts);
                     log(std::format("m_foundString input: '{}'", m_foundString));
                 }
