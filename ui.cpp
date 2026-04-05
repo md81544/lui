@@ -92,7 +92,7 @@ void Ui::checkForTerminalResize()
         throw(std::runtime_error("Terminal size is too small!"));
     }
     if (m_termSize.rows != rows || m_termSize.cols != cols) {
-        log(std::format("Terminal size is now {} rows by {} cols", rows, cols));
+        log(std::format("Terminal size is currently {} rows by {} cols", rows, cols));
         m_termSize.rows = rows;
         m_termSize.cols = cols;
     }
@@ -195,15 +195,15 @@ int Ui::run()
             case 'c':
             case 'C':
                 {
-                    // TODO: Not implemented fully yet
                     terminal::InputOptions opts;
                     opts.row = 3;
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::Grey;
                     opts.fgColour = terminal::Colour::BrightWhite;
                     opts.mode = terminal::Mode::Insert;
-                    std::string foo = m_term.input(opts);
-                    log(std::format("string entered: '{}'", foo));
+                    opts.defaultValue = m_comment;
+                    m_comment = m_term.input(opts);
+                    log(std::format("string entered: '{}'", m_comment));
                     break;
                 }
             case 's':
