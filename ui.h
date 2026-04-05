@@ -24,8 +24,8 @@ public:
     int run(); // main application run loop
 private:
     void checkForTerminalResize();
-    void resultsClear();
-    void resultsSet(const std::vector<std::string>& vec);
+    void clearResults();
+    void setResults(const std::vector<std::string>& vec);
     void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayResults();
     void displayMenu();

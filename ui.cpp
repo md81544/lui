@@ -129,7 +129,7 @@ int Ui::run()
             case 'F':
                 {
                     if (m_searchString.empty()) {
-                        resultsSet({ "Cannot enter 'found' string before 'search' string" });
+                        setResults({ "Cannot enter 'found' string before 'search' string" });
                         break;
                     }
                     // Enter "found" string
@@ -247,7 +247,7 @@ int Ui::run()
                 }
                 break;
             case keyPress::F12:
-                resultsClear();
+                clearResults();
                 m_results = m_debugLog;
                 break;
             case keyPress::ESC:
@@ -260,13 +260,13 @@ int Ui::run()
     return 0;
 }
 
-void Ui::resultsClear()
+void Ui::clearResults()
 {
     m_results.clear();
     m_resultsScrollOffset = 0;
 }
 
-void Ui::resultsSet(const std::vector<std::string>& vec)
+void Ui::setResults(const std::vector<std::string>& vec)
 {
     m_results = vec;
     m_resultsScrollOffset = 0;
@@ -377,7 +377,7 @@ void Ui::restart()
     m_foundString.clear();
     m_clue.clear();
     m_comment.clear();
-    resultsClear();
+    clearResults();
 }
 
 void Ui::hr(std::size_t row)
@@ -421,7 +421,7 @@ void Ui::jumble()
     std::mt19937 gen { rd() };
     std::ranges::shuffle(remainingLetters, gen);
     auto grid = lettersInACircle(remainingLetters);
-    resultsClear();
+    clearResults();
     m_results.emplace_back("");
     for (const auto& s : grid) {
         m_results.emplace_back(" " + s);
@@ -448,7 +448,7 @@ void Ui::lookup()
         "Searching...",
         terminal::OutputMode::immediate); // draws immediately, disappears on next
                                           // m_term.render()
-    resultsClear();
+    clearResults();
     std::string lowerCase { m_foundString };
     std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);
     auto results = m_ws->regexSearch(lowerCase);
@@ -467,7 +467,7 @@ void Ui::lookup()
         }
     }
     if (m_results.empty()) {
-        resultsSet({ "-- no matches found --" });
+        setResults({ "-- no matches found --" });
     }
 }
 
