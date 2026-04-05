@@ -128,6 +128,10 @@ int Ui::run()
             case 'f':
             case 'F':
                 {
+                    if (m_searchString.empty()) {
+                        resultsSet({ "Cannot enter 'found' string before 'search' string" });
+                        break;
+                    }
                     // Enter "found" string
                     terminal::InputOptions opts;
                     opts.mode = terminal::Mode::Overwrite;
@@ -146,12 +150,17 @@ int Ui::run()
                             return keyPress::NO_KEY;
                         }
                         if (key >= 32 && key < 127) {
-                            // Disallow spaces
-                            if (key == ' ') {
-                                m_term.bell(terminal::OutputMode::immediate);
+                            // Disallow any character not in search string
+                            auto c1 = std::count(
+                                m_searchString.begin(), m_searchString.end(), std::toupper(key));
+                            auto c2 = std::count(
+                                opts.currentValue.begin(),
+                                opts.currentValue.end(),
+                                std::toupper(key));
+                            if (c1 == 0 || c2 == c1) {
                                 return keyPress::NO_KEY;
                             }
-                            if (key == '/') {
+                            if (key == '/') { // TODO this is buggy, to investigate
                                 // Disallow entry of separator at beginning or end
                                 if (opts.cursorPos == 0
                                     || opts.cursorPos > opts.currentValue.size() - 1) {
