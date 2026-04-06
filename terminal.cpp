@@ -1,7 +1,7 @@
 #include "terminal.h"
+#include "ascii.h" // for locale-independent functions
 #include "keypress.h"
 #include <cassert>
-#include <cctype>
 #include <cstdint>
 #include <format>
 #include <iostream>
@@ -359,33 +359,31 @@ std::string Terminal::input(InputOptions& opts)
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
-        // <cctype> functions' behaviour is undefined if key is not an unsigned char,
-        // so we only check if key is convertible:
-        if (key >= 32 && key < 127) {
+        if (ascii::isprint(key)) {
             switch (opts.keysAllowed) {
                 case terminal::KeysAllowed::All:
                     // Nothing to do, all keys allowed
                     break;
                 case terminal::KeysAllowed::Alphanum:
-                    if (!std::isalnum(key)) {
+                    if (!ascii::isalnum(key)) {
                         key = keyPress::NO_KEY;
                     }
                     break;
                 case terminal::KeysAllowed::CapitalAlphanum:
-                    if (std::isalnum(key)) {
-                        key = std::toupper(key);
+                    if (ascii::isalnum(key)) {
+                        key = ascii::toupper(key);
                     } else {
                         key = keyPress::NO_KEY;
                     }
                     break;
                 case terminal::KeysAllowed::Numeric:
-                    if (!std::isdigit(key)) {
+                    if (!ascii::isdigit(key)) {
                         key = keyPress::NO_KEY;
                     }
                     break;
                 case terminal::KeysAllowed::CapitalAlpha:
-                    if (std::isalpha(key)) {
-                        key = std::toupper(key);
+                    if (ascii::isalpha(key)) {
+                        key = ascii::toupper(key);
                     } else {
                         key = keyPress::NO_KEY;
                     }

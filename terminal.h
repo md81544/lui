@@ -62,7 +62,6 @@ enum class Mode {
 // to add more complex rules via the hook callback. Note extended characters
 // are supported, if this is not required then add a check for the key value
 // being between 32 and 126 inclusive in the pre hook.
-// Uses <cctype> checks which probably won't be compatible with many locales. TODO.
 
 // clang-format off
 // TODO: this should be a std::bitset to allow for combination of options

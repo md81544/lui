@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "ascii.h"
 #include "keypress.h"
 #include "log.h"
 #include "terminal.h"
@@ -6,7 +7,6 @@
 #include "word_searcher.h"
 
 #include <algorithm>
-#include <cctype>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
@@ -54,9 +54,9 @@ std::vector<std::string> lettersInACircle(std::string_view letters)
             = static_cast<std::size_t>(x2 * 2 + static_cast<std::ptrdiff_t>(radius) * 2);
 
         grid[row1][col1]
-            = static_cast<char>(std::toupper(static_cast<unsigned char>(localLetters[i * 2])));
-        grid[row2][col2]
-            = static_cast<char>(std::toupper(static_cast<unsigned char>(localLetters[i * 2 + 1])));
+            = static_cast<char>(ascii::toupper(static_cast<unsigned char>(localLetters[i * 2])));
+        grid[row2][col2] = static_cast<char>(
+            ascii::toupper(static_cast<unsigned char>(localLetters[i * 2 + 1])));
     }
 
     return grid;
@@ -133,104 +133,10 @@ int Ui::run()
                 break;
             case 'f':
             case 'F':
-                {
-                    if (m_searchString.empty()) {
-                        setResults({ "Cannot enter 'found' string before 'search' string" });
-                        break;
-                    }
-                    // Enter "found" string
-                    terminal::InputOptions opts;
-                    opts.mode = terminal::Mode::Overwrite;
-                    opts.defaultValue = m_foundString;
-                    opts.row = 2;
-                    opts.col = 10;
-                    opts.bgColour = terminal::Colour::Grey;
-                    opts.fgColour = terminal::Colour::BrightWhite;
-                    opts.maxLen = separatedStringSize(opts.defaultValue);
-                    // Because we have a special use case here we allow all keys
-                    // and handle them specifically in the callback hook
-                    opts.keysAllowed = terminal::KeysAllowed::All;
-                    opts.preInsertHook = [&](int key) -> int {
-                        if (key == keyPress::CTRL_U) {
-                            opts.currentValue = std::string(m_searchString.size(), '.');
-                            opts.maxLen = opts.currentValue.size();
-                            opts.cursorPos = 0;
-                            return keyPress::NO_KEY;
-                        }
-                        if (key < 0) {
-                            // disallow extended characters, e.g. 'é'
-                            return keyPress::NO_KEY;
-                        }
-                        if (key == keyPress::BACKSPACE && opts.cursorPos > 0
-                            && opts.currentValue.at(opts.cursorPos - 1) == '/') {
-                            --opts.maxLen;
-                            return key;
-                        }
-                        if (key == keyPress::BACKSPACE && opts.cursorPos > 0) {
-                            --opts.cursorPos;
-                            opts.currentValue[opts.cursorPos] = '.';
-                            return keyPress::NO_KEY;
-                        }
-                        if (key == keyPress::DELETE && opts.currentValue[opts.cursorPos] == '/') {
-                            opts.currentValue.erase(opts.cursorPos, 1);
-                            --opts.maxLen;
-                            return keyPress::NO_KEY;
-                        }
-                        if (key == keyPress::DELETE) {
-                            opts.currentValue[opts.cursorPos] = '.';
-                            return keyPress::NO_KEY;
-                        }
-                        if (key == '/') {
-                            // Disallow entry of separator at beginning or end
-                            if (opts.cursorPos == 0
-                                || opts.cursorPos > opts.currentValue.size() - 1) {
-                                return keyPress::NO_KEY;
-                            }
-                            // Disallow entry of separator immediately next to an existing separator
-                            if (opts.currentValue.at(opts.cursorPos) == '/'
-                                || opts.currentValue.at(opts.cursorPos - 1) == '/') {
-                                return keyPress::NO_KEY;
-                            }
-                            ++opts.maxLen;
-                            return key;
-                        }
-                        if (key >= 32 && key < 127) {
-                            // Disallow any character not in search string
-                            auto c1 = std::count(
-                                m_searchString.begin(), m_searchString.end(), std::toupper(key));
-                            auto c2 = std::count(
-                                opts.currentValue.begin(),
-                                opts.currentValue.end(),
-                                std::toupper(key));
-                            if (c1 == 0 || c2 == c1) {
-                                return keyPress::NO_KEY;
-                            }
-                            if (!std::isalpha(key)) {
-                                return keyPress::NO_KEY;
-                            } else {
-                                return std::toupper(key);
-                            }
-                        }
-                        return key;
-                    };
-                    opts.postInsertHook = [&]() -> bool {
-                        // Always pad out with dots if smaller than default size
-                        std::size_t cvSize
-                            = separatedStringSize(opts.currentValue); // ignores word separators
-                        std::size_t dfSize = separatedStringSize(opts.defaultValue); // ditto
-                        if (cvSize < dfSize) {
-                            opts.currentValue.append(std::string(dfSize - cvSize, '.'));
-                        }
-                        return true;
-                    };
-                    if (!m_foundString.empty()) {
-                        // May have been extended with word separators
-                        opts.maxLen = m_foundString.size();
-                    } else {
-                        opts.maxLen = m_searchString.size();
-                    }
-                    m_foundString = m_term.input(opts);
-                    log(std::format("m_foundString input: '{}'", m_foundString));
+                if (m_searchString.empty()) {
+                    setResults({ "Cannot enter 'found' string before 'search' string" });
+                } else {
+                    enterFoundString();
                 }
                 break;
             case 'c':
@@ -491,7 +397,10 @@ void Ui::lookup()
                                           // m_term.render()
     clearResults();
     std::string lowerCase { m_foundString };
-    std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);
+    std::transform(
+        m_foundString.begin(), m_foundString.end(), lowerCase.begin(), [](unsigned char c) {
+            return ascii::tolower(c);
+        });
     std::ranges::replace(lowerCase, '/', ' ');
     auto results = m_ws->regexSearch(lowerCase);
     std::string sortedSearchString { m_searchString };
@@ -499,12 +408,14 @@ void Ui::lookup()
         sortedSearchString.begin(),
         sortedSearchString.end(),
         sortedSearchString.begin(),
-        ::tolower);
+        [](unsigned char c) {
+            return ascii::tolower(c);
+        });
     std::ranges::sort(sortedSearchString);
     for (auto word : results) {
-        // Ensure that any regex matches actually contains the letters
+        // Ensure that any regex match actually contains the letters
         // in m_searchString
-        std::string w{word};
+        std::string w { word };
         w.erase(std::remove(w.begin(), w.end(), ' '), w.end());
         std::string sortedWord { w };
         std::ranges::sort(sortedWord);
@@ -545,6 +456,97 @@ std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
     }
     // If we get here we could not locate the data needed
     throw std::runtime_error("Could not locate data directory");
+}
+
+void Ui::enterFoundString()
+{
+    terminal::InputOptions opts;
+    opts.mode = terminal::Mode::Overwrite;
+    opts.defaultValue = m_foundString;
+    opts.row = 2;
+    opts.col = 10;
+    opts.bgColour = terminal::Colour::Grey;
+    opts.fgColour = terminal::Colour::BrightWhite;
+    opts.maxLen = separatedStringSize(opts.defaultValue);
+    // Because we have a special use case here we allow all keys
+    // and handle them specifically in the callback hook
+    opts.keysAllowed = terminal::KeysAllowed::All;
+    opts.preInsertHook = [&](int key) -> int {
+        if (key == keyPress::CTRL_U) {
+            opts.currentValue = std::string(m_searchString.size(), '.');
+            opts.maxLen = opts.currentValue.size();
+            opts.cursorPos = 0;
+            return keyPress::NO_KEY;
+        }
+        if (key < 0) {
+            // disallow extended characters, e.g. 'é'
+            return keyPress::NO_KEY;
+        }
+        if (key == keyPress::BACKSPACE && opts.cursorPos > 0
+            && opts.currentValue.at(opts.cursorPos - 1) == '/') {
+            --opts.maxLen;
+            return key;
+        }
+        if (key == keyPress::BACKSPACE && opts.cursorPos > 0) {
+            --opts.cursorPos;
+            opts.currentValue[opts.cursorPos] = '.';
+            return keyPress::NO_KEY;
+        }
+        if (key == keyPress::DELETE && opts.currentValue[opts.cursorPos] == '/') {
+            opts.currentValue.erase(opts.cursorPos, 1);
+            --opts.maxLen;
+            return keyPress::NO_KEY;
+        }
+        if (key == keyPress::DELETE) {
+            opts.currentValue[opts.cursorPos] = '.';
+            return keyPress::NO_KEY;
+        }
+        if (key == '/') {
+            // Disallow entry of separator at beginning or end
+            if (opts.cursorPos == 0 || opts.cursorPos > opts.currentValue.size() - 1) {
+                return keyPress::NO_KEY;
+            }
+            // Disallow entry of separator immediately next to an existing separator
+            if (opts.currentValue.at(opts.cursorPos) == '/'
+                || opts.currentValue.at(opts.cursorPos - 1) == '/') {
+                return keyPress::NO_KEY;
+            }
+            ++opts.maxLen;
+            return key;
+        }
+        if (ascii::isascii(key)) {
+            // Disallow any character not in search string
+            auto c1 = std::count(m_searchString.begin(), m_searchString.end(), ascii::toupper(key));
+            auto c2 = std::count(
+                opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
+            if (c1 == 0 || c2 == c1) {
+                return keyPress::NO_KEY;
+            }
+            if (!ascii::isalpha(key)) {
+                return keyPress::NO_KEY;
+            } else {
+                return ascii::toupper(key);
+            }
+        }
+        return key;
+    };
+    opts.postInsertHook = [&]() -> bool {
+        // Always pad out with dots if smaller than default size
+        std::size_t cvSize = separatedStringSize(opts.currentValue); // ignores word separators
+        std::size_t dfSize = separatedStringSize(opts.defaultValue); // ditto
+        if (cvSize < dfSize) {
+            opts.currentValue.append(std::string(dfSize - cvSize, '.'));
+        }
+        return true;
+    };
+    if (!m_foundString.empty()) {
+        // May have been extended with word separators
+        opts.maxLen = m_foundString.size();
+    } else {
+        opts.maxLen = m_searchString.size();
+    }
+    m_foundString = m_term.input(opts);
+    log(std::format("m_foundString input: '{}'", m_foundString));
 }
 
 } // namespace ui
