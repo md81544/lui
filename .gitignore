@@ -45,3 +45,4 @@ compile_commands.json
 *.idx
 
 lui
+*.log
