@@ -99,7 +99,7 @@ private:
         }
 
         const auto entry = std::format(
-            "[{}] [{}] [{}:{}] {}\n",
+            "{}|{}|{}:{}|{}\n",
             current_timestamp(),
             level_label(level),
             loc.file_name(),
