@@ -36,6 +36,8 @@ private:
     void log(std::string_view logEntry);
     std::filesystem::path locateDataDirectory(std::string_view argv0);
     void enterFoundString();
+    void enterSearchString();
+    void enterCommentString();
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;

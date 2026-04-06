@@ -141,47 +141,12 @@ int Ui::run()
                 break;
             case 'c':
             case 'C':
-                {
-                    terminal::InputOptions opts;
-                    opts.row = 3;
-                    opts.col = 10;
-                    opts.bgColour = terminal::Colour::Grey;
-                    opts.fgColour = terminal::Colour::BrightWhite;
-                    opts.mode = terminal::Mode::Insert;
-                    opts.defaultValue = m_comment;
-                    m_comment = m_term.input(opts);
-                    log(std::format("m_comment input: '{}'", m_comment));
-                    break;
-                }
+                enterCommentString();
+                break;
             case 's':
             case 'S':
-                {
-                    // Enter "search" string; implies a restart
-                    restart();
-                    displayHeader(terminal::OutputMode::immediate);
-                    terminal::InputOptions opts;
-                    opts.defaultValue = m_searchString;
-                    opts.row = 1;
-                    opts.col = 10;
-                    opts.bgColour = terminal::Colour::Grey;
-                    opts.fgColour = terminal::Colour::BrightWhite;
-                    opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
-                    opts.preInsertHook = [&](int key) -> int {
-                        // Disallow spaces
-                        if (key == ' ') {
-                            m_term.bell(terminal::OutputMode::immediate);
-                            return keyPress::NO_KEY;
-                        }
-                        if (key < keyPress::NO_KEY) {
-                            // disallow extended characters
-                            return keyPress::NO_KEY;
-                        }
-                        return key;
-                    };
-                    m_searchString = m_term.input(opts);
-                    m_foundString = std::string(m_searchString.size(), '.');
-                    log(std::format("m_searchString input: '{}'", m_searchString));
-                }
+                // Enter "search" string; implies a restart
+                enterSearchString();
                 break;
             case keyPress::DOWN:
                 if (!m_resultsScrollAtBottom) {
@@ -408,9 +373,7 @@ void Ui::lookup()
         sortedSearchString.begin(),
         sortedSearchString.end(),
         sortedSearchString.begin(),
-        [](unsigned char c) {
-            return ascii::tolower(c);
-        });
+        [](unsigned char c) { return ascii::tolower(c); });
     std::ranges::sort(sortedSearchString);
     for (auto word : results) {
         // Ensure that any regex match actually contains the letters
@@ -547,6 +510,47 @@ void Ui::enterFoundString()
     }
     m_foundString = m_term.input(opts);
     log(std::format("m_foundString input: '{}'", m_foundString));
+}
+
+void Ui::enterSearchString()
+{
+    restart();
+    displayHeader(terminal::OutputMode::immediate);
+    terminal::InputOptions opts;
+    opts.defaultValue = m_searchString;
+    opts.row = 1;
+    opts.col = 10;
+    opts.bgColour = terminal::Colour::Grey;
+    opts.fgColour = terminal::Colour::BrightWhite;
+    opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
+    opts.preInsertHook = [&](int key) -> int {
+        // Disallow spaces
+        if (key == ' ') {
+            m_term.bell(terminal::OutputMode::immediate);
+            return keyPress::NO_KEY;
+        }
+        if (key < keyPress::NO_KEY) {
+            // disallow extended characters
+            return keyPress::NO_KEY;
+        }
+        return key;
+    };
+    m_searchString = m_term.input(opts);
+    m_foundString = std::string(m_searchString.size(), '.');
+    log(std::format("m_searchString input: '{}'", m_searchString));
+}
+
+void Ui::enterCommentString()
+{
+    terminal::InputOptions opts;
+    opts.row = 3;
+    opts.col = 10;
+    opts.bgColour = terminal::Colour::Grey;
+    opts.fgColour = terminal::Colour::BrightWhite;
+    opts.mode = terminal::Mode::Insert;
+    opts.defaultValue = m_comment;
+    m_comment = m_term.input(opts);
+    log(std::format("m_comment input: '{}'", m_comment));
 }
 
 } // namespace ui
