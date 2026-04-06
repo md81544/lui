@@ -41,13 +41,13 @@ public:
         std::scoped_lock lock { instance.m_mtx };
 
         if (instance.m_ofs.is_open()) {
-            throw std::logic_error { "mgo::Logger::init() called more than once" };
+            throw std::logic_error { "mgo::Log::init() called more than once" };
         }
 
         instance.m_ofs.open(filename.data(), std::ios::app);
         if (!instance.m_ofs) {
             throw std::runtime_error { std::format(
-                "mgo::Logger: cannot open '{}': {}", filename, std::strerror(errno)) };
+                "mgo::Log: cannot open '{}': {}", filename, std::strerror(errno)) };
         }
 
         instance.m_min_level = min_level;
