@@ -72,7 +72,7 @@ std::size_t separatedStringSize(std::string_view foundString)
 
 namespace ui {
 
-Ui::Ui(std::string_view argv0)
+Ui::Ui(std::string_view argv0, int wordComplexity)
 {
     log("DEBUG LOG");
     const auto dataDir = locateDataDirectory(argv0);
@@ -84,11 +84,10 @@ Ui::Ui(std::string_view argv0)
     m_term.render();
     log("Loading data...");
     m_ws = std::make_unique<wordSearcher::WordSearcher>(
-        dataDir / "words_1.txt",
-        dataDir / "words_2.txt",
-        dataDir / "words_3.txt",
+        dataDir / std::format("words_{}.txt", wordComplexity),
         dataDir / "thesaurus.txt",
-        dataDir / "definitions.txt");
+        dataDir / "definitions.txt",
+        dataDir / "phrases.txt");
     log("Finished loading data");
 }
 
@@ -163,7 +162,7 @@ int Ui::run()
                             return keyPress::NO_KEY;
                         }
                         if (key == keyPress::BACKSPACE && opts.cursorPos > 0
-                            && opts.currentValue.at(opts.cursorPos-1) == '/') {
+                            && opts.currentValue.at(opts.cursorPos - 1) == '/') {
                             --opts.maxLen;
                             return key;
                         }
@@ -172,12 +171,12 @@ int Ui::run()
                             opts.currentValue[opts.cursorPos] = '.';
                             return keyPress::NO_KEY;
                         }
-                        if(key == keyPress::DELETE && opts.currentValue[opts.cursorPos] == '/') {
+                        if (key == keyPress::DELETE && opts.currentValue[opts.cursorPos] == '/') {
                             opts.currentValue.erase(opts.cursorPos, 1);
                             --opts.maxLen;
                             return keyPress::NO_KEY;
                         }
-                        if(key == keyPress::DELETE) {
+                        if (key == keyPress::DELETE) {
                             opts.currentValue[opts.cursorPos] = '.';
                             return keyPress::NO_KEY;
                         }
@@ -493,6 +492,7 @@ void Ui::lookup()
     clearResults();
     std::string lowerCase { m_foundString };
     std::transform(m_foundString.begin(), m_foundString.end(), lowerCase.begin(), ::tolower);
+    std::ranges::replace(lowerCase, '/', ' ');
     auto results = m_ws->regexSearch(lowerCase);
     std::string sortedSearchString { m_searchString };
     std::transform(
@@ -502,7 +502,11 @@ void Ui::lookup()
         ::tolower);
     std::ranges::sort(sortedSearchString);
     for (auto word : results) {
-        std::string sortedWord { word };
+        // Ensure that any regex matches actually contains the letters
+        // in m_searchString
+        std::string w{word};
+        w.erase(std::remove(w.begin(), w.end(), ' '), w.end());
+        std::string sortedWord { w };
         std::ranges::sort(sortedWord);
         if (sortedWord == sortedSearchString) {
             m_results.push_back(word);

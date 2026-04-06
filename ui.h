@@ -19,7 +19,7 @@ struct TerminalSize {
 
 class Ui final {
 public:
-    explicit Ui(std::string_view argv0);
+    explicit Ui(std::string_view argv0, int wordComplexity);
     ~Ui() { };
     int run(); // main application run loop
 private:

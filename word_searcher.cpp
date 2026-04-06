@@ -20,7 +20,7 @@ void loadFile(std::string_view fileName, std::vector<std::string>& vec)
     }
     // A large reservation to minimise early re-allocations
     // as the vector grows
-    vec.reserve(0xFFFF); 
+    vec.reserve(0xFFFF);
     std::string line;
     while (std::getline(file, line)) {
         vec.emplace_back(line);
@@ -78,17 +78,15 @@ namespace wordSearcher {
 
 WordSearcher::WordSearcher(
     // TODO need to load phrases too
-    std::filesystem::path words1File,
-    std::filesystem::path words2File,
-    std::filesystem::path words3File,
+    std::filesystem::path wordsFile,
     std::filesystem::path thesaurusFile,
-    std::filesystem::path definitionsFile)
+    std::filesystem::path definitionsFile,
+    std::filesystem::path phrasesFile)
 {
-    loadFile(words1File.string(), m_words1);
-    loadFile(words2File.string(), m_words2);
-    loadFile(words3File.string(), m_words3);
+    loadFile(wordsFile.string(), m_words);
     loadThesaurus(thesaurusFile.string(), m_thesaurus);
     loadDefinitions(definitionsFile.string(), m_definitions);
+    loadFile(phrasesFile.string(), m_words);
 }
 
 WordSearcher::~WordSearcher() { }
@@ -98,8 +96,8 @@ std::vector<std::string> WordSearcher::regexSearch(const std::string& regexStrin
     const std::regex regex(regexString);
     std::vector<std::string> result;
     std::copy_if(
-        m_words3.begin(),
-        m_words3.end(),
+        m_words.begin(),
+        m_words.end(),
         std::back_inserter(result),
         [&regex](const std::string& w) { return std::regex_match(w, regex); });
     return result;
