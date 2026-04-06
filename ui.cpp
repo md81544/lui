@@ -514,7 +514,7 @@ void Ui::enterFoundString()
             ++opts.maxLen;
             return key;
         }
-        if (ascii::isascii(key)) {
+        if (ascii::isprint(key)) {
             // Disallow any character not in search string
             auto c1 = std::count(m_searchString.begin(), m_searchString.end(), ascii::toupper(key));
             auto c2 = std::count(
