@@ -404,6 +404,8 @@ std::string Terminal::input(InputOptions& opts)
         int keyOrig = key;
         key = keyPress::NO_KEY;
         switch (keyOrig) {
+            case keyPress::NO_KEY:
+                break;
             case keyPress::ENTER:
                 done = true;
                 break;
@@ -501,10 +503,13 @@ std::string Terminal::input(InputOptions& opts)
                 ++opts.cursorPos;
             }
         }
-        // Call any post hook the caller set:
-        if (!opts.postInsertHook()) {
-            // false signifies the caller wants to abort the insertion
-            opts.currentValue = oldValue;
+        // Call any post hook the caller set. Unless the caller returned NO_KEY
+        // in the pre hook.
+        if (key != keyPress::NO_KEY) {
+            if (!opts.postInsertHook()) {
+                // false signifies the caller wants to abort the insertion
+                opts.currentValue = oldValue;
+            }
         }
     }
     cursorOff(imm);

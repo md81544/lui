@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "keypress.h"
+#include "log.h"
 #include "terminal.h"
 #include "utils.h"
 #include "word_searcher.h"
@@ -59,6 +60,12 @@ std::vector<std::string> lettersInACircle(std::string_view letters)
     }
 
     return grid;
+}
+
+std::size_t separatedStringSize(std::string_view foundString)
+{
+    // Returns size of string minus any word separators ('/')
+    return std::count_if(foundString.begin(), foundString.end(), [](char c) { return c != '/'; });
 }
 
 } // anonymous namespace
@@ -140,18 +147,49 @@ int Ui::run()
                     opts.col = 10;
                     opts.bgColour = terminal::Colour::Grey;
                     opts.fgColour = terminal::Colour::BrightWhite;
-                    // Because we have a special use case here we allow all entry
-                    // and handle it specifically in the callback hook
+                    opts.maxLen = separatedStringSize(opts.defaultValue);
+                    // Because we have a special use case here we allow all keys
+                    // and handle them specifically in the callback hook
                     opts.keysAllowed = terminal::KeysAllowed::All;
                     opts.preInsertHook = [&](int key) -> int {
+                        if (key == keyPress::CTRL_U) {
+                            opts.currentValue = std::string(m_searchString.size(), '.');
+                            opts.maxLen = opts.currentValue.size();
+                            opts.cursorPos = 0;
+                            return keyPress::NO_KEY;
+                        }
                         if (key < 0) {
                             // disallow extended characters, e.g. 'é'
+                            return keyPress::NO_KEY;
+                        }
+                        if (key == keyPress::BACKSPACE && opts.cursorPos > 0
+                            && opts.currentValue.at(opts.cursorPos-1) == '/') {
+                            --opts.maxLen;
+                            return key;
+                        }
+                        if (key == keyPress::BACKSPACE && opts.cursorPos > 0) {
+                            --opts.cursorPos;
+                            opts.currentValue[opts.cursorPos] = '.';
+                            return keyPress::NO_KEY;
+                        }
+                        if(key == keyPress::DELETE && opts.currentValue[opts.cursorPos] == '/') {
+                            opts.currentValue.erase(opts.cursorPos, 1);
+                            --opts.maxLen;
+                            return keyPress::NO_KEY;
+                        }
+                        if(key == keyPress::DELETE) {
+                            opts.currentValue[opts.cursorPos] = '.';
                             return keyPress::NO_KEY;
                         }
                         if (key == '/') {
                             // Disallow entry of separator at beginning or end
                             if (opts.cursorPos == 0
                                 || opts.cursorPos > opts.currentValue.size() - 1) {
+                                return keyPress::NO_KEY;
+                            }
+                            // Disallow entry of separator immediately next to an existing separator
+                            if (opts.currentValue.at(opts.cursorPos) == '/'
+                                || opts.currentValue.at(opts.cursorPos - 1) == '/') {
                                 return keyPress::NO_KEY;
                             }
                             ++opts.maxLen;
@@ -177,9 +215,13 @@ int Ui::run()
                         return key;
                     };
                     opts.postInsertHook = [&]() -> bool {
-                        // Always pad out with dots
-                        auto debugtmp = std::string(opts.maxLen - opts.currentValue.size(), '.');
-                        opts.currentValue.append(debugtmp);
+                        // Always pad out with dots if smaller than default size
+                        std::size_t cvSize
+                            = separatedStringSize(opts.currentValue); // ignores word separators
+                        std::size_t dfSize = separatedStringSize(opts.defaultValue); // ditto
+                        if (cvSize < dfSize) {
+                            opts.currentValue.append(std::string(dfSize - cvSize, '.'));
+                        }
                         return true;
                     };
                     if (!m_foundString.empty()) {
@@ -475,6 +517,8 @@ void Ui::log(std::string_view logEntry [[maybe_unused]])
 {
 #ifndef NDEBUG
     m_debugLog.push_back(std::format("{}: {}", utils::currentTimeString(), logEntry));
+    // Also write to file log
+    mgo::Log::debug(logEntry);
 #else
     if (m_debugLog.empty()) {
         m_debugLog.push_back("Debug log disabled in release build");
