@@ -1,10 +1,6 @@
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
 
-* Command line options
-  - word file to use
-  - force ASCII rather than UTF-8 output in terminal
-
 * Considering the kludge required to hide tmux's immediate printing
   of pasted text, it might be an idea to rethink output. Instead of
   a large string with all the text, we could have a "UiElement" class
