@@ -29,16 +29,15 @@ public:
 private:
     void checkForTerminalResize();
     bool checkTerminalLargeEnough();
+    void restart();
     void clearResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void setResults(const std::vector<std::string>& vec);
     void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayResults();
     void displayMenu();
-    void restart();
     void hr(std::size_t row);
     void jumble();
     void lookup();
-    void remove();
     void log(std::string_view logEntry);
     std::filesystem::path locateDataDirectory(std::string_view argv0);
     void enterFoundString();

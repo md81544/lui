@@ -131,6 +131,11 @@ int Ui::run()
         switch (keyPress) {
             case keyPress::NO_KEY: // key was consumed by input handler
                 break;
+            case keyPress::CTRL_R:
+                // clear eveything down
+                restart();
+                enterSearchString();
+                break;
             case keyPress::CTRL_C:
             case keyPress::CTRL_Q:
                 finished = true;
@@ -150,14 +155,6 @@ int Ui::run()
             case 'c':
             case 'C':
                 enterCommentString();
-                break;
-            case 'r':
-            case 'R':
-                if (m_searchString.empty()) {
-                    setResults({ "Cannot do a 'remove' before 'search' string is entered" });
-                } else {
-                    remove();
-                }
                 break;
             case 's':
             case 'S':
@@ -283,12 +280,12 @@ void Ui::displayMenu()
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_Jumble _Found _Remove _Comment re_Verse re_Gular _Thesaurus");
+        "_Jumble _Found _Comment re_Verse _Regular _Thesaurus");
     m_term.goTo(topRow + 2, 1);
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_Anagram _Lookup _Define _Note _^_Save _^_Load _^_Restart _^_Quit");
+        "_Lookup _Define _^_Save _^_Load _^_Restart _^_Quit");
 }
 
 void Ui::restart()
@@ -404,15 +401,6 @@ void Ui::lookup()
     if (m_results.empty()) {
         setResults({ "-- no matches found --" });
     }
-}
-
-void Ui::remove()
-{
-    clearResults(terminal::OutputMode::immediate);
-    m_term.goTo(m_resultsTopRow + 2, 2);
-    std::cout << m_searchString << std::flush;
-    while (m_term.getChar() != keyPress::ESC)
-        ;
 }
 
 void Ui::log(std::string_view logEntry [[maybe_unused]])
@@ -549,7 +537,6 @@ void Ui::enterFoundString()
 
 void Ui::enterSearchString()
 {
-    restart();
     displayHeader(terminal::OutputMode::immediate);
     terminal::InputOptions opts;
     opts.defaultValue = m_searchString;
