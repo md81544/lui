@@ -161,6 +161,10 @@ int Ui::run()
                 // Enter "search" string; implies a restart
                 enterSearchString();
                 break;
+            case 'r':
+            case 'R':
+                regular();
+                break;
             case keyPress::DOWN:
                 if (!m_resultsScrollAtBottom) {
                     ++m_resultsScrollOffset;
@@ -402,6 +406,50 @@ void Ui::lookup()
         setResults({ "-- no matches found --" });
     }
 }
+
+void Ui::regular()
+{
+    clearResults();
+    if (m_searchString.empty()) {
+        setResults({ "Please enter a search string first" });
+        return;
+    }
+    m_results.emplace_back("Every two letters");
+    m_results.emplace_back("");
+    m_results.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_searchString, 2)));
+    m_results.emplace_back(
+        std::format(
+            "  Even:  {}",
+            utils::everyNth({ m_searchString.begin() + 1, m_searchString.end() }, 2)));
+    m_results.emplace_back("");
+    m_results.emplace_back("Every three letters");
+    m_results.emplace_back("");
+    m_results.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_searchString, 3)));
+    m_results.emplace_back(
+        std::format(
+            "  Even:  {}",
+            utils::everyNth({ m_searchString.begin() + 1, m_searchString.end() }, 3)));
+    m_results.emplace_back("");
+    m_results.emplace_back("Every two letters (reversed)");
+    m_results.emplace_back("");
+    std::string reverseSearchString { m_searchString };
+    std::reverse(reverseSearchString.begin(), reverseSearchString.end());
+    m_results.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 2)));
+    m_results.emplace_back(
+        std::format(
+            "  Even:  {}",
+            utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 2)));
+    m_results.emplace_back("");
+    m_results.emplace_back("Every three letters (reversed)");
+    m_results.emplace_back("");
+    m_results.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 3)));
+    m_results.emplace_back(
+        std::format(
+            "  Even:  {}",
+            utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 3)));
+}
+
+void Ui::reverse() { }
 
 void Ui::log(std::string_view logEntry [[maybe_unused]])
 {

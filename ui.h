@@ -38,6 +38,8 @@ private:
     void hr(std::size_t row);
     void jumble();
     void lookup();
+    void regular();
+    void reverse();
     void log(std::string_view logEntry);
     std::filesystem::path locateDataDirectory(std::string_view argv0);
     void enterFoundString();
