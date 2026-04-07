@@ -46,17 +46,43 @@ namespace keyPress {
 
 // The following are not "special" keys (i.e.
 // their values are below 128) but included
-// for readability. Add others as needed.
-constexpr int NO_KEY = 0;
-constexpr int CTRL_A = 1; // Move to input beginning
-constexpr int CTRL_B = 2; // "Back" i.e. page up
-constexpr int CTRL_C = 3; // Ctrl-C is disabled with ISIG flag but program can quit if it sees this
-constexpr int CTRL_E = 5; // Move to input end
-constexpr int CTRL_F = 6; // "Forward" i.e. page down
+// for readability.
+
+// Standard Ctrl-letter combinations. The comments mostly describe standard usage,
+// but the caller is free to interpret as required
+constexpr int CTRL_A =  1; // move to start of line (readline)
+constexpr int CTRL_B =  2; // move back one char or page up
+constexpr int CTRL_C =  3; // interrupt (SIGINT) - Ctrl-C is disabled but caller can act on this
+constexpr int CTRL_D =  4; // delete char / EOF
+constexpr int CTRL_E =  5; // move to end of line
+constexpr int CTRL_F =  6; // move forward one char or page down
+constexpr int CTRL_G =  7; // bell / cancel
+constexpr int CTRL_H =  8; // backspace
+constexpr int CTRL_I =  9; // horizontal tab
+constexpr int CTRL_J = 10; // line feed / newline
+constexpr int CTRL_K = 11; // kill to end of line
+constexpr int CTRL_L = 12; // clear screen / form feed
+constexpr int CTRL_M = 13; // carriage return / enter
+constexpr int CTRL_N = 14; // next history entry
+constexpr int CTRL_O = 15; // accept line and fetch next
+constexpr int CTRL_P = 16; // previous history entry
+constexpr int CTRL_Q = 17; // possibly for quit (flow control is off)
+constexpr int CTRL_R = 18; // possibly for restart in caller app
+constexpr int CTRL_S = 19; // possibly for save in caller app (flow control is off)
+constexpr int CTRL_T = 20; // transpose chars
+constexpr int CTRL_U = 21; // clear input / kill to start
+constexpr int CTRL_V = 22; // literal next char
+constexpr int CTRL_W = 23; // delete previous word
+constexpr int CTRL_X = 24; // prefix key (readline)
+constexpr int CTRL_Y = 25; // yank (paste kill buffer)
+constexpr int CTRL_Z = 26; // suspend (SIGTSTP)
+
+// These are alternate names for some of the above
 constexpr int TAB = 9;
+constexpr int NO_KEY = 0;
 constexpr int ENTER = 10;
-constexpr int CTRL_U = 21; // clear input
 constexpr int ESC = 27;
+
 constexpr int SPACE = 32;
 constexpr int BACKSPACE = 127;
 
@@ -93,6 +119,7 @@ inline std::optional<int> getKeyPress(bool blocking = true)
     termios term_attrs;
     tcgetattr(STDIN_FILENO, &term_attrs);
     term_attrs.c_lflag &= ~(ICANON | ECHO | ISIG);
+    term_attrs.c_iflag &= ~(IXON | IXOFF);  // disable XON/XOFF flow control
     if (!blocking) {
         term_attrs.c_cc[VMIN] = 0;
         term_attrs.c_cc[VTIME] = 0;
