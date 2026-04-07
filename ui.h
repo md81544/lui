@@ -40,6 +40,8 @@ private:
     void lookup();
     void regular();
     void reverse();
+    void pageDownResults();
+    void pageUpResults();
     void log(std::string_view logEntry);
     std::filesystem::path locateDataDirectory(std::string_view argv0);
     void enterFoundString();
@@ -63,7 +65,7 @@ private:
     static constexpr size_t m_headerRowSize { 5 };
     static constexpr size_t m_resultsTopRow { m_headerRowSize + 1 };
     static constexpr size_t m_menuRowSize{4};
-    [[nodiscard]] std::size_t getResultRowSize();
+    [[nodiscard]] std::size_t getResultsPaneRowSize();
 };
 
 } // namespace ui

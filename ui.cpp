@@ -147,14 +147,6 @@ int Ui::run()
                     finished = true;
                 }
                 break;
-            case 'r':
-            case 'R':
-                if (m_commandMode) {
-                    restart();
-                    enterSearchString();
-                }
-                m_commandMode = false;
-                break;
             case keyPress::CTRL_C:
             case keyPress::CTRL_Q:
                 finished = true;
@@ -181,12 +173,17 @@ int Ui::run()
                 break;
             case 's':
             case 'S':
-                m_commandMode = false;
                 enterSearchString();
                 break;
             case 'r':
             case 'R':
+                if (m_commandMode) {
+                    restart();
+                    enterSearchString();
+                }else{
                 regular();
+                }
+                m_commandMode = false;
                 break;
             case keyPress::DOWN:
                 m_commandMode = false;
@@ -199,6 +196,14 @@ int Ui::run()
                 if (m_resultsScrollOffset > 0) {
                     --m_resultsScrollOffset;
                 }
+                break;
+            case keyPress::PGDN:
+            case keyPress::CTRL_F:
+                pageDownResults();
+                break;
+            case keyPress::PGUP:
+            case keyPress::CTRL_B:
+                pageUpResults();
                 break;
             case keyPress::F12:
                 m_commandMode = false;
@@ -223,7 +228,7 @@ void Ui::clearResults(terminal::OutputMode mode)
     m_resultsScrollOffset = 0;
     if (mode == terminal::OutputMode::immediate) {
         // If it's immediate we want to clear the results pane:
-        for (size_t r = m_resultsTopRow + 1; r <= getResultRowSize(); ++r) {
+        for (size_t r = m_resultsTopRow + 1; r <= getResultsPaneRowSize(); ++r) {
             m_term.goTo(r, 0, terminal::OutputMode::immediate);
             m_term.clearLine(terminal::OutputMode::immediate);
         }
@@ -268,7 +273,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
 
 void Ui::displayResults()
 {
-    std::size_t lastRowInSection = m_resultsTopRow + getResultRowSize() - 2;
+    std::size_t lastRowInSection = m_resultsTopRow + getResultsPaneRowSize() - 2;
     hr(m_resultsTopRow);
     m_term.printAt(m_resultsTopRow, 1, "Results");
 
@@ -492,6 +497,24 @@ void Ui::regular()
 
 void Ui::reverse() { }
 
+void Ui::pageDownResults()
+{
+    std::size_t resultsDisplaySize = getResultsPaneRowSize() - 4;
+    if (m_resultsScrollOffset <= m_results.size()) {
+        m_resultsScrollOffset += resultsDisplaySize;
+    }
+}
+
+void Ui::pageUpResults()
+{
+    std::size_t resultsDisplaySize = getResultsPaneRowSize() - 4;
+    if (m_resultsScrollOffset >= resultsDisplaySize) {
+        m_resultsScrollOffset -= resultsDisplaySize;
+    } else {
+        m_resultsScrollOffset = 0;
+    }
+}
+
 void Ui::log(std::string_view logEntry [[maybe_unused]])
 {
 #ifndef NDEBUG
@@ -667,7 +690,7 @@ void Ui::enterCommentString()
     log(std::format("m_comment input: '{}'", m_comment));
 }
 
-std::size_t Ui::getResultRowSize()
+std::size_t Ui::getResultsPaneRowSize()
 {
     return m_termSize.rows - m_menuRowSize - m_headerRowSize;
 }
