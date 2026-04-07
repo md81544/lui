@@ -22,7 +22,7 @@ public:
     explicit Ui(std::string_view argv0, int wordComplexity);
     Ui(const Ui&) = delete;
     Ui& operator=(const Ui&) = delete;
-    Ui( Ui&&) = delete;
+    Ui(Ui&&) = delete;
     Ui& operator=(const Ui&&) = delete;
     ~Ui() { };
     int run(); // main application run loop
@@ -56,19 +56,11 @@ private:
     bool m_resultsScrollAtBottom { true };
     std::vector<std::string> m_debugLog;
 
-    // The following define the layout of the output
-    // Top row (the hr) of the results pane:
-    static constexpr size_t m_resultsTopRow { 6 };
-    // Number of rows from the bottom where the menu is placed:
-    static constexpr size_t m_menuTopRowOffsetFromBottom { 4 };
-    // Numner of rows to subtract from terminal height to get last row
-    // of the results section:
-    static constexpr size_t  m_menuResultsLastRowSubtract { 6 };
-
-    // TODO: these SHOULD be
-    // static constexpr size_t m_headerRowSize{6};
-    // static constexpr size_t m_menuRowSize{4};
-    // std::tuple<std::size_t, std:size_t> getResultsRowsTopBottom();
+    // UI layout 
+    static constexpr size_t m_headerRowSize { 5 };
+    static constexpr size_t m_resultsTopRow { m_headerRowSize + 1 };
+    static constexpr size_t m_menuRowSize{4};
+    [[nodiscard]] std::size_t getResultRowSize();
 };
 
 } // namespace ui

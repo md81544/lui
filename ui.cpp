@@ -133,11 +133,7 @@ int Ui::run()
                 break;
             case 'f':
             case 'F':
-                if (m_searchString.empty()) {
-                    setResults({ "Cannot enter 'found' string before 'search' string" });
-                } else {
-                    enterFoundString();
-                }
+                enterFoundString();
                 break;
             case 'c':
             case 'C':
@@ -186,8 +182,7 @@ void Ui::clearResults(terminal::OutputMode mode)
     m_resultsScrollOffset = 0;
     if (mode == terminal::OutputMode::immediate) {
         // If it's immediate we want to clear the results pane:
-        for (size_t r = m_resultsTopRow + 1; r <= m_termSize.rows - m_menuResultsLastRowSubtract;
-             ++r) {
+        for (size_t r = m_resultsTopRow + 1; r <= getResultRowSize(); ++r) {
             m_term.goTo(r, 0, terminal::OutputMode::immediate);
             m_term.clearLine(terminal::OutputMode::immediate);
         }
@@ -232,7 +227,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
 
 void Ui::displayResults()
 {
-    std::size_t lastRowInSection = m_termSize.rows - m_menuResultsLastRowSubtract;
+    std::size_t lastRowInSection = m_resultsTopRow + getResultRowSize() - 2;
     hr(m_resultsTopRow);
     m_term.printAt(m_resultsTopRow, 1, "Results");
 
@@ -241,21 +236,11 @@ void Ui::displayResults()
         m_term.setFgColour(terminal::Colour::BrightYellow);
         std::size_t currentRow = m_resultsTopRow + 2;
         if (m_resultsScrollOffset != 0) {
-            if (m_term.utf8Supported()) {
-                m_term.printAt(currentRow - 1, 1, "…");
-            } else {
-                m_term.printAt(currentRow - 1, 1, "...");
-            }
+            m_term.printAt(currentRow - 1, 1, "...");
         }
         for (std::size_t p = m_resultsScrollOffset; p < m_results.size(); ++p) {
             if (m_results[p].size() > m_termSize.cols - 2) {
-                if (m_term.utf8Supported()) {
-                    m_term.printAt(
-                        currentRow, 1, m_results[p].substr(0, m_termSize.cols - 3) + "…");
-                } else {
-                    m_term.printAt(
-                        currentRow, 1, m_results[p].substr(0, m_termSize.cols - 5) + "...");
-                }
+                m_term.printAt(currentRow, 1, m_results[p].substr(0, m_termSize.cols - 5) + "...");
             } else {
                 m_term.printAt(currentRow, 1, m_results[p]);
             }
@@ -263,11 +248,7 @@ void Ui::displayResults()
             if (currentRow == lastRowInSection) {
                 if (p < m_results.size() - 1) {
                     // It wasn't the last row in m_results
-                    if (m_term.utf8Supported()) {
-                        m_term.printAt(currentRow, 1, "…");
-                    } else {
-                        m_term.printAt(currentRow, 1, "...");
-                    }
+                    m_term.printAt(currentRow, 1, "...");
                     m_resultsScrollAtBottom = false;
                 } else {
                     m_resultsScrollAtBottom = true;
@@ -283,7 +264,7 @@ void Ui::displayResults()
 
 void Ui::displayMenu()
 {
-    const std::size_t topRow = m_termSize.rows - m_menuTopRowOffsetFromBottom;
+    const std::size_t topRow = m_termSize.rows - m_menuRowSize;
     hr(topRow);
     m_term.printAt(topRow, 1, "Menu");
     m_term.goTo(topRow + 1, 1);
@@ -383,22 +364,29 @@ void Ui::lookup()
         });
     std::ranges::replace(lowerCase, '/', ' ');
     auto results = m_ws->regexSearch(lowerCase);
-    std::string sortedSearchString { m_searchString };
-    std::transform(
-        sortedSearchString.begin(),
-        sortedSearchString.end(),
-        sortedSearchString.begin(),
-        [](unsigned char c) { return ascii::tolower(c); });
-    std::ranges::sort(sortedSearchString);
-    for (auto word : results) {
-        // Ensure that any regex match actually contains the letters
-        // in m_searchString
-        std::string w { word };
-        w.erase(std::remove(w.begin(), w.end(), ' '), w.end());
-        std::string sortedWord { w };
-        std::ranges::sort(sortedWord);
-        if (sortedWord == sortedSearchString) {
-            m_results.push_back(word);
+    if (!m_searchString.empty()) {
+        std::string sortedSearchString { m_searchString };
+        std::transform(
+            sortedSearchString.begin(),
+            sortedSearchString.end(),
+            sortedSearchString.begin(),
+            [](unsigned char c) { return ascii::tolower(c); });
+        std::ranges::sort(sortedSearchString);
+        for (const auto& word : results) {
+            // Ensure that any regex match actually contains the letters
+            // in m_searchString
+            std::string w { word };
+            w.erase(std::remove(w.begin(), w.end(), ' '), w.end());
+            std::string sortedWord { w };
+            std::ranges::sort(sortedWord);
+            if (sortedWord == sortedSearchString) {
+                m_results.emplace_back(word);
+            }
+        }
+    } else {
+        // if search string is empty we add all results
+        for (const auto& word : results) {
+            m_results.emplace_back(word);
         }
     }
     if (m_results.empty()) {
@@ -502,21 +490,26 @@ void Ui::enterFoundString()
             return key;
         }
         if (ascii::isprint(key)) {
-            // Disallow any character not in search string
-            if (ascii::toupper(key) == opts.currentValue.at(opts.cursorPos)) {
-                // we're just overwriting an existing "found" character
-                return ascii::toupper(key);
-            }
-            auto c1 = std::count(m_searchString.begin(), m_searchString.end(), ascii::toupper(key));
-            auto c2 = std::count(
-                opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
-            if (c1 == 0 || c2 == c1) {
-                m_term.bell(terminal::OutputMode::immediate);
-                return keyPress::NO_KEY;
-            }
-            if (!ascii::isalpha(key)) {
-                m_term.bell(terminal::OutputMode::immediate);
-                return keyPress::NO_KEY;
+            // Disallow any character not in search string IF the search string has been set
+            if (!m_searchString.empty()) {
+                if (ascii::toupper(key) == opts.currentValue.at(opts.cursorPos)) {
+                    // we're just overwriting an existing "found" character
+                    return ascii::toupper(key);
+                }
+                auto c1
+                    = std::count(m_searchString.begin(), m_searchString.end(), ascii::toupper(key));
+                auto c2 = std::count(
+                    opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
+                if (c1 == 0 || c2 == c1) {
+                    m_term.bell(terminal::OutputMode::immediate);
+                    return keyPress::NO_KEY;
+                }
+                if (!ascii::isalpha(key)) {
+                    m_term.bell(terminal::OutputMode::immediate);
+                    return keyPress::NO_KEY;
+                } else {
+                    return ascii::toupper(key);
+                }
             } else {
                 return ascii::toupper(key);
             }
@@ -581,6 +574,11 @@ void Ui::enterCommentString()
     opts.defaultValue = m_comment;
     m_comment = m_term.input(opts);
     log(std::format("m_comment input: '{}'", m_comment));
+}
+
+std::size_t Ui::getResultRowSize()
+{
+    return m_termSize.rows - m_menuRowSize - m_headerRowSize;
 }
 
 } // namespace ui

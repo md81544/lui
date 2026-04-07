@@ -6,6 +6,8 @@
 
 * Q for quit should be ^Q
 
+* Allow PgUp/PgDn/Ctrl-F/Ctrl-B to navigate results
+
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
 
