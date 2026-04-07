@@ -503,13 +503,19 @@ void Ui::enterFoundString()
         }
         if (ascii::isprint(key)) {
             // Disallow any character not in search string
+            if(ascii::toupper(key) == opts.currentValue.at(opts.cursorPos)) {
+                // we're just overwriting an existing "found" character
+                return ascii::toupper(key);
+            }
             auto c1 = std::count(m_searchString.begin(), m_searchString.end(), ascii::toupper(key));
             auto c2 = std::count(
                 opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
             if (c1 == 0 || c2 == c1) {
+                m_term.bell(terminal::OutputMode::immediate);
                 return keyPress::NO_KEY;
             }
             if (!ascii::isalpha(key)) {
+                m_term.bell(terminal::OutputMode::immediate);
                 return keyPress::NO_KEY;
             } else {
                 return ascii::toupper(key);
