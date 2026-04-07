@@ -6,6 +6,16 @@
   nicely on a terminal configured with a light background
   - or a "light mode" switcher?
 
+* Implement "reverse" (simply prints m_searchString in reverse)
+
+* Implement "regular" (simply prints m_searchString with every x characters removed)
+
+* Implement thesaurus lookup
+
+* Implement "define" (dictionary definition lookup)
+
+* Implement load & save (maybe a picker for load?)
+
 * Considering the kludge required to hide tmux's immediate printing
   of pasted text, it might be an idea to rethink output. Instead of
   a large string with all the text, we could have a "UiElement" class
