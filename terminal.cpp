@@ -474,7 +474,13 @@ std::string Terminal::input(InputOptions& opts)
                 break;
             default:
                 // key was not handled so reset key to keyOrig
-                key = keyOrig;
+                // only if it is printable (i.e. not an unhandled
+                // "special" key)
+                if (ascii::isprint(keyOrig)) {
+                    key = keyOrig;
+                } else {
+                    key = keyPress::NO_KEY;
+                }
         }
         // Finally add/insert to value
         std::string oldValue = opts.currentValue; // for restoration if caller cancels in post hook
