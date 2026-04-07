@@ -143,6 +143,14 @@ int Ui::run()
             case 'C':
                 enterCommentString();
                 break;
+            case 'r':
+            case 'R':
+                if (m_searchString.empty()) {
+                    setResults({ "Cannot do a 'remove' before 'search' string is entered" });
+                } else {
+                    remove();
+                }
+                break;
             case 's':
             case 'S':
                 // Enter "search" string; implies a restart
@@ -172,10 +180,18 @@ int Ui::run()
     return 0;
 }
 
-void Ui::clearResults()
+void Ui::clearResults(terminal::OutputMode mode)
 {
     m_results.clear();
     m_resultsScrollOffset = 0;
+    if (mode == terminal::OutputMode::immediate) {
+        // If it's immediate we want to clear the results pane:
+        for (size_t r = m_resultsTopRow + 1; r <= m_termSize.rows - m_menuResultsLastRowSubtract;
+             ++r) {
+            m_term.goTo(r, 0, terminal::OutputMode::immediate);
+            m_term.clearLine(terminal::OutputMode::immediate);
+        }
+    }
 }
 
 void Ui::setResults(const std::vector<std::string>& vec)
@@ -216,15 +232,14 @@ void Ui::displayHeader(terminal::OutputMode mode)
 
 void Ui::displayResults()
 {
-    const std::size_t resultsTopRow = 6;
-    std::size_t lastRowInSection = m_termSize.rows - 6; // 6 being the size of the menu section
-    hr(resultsTopRow);
-    m_term.printAt(resultsTopRow, 1, "Results");
+    std::size_t lastRowInSection = m_termSize.rows - m_menuResultsLastRowSubtract;
+    hr(m_resultsTopRow);
+    m_term.printAt(m_resultsTopRow, 1, "Results");
 
     if (!m_results.empty()) {
         terminal::Colour oldFgColour = m_term.getFgColour();
         m_term.setFgColour(terminal::Colour::BrightYellow);
-        std::size_t currentRow = resultsTopRow + 2;
+        std::size_t currentRow = m_resultsTopRow + 2;
         if (m_resultsScrollOffset != 0) {
             if (m_term.utf8Supported()) {
                 m_term.printAt(currentRow - 1, 1, "…");
@@ -268,15 +283,15 @@ void Ui::displayResults()
 
 void Ui::displayMenu()
 {
-    const std::size_t menuTopRow = m_termSize.rows - 4;
-    hr(menuTopRow);
-    m_term.printAt(m_termSize.rows - 4, 1, "Menu");
-    m_term.goTo(menuTopRow + 1, 1);
+    const std::size_t topRow = m_termSize.rows - m_menuTopRowOffsetFromBottom;
+    hr(topRow);
+    m_term.printAt(topRow, 1, "Menu");
+    m_term.goTo(topRow + 1, 1);
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
         "_Jumble _Found _Remove _Comment re_Verse re_Gular _Thesaurus");
-    m_term.goTo(menuTopRow + 2, 1);
+    m_term.goTo(topRow + 2, 1);
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
@@ -389,6 +404,15 @@ void Ui::lookup()
     if (m_results.empty()) {
         setResults({ "-- no matches found --" });
     }
+}
+
+void Ui::remove()
+{
+    clearResults(terminal::OutputMode::immediate);
+    m_term.goTo(m_resultsTopRow + 2, 2);
+    std::cout << m_searchString << std::flush;
+    while (m_term.getChar() != keyPress::ESC)
+        ;
 }
 
 void Ui::log(std::string_view logEntry [[maybe_unused]])
