@@ -202,7 +202,7 @@ int Ui::run()
                 pageDownResults();
                 break;
             case keyPress::PGUP:
-            case keyPress::CTRL_B:
+            case keyPress::CTRL_B: // Note Ctrl-B may be TMux's "prefix" key!
                 pageUpResults();
                 break;
             case keyPress::F12:

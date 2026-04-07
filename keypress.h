@@ -50,8 +50,8 @@ namespace keyPress {
 
 // Standard Ctrl-letter combinations. The comments mostly describe standard usage,
 // but the caller is free to interpret as required
-constexpr int CTRL_A =  1; // move to start of line (readline)
-constexpr int CTRL_B =  2; // move back one char or page up
+constexpr int CTRL_A =  1; // move to start of line (readline) NOTE! May be gnu screen's prefix key
+constexpr int CTRL_B =  2; // move back one char or page up    NOTE! May be tmux's prefix key
 constexpr int CTRL_C =  3; // interrupt (SIGINT) - Ctrl-C is disabled but caller can act on this
 constexpr int CTRL_D =  4; // delete char / EOF
 constexpr int CTRL_E =  5; // move to end of line
