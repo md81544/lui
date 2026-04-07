@@ -1,15 +1,10 @@
-* Allow entry of "found" string without search string
-
-* Ui layout magic numbers
-
 * Make menus correct
-
-* Q for quit should be ^Q
 
 * Allow PgUp/PgDn/Ctrl-F/Ctrl-B to navigate results
 
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
+  - or a "light mode" switcher?
 
 * Considering the kludge required to hide tmux's immediate printing
   of pasted text, it might be an idea to rethink output. Instead of
