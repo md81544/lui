@@ -55,6 +55,7 @@ private:
     std::size_t m_resultsScrollOffset { 0 };
     bool m_resultsScrollAtBottom { true };
     std::vector<std::string> m_debugLog;
+    bool m_commandMode{ false };
 
     // UI layout 
     static constexpr size_t m_headerRowSize { 5 };

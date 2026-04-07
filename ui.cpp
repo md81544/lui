@@ -130,11 +130,30 @@ int Ui::run()
         log(std::format("Key press: {}", keyPress));
         switch (keyPress) {
             case keyPress::NO_KEY: // key was consumed by input handler
+                m_commandMode = false;
+                break;
+            case ':':
+                m_commandMode = true;
                 break;
             case keyPress::CTRL_R:
+                m_commandMode = false;
                 // clear eveything down
                 restart();
                 enterSearchString();
+                break;
+            case 'q':
+            case 'Q':
+                if (m_commandMode) {
+                    finished = true;
+                }
+                break;
+            case 'r':
+            case 'R':
+                if (m_commandMode) {
+                    restart();
+                    enterSearchString();
+                }
+                m_commandMode = false;
                 break;
             case keyPress::CTRL_C:
             case keyPress::CTRL_Q:
@@ -142,43 +161,52 @@ int Ui::run()
                 break;
             case 'j':
             case 'J':
+                m_commandMode = false;
                 jumble();
                 break;
             case 'l':
             case 'L':
+                m_commandMode = false;
                 lookup();
                 break;
             case 'f':
             case 'F':
+                m_commandMode = false;
                 enterFoundString();
                 break;
             case 'c':
             case 'C':
+                m_commandMode = false;
                 enterCommentString();
                 break;
             case 's':
             case 'S':
-                // Enter "search" string; implies a restart
+                m_commandMode = false;
                 enterSearchString();
                 break;
             case keyPress::DOWN:
+                m_commandMode = false;
                 if (!m_resultsScrollAtBottom) {
                     ++m_resultsScrollOffset;
                 }
                 break;
             case keyPress::UP:
+                m_commandMode = false;
                 if (m_resultsScrollOffset > 0) {
                     --m_resultsScrollOffset;
                 }
                 break;
             case keyPress::F12:
+                m_commandMode = false;
                 clearResults();
                 m_results = m_debugLog;
                 break;
             case keyPress::ESC:
+                m_commandMode = false;
                 // currently does nothing
                 break;
             default:
+                m_commandMode = false;
                 m_term.bell();
         }
     }
@@ -275,7 +303,13 @@ void Ui::displayMenu()
 {
     const std::size_t topRow = m_termSize.rows - m_menuRowSize;
     hr(topRow);
-    m_term.printAt(topRow, 1, "Menu");
+    if (m_commandMode) {
+        m_term.printAt(topRow, 1, "Command:  ");
+        m_term.cursorLeft(1);
+        m_term.saveCursorPosition();
+    } else {
+        m_term.printAt(topRow, 1, "Menu");
+    }
     m_term.goTo(topRow + 1, 1);
     m_term.printMenuString(
         terminal::Colour::Default,
@@ -286,6 +320,13 @@ void Ui::displayMenu()
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
         "_Lookup _Define _^_Save _^_Load _^_Restart _^_Quit");
+    if (m_commandMode) {
+        m_term.restoreCursorPosition();
+        m_term.setCursorType(terminal::CursorType::BlockBlinking);
+        m_term.cursorOn();
+    } else {
+        m_term.cursorOff();
+    }
 }
 
 void Ui::restart()
@@ -447,6 +488,9 @@ void Ui::enterFoundString()
     // and handle them specifically in the callback hook
     opts.keysAllowed = terminal::KeysAllowed::All;
     opts.preInsertHook = [&](int key) -> int {
+        if (key == keyPress::SPACE) {
+            return keyPress::RIGHT;
+        }
         if (key == keyPress::CTRL_U) {
             opts.currentValue = std::string(m_searchString.size(), '.');
             opts.maxLen = opts.currentValue.size();
