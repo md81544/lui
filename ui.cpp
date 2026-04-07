@@ -132,8 +132,7 @@ int Ui::run()
             case keyPress::NO_KEY: // key was consumed by input handler
                 break;
             case keyPress::CTRL_C:
-            case 'Q':
-            case 'q':
+            case keyPress::CTRL_Q:
                 finished = true;
                 break;
             case 'j':
@@ -289,7 +288,7 @@ void Ui::displayMenu()
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_Anagram _Lookup _Define _Note st_Ore r_Etrieve re_Start _Quit");
+        "_Anagram _Lookup _Define _Note _^_Save _^_Load _^_Restart _^_Quit");
 }
 
 void Ui::restart()
