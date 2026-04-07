@@ -74,6 +74,9 @@ namespace ui {
 
 Ui::Ui(std::string_view argv0, int wordComplexity)
 {
+    if (!checkTerminalLargeEnough()) {
+        throw(std::runtime_error("Terminal size is too small!"));
+    }
     log("DEBUG LOG");
     const auto dataDir = locateDataDirectory(argv0);
     m_term.printAt(1, 2, "Loading data...");
@@ -93,15 +96,25 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
 
 void Ui::checkForTerminalResize()
 {
-    auto [rows, cols] = m_term.getTerminalSize();
-    if (rows < 10 || cols < 20) { // TODO tweak this accordingly when layout is finalised
+    if (!checkTerminalLargeEnough()) {
         throw(std::runtime_error("Terminal size is too small!"));
     }
+    auto [rows, cols] = m_term.getTerminalSize();
     if (m_termSize.rows != rows || m_termSize.cols != cols) {
         log(std::format("Terminal size is currently {} rows by {} cols", rows, cols));
         m_termSize.rows = rows;
         m_termSize.cols = cols;
     }
+}
+
+bool Ui::checkTerminalLargeEnough()
+{
+    auto [rows, cols] = m_term.getTerminalSize();
+    // Fairly arbitrary minimum terminal size
+    if (rows < m_menuRowSize + m_headerRowSize + 5 || cols < 20) {
+        return false;
+    }
+    return true;
 }
 
 int Ui::run()

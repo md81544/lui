@@ -28,6 +28,7 @@ public:
     int run(); // main application run loop
 private:
     void checkForTerminalResize();
+    bool checkTerminalLargeEnough();
     void clearResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void setResults(const std::vector<std::string>& vec);
     void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
