@@ -503,7 +503,7 @@ void Ui::enterFoundString()
         }
         if (ascii::isprint(key)) {
             // Disallow any character not in search string
-            if(ascii::toupper(key) == opts.currentValue.at(opts.cursorPos)) {
+            if (ascii::toupper(key) == opts.currentValue.at(opts.cursorPos)) {
                 // we're just overwriting an existing "found" character
                 return ascii::toupper(key);
             }
