@@ -173,6 +173,7 @@ int Ui::run()
                 break;
             case 's':
             case 'S':
+                m_commandMode = false;
                 enterSearchString();
                 break;
             case 'r':
@@ -180,11 +181,16 @@ int Ui::run()
                 if (m_commandMode) {
                     restart();
                     enterSearchString();
-                }else{
-                regular();
+                } else {
+                    regular();
                 }
                 m_commandMode = false;
                 break;
+            case 'v':
+            case 'V':
+                m_commandMode = false;
+                reverse();
+                break; 
             case keyPress::DOWN:
                 m_commandMode = false;
                 if (!m_resultsScrollAtBottom) {
@@ -199,10 +205,12 @@ int Ui::run()
                 break;
             case keyPress::PGDN:
             case keyPress::CTRL_F:
+                m_commandMode = false;
                 pageDownResults();
                 break;
             case keyPress::PGUP:
             case keyPress::CTRL_B: // Note Ctrl-B may be TMux's "prefix" key!
+                m_commandMode = false;
                 pageUpResults();
                 break;
             case keyPress::F12:
@@ -495,7 +503,20 @@ void Ui::regular()
             utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 3)));
 }
 
-void Ui::reverse() { }
+void Ui::reverse()
+{
+    clearResults();
+    if (m_searchString.empty()) {
+        setResults({ "Please enter a search string first" });
+        return;
+    }
+    std::string reversed { m_searchString };
+    std::reverse(reversed.begin(), reversed.end());
+    m_results.emplace_back("");
+    m_results.emplace_back(std::format("'{}' reversed is:", m_searchString));
+    m_results.emplace_back("");
+    m_results.emplace_back(reversed);
+}
 
 void Ui::pageDownResults()
 {

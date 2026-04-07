@@ -1,14 +1,6 @@
-* Make menus correct
-
-* Allow PgUp/PgDn/Ctrl-F/Ctrl-B to navigate results
-
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
   - or a "light mode" switcher?
-
-* Implement "reverse" (simply prints m_searchString in reverse)
-
-* Implement "regular" (simply prints m_searchString with every x characters removed)
 
 * Implement thesaurus lookup
 
