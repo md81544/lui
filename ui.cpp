@@ -3,6 +3,7 @@
 #include "keypress.h"
 #include "log.h"
 #include "terminal.h"
+#include "signal_handler.h"
 #include "utils.h"
 #include "word_searcher.h"
 
@@ -128,7 +129,7 @@ void Ui::clearCommandPrompt()
 int Ui::run()
 {
     bool finished { false };
-    while (!finished) {
+    while (!finished && !mgo::shutdown_requested.load(std::memory_order_relaxed)) {
         if (m_commandSeqCount > 0) {
             --m_commandSeqCount;
         }

@@ -1,6 +1,7 @@
 #include "terminal.h"
 #include "ascii.h" // for locale-independent functions
 #include "keypress.h"
+#include "log.h"
 #include <cassert>
 #include <cstdint>
 #include <format>
@@ -57,6 +58,7 @@ Terminal::Terminal()
 Terminal::~Terminal()
 {
     if (m_isTty) {
+        mgo::Log::debug("Resetting terminal in ~Terminal()");
         std::cout << "\033[?25h"; // cursor unhide in case it was off
         setCursorType(CursorType::Default, OutputMode::immediate); // reset any cursor change
         std::cout << "\033[?1049l" << std::flush; // switch back to normal screen

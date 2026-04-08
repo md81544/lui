@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cerrno>
 #include <optional>
+#include <stdexcept>
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
@@ -22,8 +24,14 @@ bool stdinReady(int timeout_ms)
 int readByte()
 {
     unsigned char c;
-    if (read(STDIN_FILENO, &c, 1) == 1) {
+    ssize_t n = read(STDIN_FILENO, &c, 1);
+    if (n == 1) {
         return c;
+    }
+    if (n < 0) {
+        if (errno == EINTR) {
+            throw std::runtime_error("Interrupted");
+        }
     }
     return -1;
 }

@@ -1,19 +1,22 @@
 #include "command_line_parser.h"
 #include "log.h"
+#include "signal_handler.h"
 #include "ui.h"
 #include <iostream>
 
 int main(int argc, char** argv)
 {
+    mgo::installSignalHander();
+
     int wordComplexity = 3; // use words_3.txt
     CommandLineParser clp(argc, argv);
-    if(clp.has("-w1")) { // Use words_1.txt
+    if (clp.has("-w1")) { // Use words_1.txt
         wordComplexity = 1;
     }
-    if(clp.has("-w2")) { // use words_2.txt
+    if (clp.has("-w2")) { // use words_2.txt
         wordComplexity = 2;
     }
-    if(clp.has("-h") || clp.has("--help")) {
+    if (clp.has("-h") || clp.has("--help")) {
         std::cout << "Usage: lui [-w1|-w2] (word complexity, defaults to 3=most words)\n";
         return 2;
     }
@@ -24,7 +27,7 @@ int main(int argc, char** argv)
 #else
     mgo::Log::init("lui.log", mgo::Log::Level::Info);
     mgo::Log::info("Running release build");
-#endif 
+#endif
     mgo::Log::info("Lui started");
 
     try {

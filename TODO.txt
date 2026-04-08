@@ -7,6 +7,8 @@
 
 * "live" letter count when entering search string
 
+* Option to filter results?
+
 * Support mouse clicks
   - Enter SGR mode in Terminal ctor (std::cout << "\033[?1000h\033[?1006h";)
   - Exit SGR mode in ~Terminal (std::cout << "\033[?1000l\033[?1006l";)
