@@ -81,7 +81,7 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
     const auto dataDir = locateDataDirectory(argv0);
     m_term.printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
-    m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slow)");
+    m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");
 #endif
     m_term.cursorOff();
     m_term.render();
@@ -117,6 +117,14 @@ bool Ui::checkTerminalLargeEnough()
     return true;
 }
 
+void Ui::clearCommandPrompt()
+{
+    // Clear command prompt immediately
+    if (m_commandSeqCount > 0) {
+        m_commandSeqCount = 0;
+        displayMenu(terminal::OutputMode::immediate);
+    }
+}
 int Ui::run()
 {
     bool finished { false };
@@ -178,6 +186,7 @@ int Ui::run()
                 if (m_commandSeqCount > 0) {
                     // i.e. :r
                     restart();
+                    clearCommandPrompt(); // To wipe out the commmand prompt
                     enterSearchString();
                 } else {
                     regular();
@@ -225,7 +234,7 @@ void Ui::clearResults(terminal::OutputMode mode)
     m_resultsScrollOffset = 0;
     if (mode == terminal::OutputMode::immediate) {
         // If it's immediate we want to clear the results pane:
-        for (size_t r = m_resultsTopRow + 1; r <= getResultsPaneRowSize(); ++r) {
+        for (size_t r = m_resultsTopRow + 1; r < m_resultsTopRow + getResultsPaneRowSize(); ++r) {
             m_term.goTo(r, 0, terminal::OutputMode::immediate);
             m_term.clearLine(terminal::OutputMode::immediate);
         }
@@ -270,7 +279,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
 
 void Ui::displayResults()
 {
-    std::size_t lastRowInSection = m_resultsTopRow + getResultsPaneRowSize() - 2;
+    std::size_t lastRowInSection = m_resultsTopRow + getResultsPaneRowSize() - 1;
     hr(m_resultsTopRow);
     m_term.printAt(m_resultsTopRow, 1, "Results");
 
@@ -305,38 +314,41 @@ void Ui::displayResults()
     }
 }
 
-void Ui::displayMenu()
+void Ui::displayMenu(terminal::OutputMode mode)
 {
     const std::size_t topRow = m_termSize.rows - m_menuRowSize;
-    hr(topRow);
+    hr(topRow, mode);
     if (m_commandSeqCount > 0) {
-        m_term.printAt(topRow, 1, "Command:  ");
-        m_term.cursorLeft(1);
-        m_term.saveCursorPosition();
+        m_term.printAt(topRow, 1, "Command:   ", mode);
+        m_term.cursorLeft(2, mode);
+        m_term.saveCursorPosition(mode);
     } else {
-        m_term.printAt(topRow, 1, "Menu");
+        m_term.printAt(topRow, 1, "Menu", mode);
     }
-    m_term.goTo(topRow + 1, 1);
+    m_term.goTo(topRow + 1, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_Jumble _Found _Comment re_Verse _Regular _Thesaurus");
-    m_term.goTo(topRow + 2, 1);
+        "_Jumble _Found _Comment re_Verse _Regular _Thesaurus",
+        mode);
+    m_term.goTo(topRow + 2, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_Lookup _Define _^_Save _^_Load _^_Restart _^_Quit");
+        "_Lookup _Define _^_Save _^_Load _^_Restart _^_Quit",
+        mode);
     if (m_commandSeqCount > 0) {
-        m_term.restoreCursorPosition();
-        m_term.setCursorType(terminal::CursorType::BlockBlinking);
-        m_term.cursorOn();
+        m_term.restoreCursorPosition(mode);
+        m_term.setCursorType(terminal::CursorType::BlockBlinking, mode);
+        m_term.cursorOn(mode);
     } else {
-        m_term.cursorOff();
+        m_term.cursorOff(mode);
     }
 }
 
 void Ui::restart()
 {
+    clearResults(terminal::OutputMode::immediate);
     m_searchString.clear();
     m_foundString.clear();
     m_clue.clear();
@@ -344,9 +356,9 @@ void Ui::restart()
     clearResults();
 }
 
-void Ui::hr(std::size_t row)
+void Ui::hr(std::size_t row, terminal::OutputMode mode)
 {
-    m_term.goTo(row, 0);
+    m_term.goTo(row, 0, mode);
     std::string hr;
     for (std::size_t c = 0; c < m_termSize.cols; ++c) {
         if (m_term.utf8Supported()) {
@@ -355,7 +367,7 @@ void Ui::hr(std::size_t row)
             hr.append("-"); // plain
         }
     }
-    m_term.print(hr);
+    m_term.print(hr, mode);
 }
 
 void Ui::jumble()

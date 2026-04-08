@@ -26,6 +26,7 @@ public:
     Ui(Ui&&) = delete;
     Ui& operator=(const Ui&&) = delete;
     ~Ui() { };
+    void clearCommandPrompt();
     int run(); // main application run loop
 private:
     void checkForTerminalResize();
@@ -35,8 +36,8 @@ private:
     void setResults(const std::vector<std::string>& vec);
     void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayResults();
-    void displayMenu();
-    void hr(std::size_t row);
+    void displayMenu(terminal::OutputMode mode = terminal::OutputMode::render);
+    void hr(std::size_t row, terminal::OutputMode mode = terminal::OutputMode::render);
     void jumble();
     void lookup();
     void regular();
@@ -63,8 +64,8 @@ private:
     uint8_t m_commandSeqCount { 0 }; // used for two-key commands, e.g. :q
 
     // UI layout
-    static constexpr size_t m_headerRowSize { 5 };
-    static constexpr size_t m_resultsTopRow { m_headerRowSize + 1 };
+    static constexpr size_t m_headerRowSize { 6 };
+    static constexpr size_t m_resultsTopRow { m_headerRowSize };
     static constexpr size_t m_menuRowSize { 4 };
     [[nodiscard]] std::size_t getResultsPaneRowSize();
 };
