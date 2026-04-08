@@ -6,6 +6,7 @@
 #include "terminal.h"
 #include "word_searcher.h"
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -59,12 +60,12 @@ private:
     std::size_t m_resultsScrollOffset { 0 };
     bool m_resultsScrollAtBottom { true };
     std::vector<std::string> m_debugLog;
-    bool m_commandMode{ false };
+    uint8_t m_commandSeqCount { 0 }; // used for two-key commands, e.g. :q
 
-    // UI layout 
+    // UI layout
     static constexpr size_t m_headerRowSize { 5 };
     static constexpr size_t m_resultsTopRow { m_headerRowSize + 1 };
-    static constexpr size_t m_menuRowSize{4};
+    static constexpr size_t m_menuRowSize { 4 };
     [[nodiscard]] std::size_t getResultsPaneRowSize();
 };
 

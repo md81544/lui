@@ -121,6 +121,9 @@ int Ui::run()
 {
     bool finished { false };
     while (!finished) {
+        if (m_commandSeqCount > 0) {
+            --m_commandSeqCount;
+        }
         checkForTerminalResize();
         displayHeader();
         displayResults();
@@ -130,20 +133,19 @@ int Ui::run()
         log(std::format("Key press: {}", keyPress));
         switch (keyPress) {
             case keyPress::NO_KEY: // key was consumed by input handler
-                m_commandMode = false;
                 break;
             case ':':
-                m_commandMode = true;
+                m_commandSeqCount = 2;
                 break;
             case keyPress::CTRL_R:
-                m_commandMode = false;
                 // clear eveything down
                 restart();
                 enterSearchString();
                 break;
             case 'q':
             case 'Q':
-                if (m_commandMode) {
+                if (m_commandSeqCount > 0) {
+                    // i.e. :q
                     finished = true;
                 }
                 break;
@@ -153,77 +155,64 @@ int Ui::run()
                 break;
             case 'j':
             case 'J':
-                m_commandMode = false;
                 jumble();
                 break;
             case 'l':
             case 'L':
-                m_commandMode = false;
                 lookup();
                 break;
             case 'f':
             case 'F':
-                m_commandMode = false;
                 enterFoundString();
                 break;
             case 'c':
             case 'C':
-                m_commandMode = false;
                 enterCommentString();
                 break;
             case 's':
             case 'S':
-                m_commandMode = false;
                 enterSearchString();
                 break;
             case 'r':
             case 'R':
-                if (m_commandMode) {
+                if (m_commandSeqCount > 0) {
+                    // i.e. :r
                     restart();
                     enterSearchString();
                 } else {
                     regular();
                 }
-                m_commandMode = false;
                 break;
             case 'v':
             case 'V':
-                m_commandMode = false;
                 reverse();
-                break; 
+                break;
             case keyPress::DOWN:
-                m_commandMode = false;
                 if (!m_resultsScrollAtBottom) {
                     ++m_resultsScrollOffset;
                 }
                 break;
             case keyPress::UP:
-                m_commandMode = false;
                 if (m_resultsScrollOffset > 0) {
                     --m_resultsScrollOffset;
                 }
                 break;
             case keyPress::PGDN:
             case keyPress::CTRL_F:
-                m_commandMode = false;
                 pageDownResults();
                 break;
             case keyPress::PGUP:
             case keyPress::CTRL_B: // Note Ctrl-B may be TMux's "prefix" key!
-                m_commandMode = false;
                 pageUpResults();
                 break;
             case keyPress::F12:
-                m_commandMode = false;
                 clearResults();
                 m_results = m_debugLog;
                 break;
             case keyPress::ESC:
-                m_commandMode = false;
                 // currently does nothing
                 break;
             default:
-                m_commandMode = false;
                 m_term.bell();
         }
     }
@@ -320,7 +309,7 @@ void Ui::displayMenu()
 {
     const std::size_t topRow = m_termSize.rows - m_menuRowSize;
     hr(topRow);
-    if (m_commandMode) {
+    if (m_commandSeqCount > 0) {
         m_term.printAt(topRow, 1, "Command:  ");
         m_term.cursorLeft(1);
         m_term.saveCursorPosition();
@@ -337,7 +326,7 @@ void Ui::displayMenu()
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
         "_Lookup _Define _^_Save _^_Load _^_Restart _^_Quit");
-    if (m_commandMode) {
+    if (m_commandSeqCount > 0) {
         m_term.restoreCursorPosition();
         m_term.setCursorType(terminal::CursorType::BlockBlinking);
         m_term.cursorOn();
