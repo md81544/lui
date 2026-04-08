@@ -171,7 +171,11 @@ int Ui::run()
                 break;
             case 'f':
             case 'F':
-                enterFoundString();
+                if (m_searchString.empty()) {
+                    enterFoundStringUnconstrained();
+                } else {
+                    enterFoundStringConstrained();
+                }
                 break;
             case 'c':
             case 'C':
@@ -277,30 +281,31 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.clearToEndOfLine(mode);
 }
 
-void Ui::displayResults()
+void Ui::displayResults(terminal::OutputMode mode)
 {
     std::size_t lastRowInSection = m_resultsTopRow + getResultsPaneRowSize() - 1;
-    hr(m_resultsTopRow);
-    m_term.printAt(m_resultsTopRow, 1, "Results");
+    hr(m_resultsTopRow, mode);
+    m_term.printAt(m_resultsTopRow, 1, "Results", mode);
 
     if (!m_results.empty()) {
         terminal::Colour oldFgColour = m_term.getFgColour();
-        m_term.setFgColour(terminal::Colour::BrightYellow);
+        m_term.setFgColour(terminal::Colour::BrightYellow, mode);
         std::size_t currentRow = m_resultsTopRow + 2;
         if (m_resultsScrollOffset != 0) {
             m_term.printAt(currentRow - 1, 1, "...");
         }
         for (std::size_t p = m_resultsScrollOffset; p < m_results.size(); ++p) {
             if (m_results[p].size() > m_termSize.cols - 2) {
-                m_term.printAt(currentRow, 1, m_results[p].substr(0, m_termSize.cols - 5) + "...");
+                m_term.printAt(
+                    currentRow, 1, m_results[p].substr(0, m_termSize.cols - 5) + "...", mode);
             } else {
-                m_term.printAt(currentRow, 1, m_results[p]);
+                m_term.printAt(currentRow, 1, m_results[p], mode);
             }
             ++currentRow;
             if (currentRow == lastRowInSection) {
                 if (p < m_results.size() - 1) {
                     // It wasn't the last row in m_results
-                    m_term.printAt(currentRow, 1, "...");
+                    m_term.printAt(currentRow, 1, "...", mode);
                     m_resultsScrollAtBottom = false;
                 } else {
                     m_resultsScrollAtBottom = true;
@@ -310,7 +315,7 @@ void Ui::displayResults()
             // if we didn't break then we must be at the bottom
             m_resultsScrollAtBottom = true;
         }
-        m_term.setFgColour(oldFgColour);
+        m_term.setFgColour(oldFgColour, mode);
     }
 }
 
@@ -567,7 +572,7 @@ std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
     throw std::runtime_error("Could not locate data directory");
 }
 
-void Ui::enterFoundString()
+void Ui::enterFoundStringConstrained()
 {
     terminal::InputOptions opts;
     opts.mode = terminal::Mode::Overwrite;
@@ -669,7 +674,59 @@ void Ui::enterFoundString()
         opts.maxLen = m_searchString.size();
     }
     m_foundString = m_term.input(opts);
-    log(std::format("m_foundString input: '{}'", m_foundString));
+    log(std::format("m_foundString (constrained) input: '{}'", m_foundString));
+}
+
+void Ui::enterFoundStringUnconstrained()
+{
+    displayHeader(terminal::OutputMode::immediate);
+    terminal::InputOptions opts;
+    opts.defaultValue = m_foundString;
+    opts.row = 2;
+    opts.col = 10;
+    opts.bgColour = terminal::Colour::Grey;
+    opts.fgColour = terminal::Colour::BrightWhite;
+    opts.keysAllowed = terminal::KeysAllowed::All;
+    opts.preInsertHook = [&](int key) -> int {
+        if (key == ' ') {
+            return '.';
+        }
+        if (key == '/' || key == '.' || ascii::isalpha(key)) {
+            return ascii::toupper(key);
+        }
+        // Because we've specified KeysAllowed::All we need to let these special keys
+        // through but not others.
+        // TODO: Desperately need a bitset on KeysAllowed
+        if (key == keyPress::BACKSPACE || key == keyPress::LEFT || key == keyPress::RIGHT
+            || key == keyPress::DELETE || key == keyPress::CTRL_A || key == keyPress::CTRL_E
+            || key == keyPress::END || key == keyPress::HOME || key == keyPress::CTRL_U
+            || key == keyPress::ENTER) {
+            return key;
+        }
+        return keyPress::NO_KEY;
+    };
+    while (true) {
+        m_foundString = m_term.input(opts);
+        if (m_foundString.starts_with('/') || m_foundString.ends_with('/')) {
+            // TODO need an immediate messagebox with "press any key"
+            opts.defaultValue = m_foundString;
+            setResults({ "Found string cannot start with or end with a separator ('/')" });
+            displayResults(terminal::OutputMode::immediate);
+            opts.cursorPos = 0;
+            continue;
+        }
+        if (m_foundString.contains("//")) {
+            // TODO need an immediate messagebox with "press any key"
+            opts.defaultValue = m_foundString;
+            setResults({ "Found string cannot contain two or more consecutive separators ('/')" });
+            displayResults(terminal::OutputMode::immediate);
+            opts.cursorPos = 0;
+            continue;
+        }
+        clearResults(terminal::OutputMode::immediate);
+        break;
+    }
+    log(std::format("m_foundString (unconstrained) input: '{}'", m_foundString));
 }
 
 void Ui::enterSearchString()

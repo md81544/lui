@@ -35,7 +35,7 @@ private:
     void clearResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void setResults(const std::vector<std::string>& vec);
     void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
-    void displayResults();
+    void displayResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayMenu(terminal::OutputMode mode = terminal::OutputMode::render);
     void hr(std::size_t row, terminal::OutputMode mode = terminal::OutputMode::render);
     void jumble();
@@ -46,7 +46,8 @@ private:
     void pageUpResults();
     void log(std::string_view logEntry);
     std::filesystem::path locateDataDirectory(std::string_view argv0);
-    void enterFoundString();
+    void enterFoundStringConstrained();
+    void enterFoundStringUnconstrained();
     void enterSearchString();
     void enterCommentString();
 
