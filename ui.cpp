@@ -329,7 +329,7 @@ void Ui::displayMenu(terminal::OutputMode mode)
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_Jumble _Found _Comment re_Verse _Regular _Thesaurus",
+        "_Jumble _Comment re_Verse _Regular _Thesaurus",
         mode);
     m_term.goTo(topRow + 2, 1, mode);
     m_term.printMenuString(

@@ -6,6 +6,12 @@
   nicely on a terminal configured with a light background
   - or a "light mode" (or monochrome) switcher?
 
+* Implement clue number entry
+
+* Maybe move the command entry to the very last row
+
+* Think about adding a help screen
+
 * Both of these should have an immediate input rather than
   kludging an entry out of search string:
   * Implement thesaurus lookup
