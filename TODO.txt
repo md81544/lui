@@ -1,3 +1,5 @@
+* "live" letter count when entering search string
+
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
   - or a "light mode" switcher?
