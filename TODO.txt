@@ -1,12 +1,15 @@
 * "live" letter count when entering search string
 
+* Colon entry in input box should cancel entry and initiate command mode
+
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
-  - or a "light mode" switcher?
+  - or a "light mode" (or monochrome) switcher?
 
-* Implement thesaurus lookup
-
-* Implement "define" (dictionary definition lookup)
+* Both of these should have an immediate input rather than
+  kludging an entry out of search string:
+  * Implement thesaurus lookup
+  * Implement "define" (dictionary definition lookup)
 
 * Implement load & save (maybe a picker for load?)
 
