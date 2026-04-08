@@ -9,6 +9,8 @@
 
 * Option to filter results?
 
+* Immediate mode messageBox with a "press Enter" to dismiss
+
 * Support mouse clicks
   - Enter SGR mode in Terminal ctor (std::cout << "\033[?1000h\033[?1006h";)
   - Exit SGR mode in ~Terminal (std::cout << "\033[?1000l\033[?1006l";)

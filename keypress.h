@@ -21,6 +21,7 @@ bool stdinReady(int timeout_ms)
     return select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv) > 0;
 }
 
+// NOTE - will throw if interrupted by SIGTERM, for example
 int readByte()
 {
     unsigned char c;
