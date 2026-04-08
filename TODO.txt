@@ -9,6 +9,8 @@
 
 * Option to filter results?
 
+* Maybe "define" takes words in the result set and adds definitions alongside?
+
 * Immediate mode messageBox with a "press Enter" to dismiss
 
 * Support mouse clicks

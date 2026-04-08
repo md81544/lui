@@ -701,7 +701,7 @@ void Ui::enterFoundStringUnconstrained()
         if (key == keyPress::BACKSPACE || key == keyPress::LEFT || key == keyPress::RIGHT
             || key == keyPress::DELETE || key == keyPress::CTRL_A || key == keyPress::CTRL_E
             || key == keyPress::END || key == keyPress::HOME || key == keyPress::CTRL_U
-            || key == keyPress::ENTER) {
+            || key == keyPress::ENTER || key == keyPress::ESC) {
             return key;
         }
         return keyPress::NO_KEY;
