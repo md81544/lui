@@ -102,4 +102,22 @@ std::vector<std::string> WordSearcher::regexSearch(const std::string& regexStrin
     return result;
 }
 
+
+std::vector<std::string> WordSearcher::definitions(const std::vector<std::string>& words)
+{
+    std::vector<std::string> rc;
+    for(const auto& w : words){
+        std::string definition{w};
+        auto d = m_definitions.find(w);
+        if (d != m_definitions.end()) {
+            definition.append(std::format(" : {}", d->second));
+        }else{
+            definition.append(" : (no definition found)");
+        }
+        rc.emplace_back(definition);
+    }
+    return rc;
+}
+
+
 } // namespace wordSearcher

@@ -17,6 +17,7 @@
 #include <numbers>
 #include <random>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -86,7 +87,7 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
 #endif
     m_term.cursorOff();
     m_term.render();
-    log("Loading data...");
+    log(std::format("Loading data... (word complexity {})", wordComplexity));
     m_ws = std::make_unique<wordSearcher::WordSearcher>(
         dataDir / std::format("words_{}.txt", wordComplexity),
         dataDir / "thesaurus.txt",
@@ -149,7 +150,6 @@ int Ui::run()
             case keyPress::CTRL_R:
                 // clear eveything down
                 restart();
-                enterSearchString();
                 break;
             case 'q':
             case 'Q':
@@ -169,6 +169,12 @@ int Ui::run()
             case 'l':
             case 'L':
                 lookup();
+                break;
+            case 'd':
+            case 'D':
+                if (m_results.type == ResultsType::Words) {
+                    m_results.vec = m_ws->definitions(m_results.vec);
+                }
                 break;
             case 'f':
             case 'F':
@@ -192,7 +198,6 @@ int Ui::run()
                     // i.e. :r
                     restart();
                     clearCommandPrompt(); // To wipe out the commmand prompt
-                    enterSearchString();
                 } else {
                     regular();
                 }
@@ -474,7 +479,7 @@ void Ui::lookup()
     }
     if (m_results.vec.empty()) {
         setResults("-- no matches found --", ResultsType::FreeForm);
-    }else{
+    } else {
         m_results.type = ResultsType::Words;
     }
 }
@@ -722,7 +727,9 @@ void Ui::enterFoundStringUnconstrained()
         if (m_foundString.starts_with('/') || m_foundString.ends_with('/')) {
             // TODO need an immediate messagebox with "press any key"
             opts.defaultValue = m_foundString;
-            setResults("Found string cannot start with or end with a separator ('/')", ResultsType::FreeForm);
+            setResults(
+                "Found string cannot start with or end with a separator ('/')",
+                ResultsType::FreeForm);
             displayResults(terminal::OutputMode::immediate);
             opts.cursorPos = 0;
             continue;
@@ -730,7 +737,9 @@ void Ui::enterFoundStringUnconstrained()
         if (m_foundString.contains("//")) {
             // TODO need an immediate messagebox with "press any key"
             opts.defaultValue = m_foundString;
-            setResults("Found string cannot contain two or more consecutive separators ('/')", ResultsType::FreeForm);
+            setResults(
+                "Found string cannot contain two or more consecutive separators ('/')",
+                ResultsType::FreeForm);
             displayResults(terminal::OutputMode::immediate);
             opts.cursorPos = 0;
             continue;

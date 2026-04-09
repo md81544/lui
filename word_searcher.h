@@ -19,6 +19,7 @@ public:
     WordSearcher& operator=(const WordSearcher&) = delete;
 
     std::vector<std::string> regexSearch(const std::string& regexString);
+    std::vector<std::string> definitions(const std::vector<std::string>& words);
 
 private:
     std::vector<std::string> m_words;
