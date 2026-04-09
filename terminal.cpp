@@ -321,6 +321,11 @@ void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg
     output(utfOrAscii("─┘", "-+"), mode);
 }
 
+void Terminal::setShutdownCheckFunction(std::function<bool()> fn)
+{
+    keyPress::shutdownCheckFunction = fn;
+}
+
 std::string Terminal::input(InputOptions& opts)
 {
     // Note, not using readline library here. While readline (GNU especially)
@@ -356,6 +361,9 @@ std::string Terminal::input(InputOptions& opts)
         }
         setFgColour(oldFg, imm);
         setBgColour(oldBg, imm);
+        if (opts.reportSize && !opts.currentValue.empty()) {
+            std::cout << std::format("  ({} letters)", opts.currentValue.size());
+        }
         clearToEndOfLine(imm); // See note in header; this works around tmux behaviour;
                                // Downside is anything after the input will be cleared.
         // Position cursor to insertion/overwrite point

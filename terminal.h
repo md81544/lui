@@ -99,6 +99,8 @@ struct InputOptions {
     // Note post hook returns a bool. A false return indicates the
     // caller wants to cancel the insertion.
     std::function<bool()> postInsertHook { []() -> bool { return true; } };
+    // Appends number of characters entered after the value if true:
+    bool reportSize { false };
 };
 
 class Terminal final {
@@ -155,6 +157,9 @@ public:
         std::size_t col,
         std::string_view msg,
         OutputMode mode = OutputMode::render);
+    // Passes to keyPress any shutdown function. Function should return true
+    // if, say, SIGTERM is received.
+    void setShutdownCheckFunction(std::function<bool()>);
     // input() is always immediate mode:
     // NOTE! As it stands, input will clear to end of line
     // as characters are entered. This is deliberate to avoid an

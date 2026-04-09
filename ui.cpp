@@ -81,6 +81,8 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
     }
     log("DEBUG LOG");
     const auto dataDir = locateDataDirectory(argv0);
+    m_term.setShutdownCheckFunction(
+        []() -> bool { return mgo::shutdown_requested.load(std::memory_order_relaxed); });
     m_term.printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
     m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");
@@ -786,6 +788,7 @@ void Ui::enterCommentString()
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
     opts.defaultValue = m_comment;
+    opts.reportSize = true;
     m_comment = m_term.input(opts);
     log(std::format("m_comment input: '{}'", m_comment));
 }

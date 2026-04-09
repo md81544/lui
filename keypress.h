@@ -1,11 +1,19 @@
 #pragma once
 
 #include <cerrno>
+#include <functional>
 #include <optional>
 #include <stdexcept>
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
+
+namespace keyPress {
+// If you want a shutdown flag to be checked when a signal handler requests
+// app termination (SIGTERM, for example), then set this to a function that
+// returns true if shutdown is requested via signal.
+inline std::function<bool()> shutdownCheckFunction;
+}
 
 namespace {
 
@@ -31,7 +39,11 @@ int readByte()
     }
     if (n < 0) {
         if (errno == EINTR) {
-            throw std::runtime_error("Interrupted");
+            if (keyPress::shutdownCheckFunction) {
+                if (keyPress::shutdownCheckFunction()) {
+                    throw(std::runtime_error("Interrupted"));
+                }
+            }
         }
     }
     return -1;
@@ -59,15 +71,15 @@ namespace keyPress {
 
 // Standard Ctrl-letter combinations. The comments mostly describe standard usage,
 // but the caller is free to interpret as required
-constexpr int CTRL_A =  1; // move to start of line (readline) NOTE! May be gnu screen's prefix key
-constexpr int CTRL_B =  2; // move back one char or page up    NOTE! May be tmux's prefix key
-constexpr int CTRL_C =  3; // interrupt (SIGINT) - Ctrl-C is disabled but caller can act on this
-constexpr int CTRL_D =  4; // delete char / EOF
-constexpr int CTRL_E =  5; // move to end of line
-constexpr int CTRL_F =  6; // move forward one char or page down
-constexpr int CTRL_G =  7; // bell / cancel
-constexpr int CTRL_H =  8; // backspace
-constexpr int CTRL_I =  9; // horizontal tab
+constexpr int CTRL_A = 1; // move to start of line (readline) NOTE! May be gnu screen's prefix key
+constexpr int CTRL_B = 2; // move back one char or page up    NOTE! May be tmux's prefix key
+constexpr int CTRL_C = 3; // interrupt (SIGINT) - Ctrl-C is disabled but caller can act on this
+constexpr int CTRL_D = 4; // delete char / EOF
+constexpr int CTRL_E = 5; // move to end of line
+constexpr int CTRL_F = 6; // move forward one char or page down
+constexpr int CTRL_G = 7; // bell / cancel
+constexpr int CTRL_H = 8; // backspace
+constexpr int CTRL_I = 9; // horizontal tab
 constexpr int CTRL_J = 10; // line feed / newline
 constexpr int CTRL_K = 11; // kill to end of line
 constexpr int CTRL_L = 12; // clear screen / form feed
@@ -128,7 +140,7 @@ inline std::optional<int> getKeyPress(bool blocking = true)
     termios term_attrs;
     tcgetattr(STDIN_FILENO, &term_attrs);
     term_attrs.c_lflag &= ~(ICANON | ECHO | ISIG);
-    term_attrs.c_iflag &= ~(IXON | IXOFF);  // disable XON/XOFF flow control
+    term_attrs.c_iflag &= ~(IXON | IXOFF); // disable XON/XOFF flow control
     if (!blocking) {
         term_attrs.c_cc[VMIN] = 0;
         term_attrs.c_cc[VTIME] = 0;
