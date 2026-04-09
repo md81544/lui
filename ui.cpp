@@ -170,7 +170,12 @@ int Ui::run()
                 break;
             case 'l':
             case 'L':
-                lookup();
+                if (m_commandSeqCount > 0) {
+                    // i.e. :l
+                    load();
+                } else {
+                    lookup();
+                }
                 break;
             case 'd':
             case 'D':
@@ -190,9 +195,18 @@ int Ui::run()
             case 'C':
                 enterCommentString();
                 break;
+            case 'n':
+            case 'N':
+                enterClueNumber();
+                break;
             case 's':
             case 'S':
-                enterSearchString();
+                if (m_commandSeqCount > 0) {
+                    // i.e. :s
+                    save();
+                } else {
+                    enterSearchString();
+                }
                 break;
             case 'r':
             case 'R':
@@ -229,6 +243,12 @@ int Ui::run()
             case keyPress::F12:
                 clearResults();
                 setResults(m_debugLog, ResultsType::FreeForm);
+                break;
+            case keyPress::CTRL_S:
+                save();
+                break;
+            case keyPress::CTRL_L:
+                load();
                 break;
             case keyPress::ESC:
                 // currently does nothing
@@ -543,6 +563,15 @@ void Ui::reverse()
     m_results.vec.emplace_back(reversed);
 }
 
+void Ui::load()
+{
+    setResults("Load not yet implemented", ResultsType::FreeForm);
+}
+
+void Ui::save() {
+    setResults("Save not yet implemented", ResultsType::FreeForm);
+}
+
 void Ui::pageDownResults()
 {
     std::size_t resultsDisplaySize = getResultsPaneRowSize() - 4;
@@ -791,6 +820,20 @@ void Ui::enterCommentString()
     opts.defaultValue = m_comment;
     m_comment = m_term.input(opts);
     log(std::format("m_comment input: '{}'", m_comment));
+}
+
+void Ui::enterClueNumber()
+{
+    terminal::InputOptions opts;
+    opts.row = 4;
+    opts.col = 10;
+    opts.bgColour = terminal::Colour::Grey;
+    opts.fgColour = terminal::Colour::BrightWhite;
+    opts.mode = terminal::Mode::Insert;
+    opts.defaultValue = m_clue;
+    opts.keysAllowed = terminal::KeysAllowed::CapitalAlphanum;
+    m_clue = m_term.input(opts);
+    log(std::format("m_clue input: '{}'", m_clue));
 }
 
 std::size_t Ui::getResultsPaneRowSize()

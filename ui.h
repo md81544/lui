@@ -56,6 +56,8 @@ private:
     void lookup();
     void regular();
     void reverse();
+    void load();
+    void save();
     void pageDownResults();
     void pageUpResults();
     void log(std::string_view logEntry);
@@ -64,6 +66,7 @@ private:
     void enterFoundStringUnconstrained();
     void enterSearchString();
     void enterCommentString();
+    void enterClueNumber();
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;
