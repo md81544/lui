@@ -546,7 +546,7 @@ void Ui::reverse()
 void Ui::pageDownResults()
 {
     std::size_t resultsDisplaySize = getResultsPaneRowSize() - 4;
-    if (m_results.scrollOffset + resultsDisplaySize <= m_results.vec.size()) {
+    if (m_results.scrollOffset + resultsDisplaySize < m_results.vec.size()) {
         m_results.scrollOffset += resultsDisplaySize;
     }
 }
