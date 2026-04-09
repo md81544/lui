@@ -2,8 +2,8 @@
 #include "ascii.h"
 #include "keypress.h"
 #include "log.h"
-#include "terminal.h"
 #include "signal_handler.h"
+#include "terminal.h"
 #include "utils.h"
 #include "word_searcher.h"
 
@@ -202,13 +202,13 @@ int Ui::run()
                 reverse();
                 break;
             case keyPress::DOWN:
-                if (!m_resultsScrollAtBottom) {
-                    ++m_resultsScrollOffset;
+                if (!m_results.scrollAtBottom) {
+                    ++m_results.scrollOffset;
                 }
                 break;
             case keyPress::UP:
-                if (m_resultsScrollOffset > 0) {
-                    --m_resultsScrollOffset;
+                if (m_results.scrollOffset > 0) {
+                    --m_results.scrollOffset;
                 }
                 break;
             case keyPress::PGDN:
@@ -221,7 +221,7 @@ int Ui::run()
                 break;
             case keyPress::F12:
                 clearResults();
-                m_results = m_debugLog;
+                setResults(m_debugLog, ResultsType::FreeForm);
                 break;
             case keyPress::ESC:
                 // currently does nothing
@@ -235,8 +235,8 @@ int Ui::run()
 
 void Ui::clearResults(terminal::OutputMode mode)
 {
-    m_results.clear();
-    m_resultsScrollOffset = 0;
+    m_results.vec.clear();
+    m_results.scrollOffset = 0;
     if (mode == terminal::OutputMode::immediate) {
         // If it's immediate we want to clear the results pane:
         for (size_t r = m_resultsTopRow + 1; r < m_resultsTopRow + getResultsPaneRowSize(); ++r) {
@@ -246,10 +246,19 @@ void Ui::clearResults(terminal::OutputMode mode)
     }
 }
 
-void Ui::setResults(const std::vector<std::string>& vec)
+void Ui::setResults(const std::vector<std::string>& vec, ResultsType type)
 {
-    m_results = vec;
-    m_resultsScrollOffset = 0;
+    m_results.vec = vec;
+    m_results.type = type;
+    m_results.scrollOffset = 0;
+}
+
+void Ui::setResults(std::string_view result, ResultsType type)
+{
+    m_results.vec.clear();
+    m_results.vec.emplace_back(result);
+    m_results.type = type;
+    m_results.scrollOffset = 0;
 }
 
 void Ui::displayHeader(terminal::OutputMode mode)
@@ -288,33 +297,33 @@ void Ui::displayResults(terminal::OutputMode mode)
     hr(m_resultsTopRow, mode);
     m_term.printAt(m_resultsTopRow, 1, "Results", mode);
 
-    if (!m_results.empty()) {
+    if (!m_results.vec.empty()) {
         terminal::Colour oldFgColour = m_term.getFgColour();
         m_term.setFgColour(terminal::Colour::BrightYellow, mode);
         std::size_t currentRow = m_resultsTopRow + 2;
-        if (m_resultsScrollOffset != 0) {
+        if (m_results.scrollOffset != 0) {
             m_term.printAt(currentRow - 1, 1, "...");
         }
-        for (std::size_t p = m_resultsScrollOffset; p < m_results.size(); ++p) {
-            if (m_results[p].size() > m_termSize.cols - 2) {
+        for (std::size_t p = m_results.scrollOffset; p < m_results.vec.size(); ++p) {
+            if (m_results.vec[p].size() > m_termSize.cols - 2) {
                 m_term.printAt(
-                    currentRow, 1, m_results[p].substr(0, m_termSize.cols - 5) + "...", mode);
+                    currentRow, 1, m_results.vec[p].substr(0, m_termSize.cols - 5) + "...", mode);
             } else {
-                m_term.printAt(currentRow, 1, m_results[p], mode);
+                m_term.printAt(currentRow, 1, m_results.vec[p], mode);
             }
             ++currentRow;
             if (currentRow == lastRowInSection) {
-                if (p < m_results.size() - 1) {
+                if (p < m_results.vec.size() - 1) {
                     // It wasn't the last row in m_results
                     m_term.printAt(currentRow, 1, "...", mode);
-                    m_resultsScrollAtBottom = false;
+                    m_results.scrollAtBottom = false;
                 } else {
-                    m_resultsScrollAtBottom = true;
+                    m_results.scrollAtBottom = true;
                 }
                 break;
             }
             // if we didn't break then we must be at the bottom
-            m_resultsScrollAtBottom = true;
+            m_results.scrollAtBottom = true;
         }
         m_term.setFgColour(oldFgColour, mode);
     }
@@ -404,12 +413,12 @@ void Ui::jumble()
     std::ranges::shuffle(remainingLetters, gen);
     auto grid = lettersInACircle(remainingLetters);
     clearResults();
-    m_results.emplace_back("");
+    m_results.vec.emplace_back("");
     for (const auto& s : grid) {
-        m_results.emplace_back(" " + s);
+        m_results.vec.emplace_back(" " + s);
     }
-    m_results.emplace_back("");
-    m_results.emplace_back("");
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back("");
 
     std::string alreadyFound;
     for (const auto& c : m_foundString) {
@@ -419,7 +428,7 @@ void Ui::jumble()
             alreadyFound.append(std::format("{} ", c));
         }
     }
-    m_results.emplace_back(alreadyFound);
+    m_results.vec.emplace_back(alreadyFound);
 }
 
 void Ui::lookup()
@@ -454,17 +463,19 @@ void Ui::lookup()
             std::string sortedWord { w };
             std::ranges::sort(sortedWord);
             if (sortedWord == sortedSearchString) {
-                m_results.emplace_back(word);
+                m_results.vec.emplace_back(word);
             }
         }
     } else {
         // if search string is empty we add all results
         for (const auto& word : results) {
-            m_results.emplace_back(word);
+            m_results.vec.emplace_back(word);
         }
     }
-    if (m_results.empty()) {
-        setResults({ "-- no matches found --" });
+    if (m_results.vec.empty()) {
+        setResults("-- no matches found --", ResultsType::FreeForm);
+    }else{
+        m_results.type = ResultsType::Words;
     }
 }
 
@@ -472,39 +483,39 @@ void Ui::regular()
 {
     clearResults();
     if (m_searchString.empty()) {
-        setResults({ "Please enter a search string first" });
+        setResults("Please enter a search string first", ResultsType::FreeForm);
         return;
     }
-    m_results.emplace_back("Every two letters");
-    m_results.emplace_back("");
-    m_results.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_searchString, 2)));
-    m_results.emplace_back(
+    m_results.vec.emplace_back("Every two letters");
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_searchString, 2)));
+    m_results.vec.emplace_back(
         std::format(
             "  Even:  {}",
             utils::everyNth({ m_searchString.begin() + 1, m_searchString.end() }, 2)));
-    m_results.emplace_back("");
-    m_results.emplace_back("Every three letters");
-    m_results.emplace_back("");
-    m_results.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_searchString, 3)));
-    m_results.emplace_back(
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back("Every three letters");
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_searchString, 3)));
+    m_results.vec.emplace_back(
         std::format(
             "  Even:  {}",
             utils::everyNth({ m_searchString.begin() + 1, m_searchString.end() }, 3)));
-    m_results.emplace_back("");
-    m_results.emplace_back("Every two letters (reversed)");
-    m_results.emplace_back("");
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back("Every two letters (reversed)");
+    m_results.vec.emplace_back("");
     std::string reverseSearchString { m_searchString };
     std::reverse(reverseSearchString.begin(), reverseSearchString.end());
-    m_results.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 2)));
-    m_results.emplace_back(
+    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 2)));
+    m_results.vec.emplace_back(
         std::format(
             "  Even:  {}",
             utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 2)));
-    m_results.emplace_back("");
-    m_results.emplace_back("Every three letters (reversed)");
-    m_results.emplace_back("");
-    m_results.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 3)));
-    m_results.emplace_back(
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back("Every three letters (reversed)");
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 3)));
+    m_results.vec.emplace_back(
         std::format(
             "  Even:  {}",
             utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 3)));
@@ -514,32 +525,32 @@ void Ui::reverse()
 {
     clearResults();
     if (m_searchString.empty()) {
-        setResults({ "Please enter a search string first" });
+        setResults("Please enter a search string first", ResultsType::FreeForm);
         return;
     }
     std::string reversed { m_searchString };
     std::reverse(reversed.begin(), reversed.end());
-    m_results.emplace_back("");
-    m_results.emplace_back(std::format("'{}' reversed is:", m_searchString));
-    m_results.emplace_back("");
-    m_results.emplace_back(reversed);
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back(std::format("'{}' reversed is:", m_searchString));
+    m_results.vec.emplace_back("");
+    m_results.vec.emplace_back(reversed);
 }
 
 void Ui::pageDownResults()
 {
     std::size_t resultsDisplaySize = getResultsPaneRowSize() - 4;
-    if (m_resultsScrollOffset + resultsDisplaySize <= m_results.size()) {
-        m_resultsScrollOffset += resultsDisplaySize;
+    if (m_results.scrollOffset + resultsDisplaySize <= m_results.vec.size()) {
+        m_results.scrollOffset += resultsDisplaySize;
     }
 }
 
 void Ui::pageUpResults()
 {
     std::size_t resultsDisplaySize = getResultsPaneRowSize() - 4;
-    if (m_resultsScrollOffset >= resultsDisplaySize) {
-        m_resultsScrollOffset -= resultsDisplaySize;
+    if (m_results.scrollOffset >= resultsDisplaySize) {
+        m_results.scrollOffset -= resultsDisplaySize;
     } else {
-        m_resultsScrollOffset = 0;
+        m_results.scrollOffset = 0;
     }
 }
 
@@ -711,7 +722,7 @@ void Ui::enterFoundStringUnconstrained()
         if (m_foundString.starts_with('/') || m_foundString.ends_with('/')) {
             // TODO need an immediate messagebox with "press any key"
             opts.defaultValue = m_foundString;
-            setResults({ "Found string cannot start with or end with a separator ('/')" });
+            setResults("Found string cannot start with or end with a separator ('/')", ResultsType::FreeForm);
             displayResults(terminal::OutputMode::immediate);
             opts.cursorPos = 0;
             continue;
@@ -719,7 +730,7 @@ void Ui::enterFoundStringUnconstrained()
         if (m_foundString.contains("//")) {
             // TODO need an immediate messagebox with "press any key"
             opts.defaultValue = m_foundString;
-            setResults({ "Found string cannot contain two or more consecutive separators ('/')" });
+            setResults("Found string cannot contain two or more consecutive separators ('/')", ResultsType::FreeForm);
             displayResults(terminal::OutputMode::immediate);
             opts.cursorPos = 0;
             continue;

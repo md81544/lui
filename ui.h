@@ -18,6 +18,18 @@ struct TerminalSize {
     std::size_t cols;
 };
 
+enum class ResultsType {
+    FreeForm,
+    Words,
+};
+
+struct Results {
+    ResultsType type { ResultsType::FreeForm };
+    std::size_t scrollOffset { 0 };
+    bool scrollAtBottom { true };
+    std::vector<std::string> vec;
+};
+
 class Ui final {
 public:
     explicit Ui(std::string_view argv0, int wordComplexity);
@@ -33,7 +45,9 @@ private:
     bool checkTerminalLargeEnough();
     void restart();
     void clearResults(terminal::OutputMode mode = terminal::OutputMode::render);
-    void setResults(const std::vector<std::string>& vec);
+    void setResults(const std::vector<std::string>& vec, ResultsType type = ResultsType::FreeForm);
+    void setResults(std::string_view, ResultsType type = ResultsType::FreeForm);
+    void appendResults(std::string_view, ResultsType type = ResultsType::FreeForm);
     void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayMenu(terminal::OutputMode mode = terminal::OutputMode::render);
@@ -58,9 +72,7 @@ private:
     std::string m_foundString;
     std::string m_clue;
     std::string m_comment;
-    std::vector<std::string> m_results;
-    std::size_t m_resultsScrollOffset { 0 };
-    bool m_resultsScrollAtBottom { true };
+    Results m_results;
     std::vector<std::string> m_debugLog;
     uint8_t m_commandSeqCount { 0 }; // used for two-key commands, e.g. :q
 

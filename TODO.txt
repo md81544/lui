@@ -1,9 +1,6 @@
-* Bug in entering a found string before search string is entered:
-  - cannot enter word separator at end of input (would normally be disallowed
-    but should be OK for this case).
-  - Also when in this mode, entering all the dots first and then trying to
-    add in separators causes one of the dots to be lost (e.g. if we want to
-    enter a clue that's (3,2,4), enter nine dots then try to place the separators).
+* Add a generic pre-hook function (to be called from pre-hooks) which can
+  initially just check for ':' perhaps? Wouldn't be called from free-format entry
+  like the "comment" entry.
 
 * "live" letter count when entering search string
 
