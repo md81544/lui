@@ -2,8 +2,6 @@
   initially just check for ':' perhaps? Wouldn't be called from free-format entry
   like the "comment" entry.
 
-* "live" letter count when entering search string
-
 * Option to filter results?
 
 * Immediate mode messageBox with a "press Enter" to dismiss
