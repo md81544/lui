@@ -112,7 +112,7 @@ std::vector<std::string> WordSearcher::definitions(const std::vector<std::string
         if (d != m_definitions.end()) {
             definition.append(std::format(" : {}", d->second));
         }else{
-            definition.append(" : (no definition found)");
+            definition.append(" : ---");
         }
         rc.emplace_back(definition);
     }

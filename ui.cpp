@@ -253,6 +253,7 @@ void Ui::clearResults(terminal::OutputMode mode)
 
 void Ui::setResults(const std::vector<std::string>& vec, ResultsType type)
 {
+    clearResults(terminal::OutputMode::immediate);
     m_results.vec = vec;
     m_results.type = type;
     m_results.scrollOffset = 0;
@@ -260,6 +261,7 @@ void Ui::setResults(const std::vector<std::string>& vec, ResultsType type)
 
 void Ui::setResults(std::string_view result, ResultsType type)
 {
+    clearResults(terminal::OutputMode::immediate);
     m_results.vec.clear();
     m_results.vec.emplace_back(result);
     m_results.type = type;
