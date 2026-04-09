@@ -341,12 +341,10 @@ void Ui::displayMenu(terminal::OutputMode mode)
     const std::size_t topRow = m_termSize.rows - m_menuRowSize;
     hr(topRow, mode);
     if (m_commandSeqCount > 0) {
-        m_term.printAt(topRow, 1, "Command:   ", mode);
-        m_term.cursorLeft(2, mode);
+        m_term.printAt(m_termSize.rows - 1, 0, ":", mode);
         m_term.saveCursorPosition(mode);
-    } else {
-        m_term.printAt(topRow, 1, "Menu", mode);
     }
+    m_term.printAt(topRow, 1, "Menu", mode);
     m_term.goTo(topRow + 1, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default,
