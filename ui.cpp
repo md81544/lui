@@ -762,6 +762,7 @@ void Ui::enterSearchString()
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
+    opts.reportSize = true;
     opts.preInsertHook = [&](int key) -> int {
         // Disallow spaces
         if (key == ' ') {
@@ -788,7 +789,6 @@ void Ui::enterCommentString()
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
     opts.defaultValue = m_comment;
-    opts.reportSize = true;
     m_comment = m_term.input(opts);
     log(std::format("m_comment input: '{}'", m_comment));
 }
