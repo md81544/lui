@@ -24,7 +24,7 @@ public:
 private:
     std::vector<std::string> m_words;
     std::unordered_map<std::string, std::vector<std::string>> m_thesaurus;
-    std::unordered_map<std::string, std::string> m_definitions;
+    std::unordered_map<std::string, std::vector<std::string>> m_definitions;
 };
 
 } // namespace wordSearcher

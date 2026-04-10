@@ -1,4 +1,5 @@
 #include "word_searcher.h"
+#include "log.h"
 #include <algorithm>
 #include <cassert>
 #include <format>
@@ -52,9 +53,12 @@ void loadThesaurus(
     }
 }
 
-void loadDefinitions(std::string_view fileName, std::unordered_map<std::string, std::string>& map)
+void loadDefinitions(
+    std::string_view fileName,
+    std::unordered_map<std::string, std::vector<std::string>>& map)
 {
     // File structure is a word, a pipe delimiter, then the definition.
+    // Note that there may be multiple definitions for the same word.
     std::ifstream file(std::string { fileName }.c_str());
     if (!file) {
         throw std::runtime_error(std::format("Could not load file {}", fileName));
@@ -68,8 +72,13 @@ void loadDefinitions(std::string_view fileName, std::unordered_map<std::string, 
             tokens.emplace_back(subrange.begin(), subrange.end());
         }
         assert(tokens.size() == 2);
-        map.emplace(tokens[0], tokens[1]);
+        if (auto it = map.find(tokens[0]); it != map.end()) {
+            it->second.emplace_back(tokens[1]);
+        } else {
+            map.emplace(tokens[0], std::vector<std::string>{tokens[1]});
+        }
     }
+    mgo::Log::debug("Loaded definitions");
 }
 
 } // anonymous namespace
@@ -95,29 +104,26 @@ std::vector<std::string> WordSearcher::regexSearch(const std::string& regexStrin
     const std::regex regex(regexString);
     std::vector<std::string> result;
     std::copy_if(
-        m_words.begin(),
-        m_words.end(),
-        std::back_inserter(result),
-        [&regex](const std::string& w) { return std::regex_match(w, regex); });
+        m_words.begin(), m_words.end(), std::back_inserter(result), [&regex](const std::string& w) {
+            return std::regex_match(w, regex);
+        });
     return result;
 }
-
 
 std::vector<std::string> WordSearcher::definitions(const std::vector<std::string>& words)
 {
     std::vector<std::string> rc;
-    for(const auto& w : words){
-        std::string definition{w};
+    for (const auto& w : words) {
+        std::string definition { w };
         auto d = m_definitions.find(w);
         if (d != m_definitions.end()) {
             definition.append(std::format(" : {}", d->second));
-        }else{
+        } else {
             definition.append(" : ---");
         }
         rc.emplace_back(definition);
     }
     return rc;
 }
-
 
 } // namespace wordSearcher
