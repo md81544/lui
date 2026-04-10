@@ -590,7 +590,7 @@ void Ui::load()
             std::format("{:>4} : '{}'/'{}', {}", k, v.searchString, v.foundString, v.comment));
     }
     std::sort(vec.begin(), vec.end());
-    for(const auto& s: vec) {
+    for (const auto& s : vec) {
         appendResults(s);
     }
     displayResults(terminal::OutputMode::immediate);
@@ -866,6 +866,7 @@ void Ui::enterClueNumber()
     opts.mode = terminal::Mode::Insert;
     opts.defaultValue = m_clue.clueNumber;
     opts.keysAllowed = terminal::KeysAllowed::CapitalAlphanum;
+    opts.maxLen = 4;
     m_clue.clueNumber = m_term.input(opts);
     log(std::format("m_clue input: '{}'", m_clue.clueNumber));
 }
