@@ -1,5 +1,4 @@
 #include "word_searcher.h"
-#include "log.h"
 #include <algorithm>
 #include <cassert>
 #include <format>
