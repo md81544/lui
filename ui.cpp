@@ -385,13 +385,13 @@ void Ui::displayMenu(terminal::OutputMode mode)
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_Jumble _Comment re_Verse _Regular _Thesaurus",
+        "_Jumble re_Verse _Regular _Thesaurus _Lookup _Define",
         mode);
     m_term.goTo(topRow + 2, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_Lookup _Define _^_Save _^_Load _^_Restart _^_Quit",
+        "_^_Save _^_Load _^_Restart _^_Quit",
         mode);
     if (m_commandSeqCount > 0) {
         m_term.restoreCursorPosition(mode);
