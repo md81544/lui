@@ -248,7 +248,7 @@ int Ui::run()
                 break;
             case keyPress::F12:
                 clearResults();
-                setResults(m_debugLog, ResultsType::FreeForm);
+                setResults(m_debugLog);
                 break;
             case keyPress::CTRL_S:
                 save();
@@ -279,7 +279,7 @@ void Ui::clearResults(terminal::OutputMode mode)
     }
 }
 
-void Ui::setResults(const std::vector<std::string>& vec, ResultsType type)
+void Ui::setResults(const std::vector<std::string>& vec, ResultsType type /* = FreeForm */)
 {
     clearResults(terminal::OutputMode::immediate);
     m_results.vec = vec;
@@ -287,7 +287,7 @@ void Ui::setResults(const std::vector<std::string>& vec, ResultsType type)
     m_results.scrollOffset = 0;
 }
 
-void Ui::setResults(std::string_view result, ResultsType type)
+void Ui::setResults(std::string_view result, ResultsType type /* = FreeForm */)
 {
     clearResults(terminal::OutputMode::immediate);
     m_results.vec.clear();
@@ -517,7 +517,7 @@ void Ui::lookup()
         }
     }
     if (m_results.vec.empty()) {
-        setResults("-- no matches found --", ResultsType::FreeForm);
+        setResults("-- no matches found --");
     } else {
         m_results.type = ResultsType::Words;
     }
@@ -527,7 +527,7 @@ void Ui::regular()
 {
     clearResults();
     if (m_clue.searchString.empty()) {
-        setResults("Please enter a search string first", ResultsType::FreeForm);
+        setResults("Please enter a search string first");
         return;
     }
     m_results.vec.emplace_back("Every two letters");
@@ -569,7 +569,7 @@ void Ui::reverse()
 {
     clearResults();
     if (m_clue.searchString.empty()) {
-        setResults("Please enter a search string first", ResultsType::FreeForm);
+        setResults("Please enter a search string first");
         return;
     }
     std::string reversed { m_clue.searchString };
@@ -585,7 +585,7 @@ void Ui::thesaurus()
     clearResults();
     std::string lowercaseSearchString { m_clue.searchString };
     if (m_clue.searchString.empty()) {
-        setResults("Please enter a search string first", ResultsType::FreeForm);
+        setResults("Please enter a search string first");
         return;
     }
     std::transform(
@@ -602,7 +602,7 @@ void Ui::thesaurus()
 void Ui::load()
 {
     if (m_savedClues.empty()) {
-        setResults("No saved clues.", ResultsType::FreeForm);
+        setResults("No saved clues.");
         return;
     }
     restart();
@@ -629,7 +629,7 @@ void Ui::load()
     std::string clueNumber = m_term.input(opts);
     auto it = m_savedClues.find(clueNumber);
     if (it == m_savedClues.end()) {
-        setResults(std::format("Cannot find clue '{}'", clueNumber), ResultsType::FreeForm);
+        setResults(std::format("Cannot find clue '{}'", clueNumber));
         return;
     }
     m_clue.searchString = it->second.searchString;
@@ -642,11 +642,11 @@ void Ui::load()
 void Ui::save()
 {
     if (m_clue.clueNumber.empty()) {
-        setResults("Please enter a clue number first", ResultsType::FreeForm);
+        setResults("Please enter a clue number first");
         return;
     }
     m_savedClues[m_clue.clueNumber] = m_clue;
-    setResults(std::format("Clue saved as '{}'.", m_clue.clueNumber), ResultsType::FreeForm);
+    setResults(std::format("Clue saved as '{}'.", m_clue.clueNumber));
 }
 
 void Ui::pageDownResults()
@@ -834,18 +834,14 @@ void Ui::enterFoundStringUnconstrained()
         m_clue.foundString = m_term.input(opts);
         if (m_clue.foundString.starts_with('/') || m_clue.foundString.ends_with('/')) {
             opts.defaultValue = m_clue.foundString;
-            setResults(
-                "Found string cannot start with or end with a separator ('/')",
-                ResultsType::FreeForm);
+            setResults("Found string cannot start with or end with a separator ('/')");
             displayResults(terminal::OutputMode::immediate);
             opts.cursorPos = 0;
             continue;
         }
         if (m_clue.foundString.contains("//")) {
             opts.defaultValue = m_clue.foundString;
-            setResults(
-                "Found string cannot contain two or more consecutive separators ('/')",
-                ResultsType::FreeForm);
+            setResults("Found string cannot contain two or more consecutive separators ('/')");
             displayResults(terminal::OutputMode::immediate);
             opts.cursorPos = 0;
             continue;
