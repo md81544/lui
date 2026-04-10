@@ -168,6 +168,10 @@ int Ui::run()
             case 'J':
                 jumble();
                 break;
+            case 't':
+            case 'T':
+                thesaurus();
+                break;
             case 'l':
             case 'L':
                 if (m_commandSeqCount > 0) {
@@ -573,6 +577,25 @@ void Ui::reverse()
     m_results.vec.emplace_back(std::format("'{}' reversed is:", m_clue.searchString));
     m_results.vec.emplace_back("");
     m_results.vec.emplace_back(reversed);
+}
+
+void Ui::thesaurus()
+{
+    clearResults();
+    std::string lowercaseSearchString { m_clue.searchString };
+    if (m_clue.searchString.empty()) {
+        setResults("Please enter a search string first", ResultsType::FreeForm);
+        return;
+    }
+    std::transform(
+        lowercaseSearchString.begin(),
+        lowercaseSearchString.end(),
+        lowercaseSearchString.begin(),
+        ascii::tolower);
+    setResults(m_ws->thesaurus(lowercaseSearchString));
+    if (m_results.vec.empty()) {
+        setResults(std::format("--- {} not found ---", m_clue.searchString));
+    }
 }
 
 void Ui::load()

@@ -75,7 +75,7 @@ void loadDefinitions(
         if (auto it = map.find(tokens[0]); it != map.end()) {
             it->second.emplace_back(tokens[1]);
         } else {
-            map.emplace(tokens[0], std::vector<std::string>{tokens[1]});
+            map.emplace(tokens[0], std::vector<std::string> { tokens[1] });
         }
     }
 }
@@ -123,6 +123,20 @@ std::vector<std::string> WordSearcher::definitions(const std::vector<std::string
         rc.emplace_back(definition);
     }
     return rc;
+}
+
+std::vector<std::string> WordSearcher::thesaurus(std::string_view word)
+{
+    std::string w { word };
+    std::vector<std::string> vec;
+    auto it = m_thesaurus.find(w);
+    if (it != m_thesaurus.end()) {
+        for (const auto& w : it->second) {
+            vec.emplace_back(w);
+        }
+    }
+    std::sort(vec.begin(), vec.end());
+    return vec;
 }
 
 } // namespace wordSearcher

@@ -1,3 +1,6 @@
+* Page up/down results leaves the last line of the previous page
+  on the first line of the next page
+
 * Maybe improve definitions display? Currently just dumps a vector.
 * (related) allow horizontal scrolling of results (or at least the definitions portion)
 
@@ -29,8 +32,6 @@
   - or a "light mode" (or monochrome) switcher?
 
 * Think about adding a help screen
-
-* Implement thesaurus lookup
 
 * Considering the kludge required to hide tmux's immediate printing
   of pasted text, it might be an idea to rethink output. Instead of

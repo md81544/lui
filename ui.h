@@ -63,6 +63,7 @@ private:
     void lookup();
     void regular();
     void reverse();
+    void thesaurus();
     void load();
     void save();
     void pageDownResults();
