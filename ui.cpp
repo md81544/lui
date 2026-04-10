@@ -650,7 +650,7 @@ void Ui::save()
 
 void Ui::pageDownResults()
 {
-    std::size_t resultsDisplaySize = getResultsPaneRowSize() - 4;
+    std::size_t resultsDisplaySize = getResultsPaneRowSize() - 3;
     if (m_results.scrollOffset + resultsDisplaySize < m_results.vec.size()) {
         m_results.scrollOffset += resultsDisplaySize;
     }
@@ -658,7 +658,7 @@ void Ui::pageDownResults()
 
 void Ui::pageUpResults()
 {
-    std::size_t resultsDisplaySize = getResultsPaneRowSize() - 4;
+    std::size_t resultsDisplaySize = getResultsPaneRowSize() - 3;
     if (m_results.scrollOffset >= resultsDisplaySize) {
         m_results.scrollOffset -= resultsDisplaySize;
     } else {
