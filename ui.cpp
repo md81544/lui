@@ -239,6 +239,7 @@ int Ui::run()
                 break;
             case keyPress::PGDN:
             case keyPress::CTRL_F:
+            case keyPress::SPACE:
                 pageDownResults();
                 break;
             case keyPress::PGUP:
@@ -391,7 +392,7 @@ void Ui::displayMenu(terminal::OutputMode mode)
     m_term.printMenuString(
         terminal::Colour::Default,
         terminal::Colour::BrightWhite,
-        "_^_Save _^_Load _^_Restart _^_Quit",
+        "F_ilter _^_Save _^_Load _^_Restart _^_Quit",
         mode);
     if (m_commandSeqCount > 0) {
         m_term.restoreCursorPosition(mode);
@@ -832,7 +833,6 @@ void Ui::enterFoundStringUnconstrained()
     while (true) {
         m_clue.foundString = m_term.input(opts);
         if (m_clue.foundString.starts_with('/') || m_clue.foundString.ends_with('/')) {
-            // TODO need an immediate messagebox with "press any key"
             opts.defaultValue = m_clue.foundString;
             setResults(
                 "Found string cannot start with or end with a separator ('/')",
@@ -842,7 +842,6 @@ void Ui::enterFoundStringUnconstrained()
             continue;
         }
         if (m_clue.foundString.contains("//")) {
-            // TODO need an immediate messagebox with "press any key"
             opts.defaultValue = m_clue.foundString;
             setResults(
                 "Found string cannot contain two or more consecutive separators ('/')",
