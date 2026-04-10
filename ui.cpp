@@ -186,7 +186,7 @@ int Ui::run()
                 break;
             case 'f':
             case 'F':
-                if (m_searchString.empty()) {
+                if (m_clue.searchString.empty()) {
                     enterFoundStringUnconstrained();
                 } else {
                     enterFoundStringConstrained();
@@ -291,33 +291,42 @@ void Ui::setResults(std::string_view result, ResultsType type)
     m_results.scrollOffset = 0;
 }
 
+void Ui::appendResults(std::string_view item, ResultsType type)
+{
+    m_results.vec.emplace_back(item);
+    m_results.type = type;
+}
+
 void Ui::displayHeader(terminal::OutputMode mode)
 {
     // Can use immediate mode to clear the header before an input (which is immediate)
     m_term.goTo(1, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ", mode);
-    if (!m_searchString.empty()) {
+    if (!m_clue.searchString.empty()) {
         m_term.printAt(
-            1, 10, std::format("{}  ({} letters)", m_searchString, m_searchString.size()), mode);
+            1,
+            10,
+            std::format("{}  ({} letters)", m_clue.searchString, m_clue.searchString.size()),
+            mode);
     }
     m_term.clearToEndOfLine(mode);
     m_term.goTo(2, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ", mode);
     m_term.clearToEndOfLine(mode);
-    m_term.printAt(2, 10, m_foundString, mode);
+    m_term.printAt(2, 10, m_clue.foundString, mode);
     m_term.clearToEndOfLine(mode);
     m_term.goTo(3, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "_Comment: ", mode);
     m_term.clearToEndOfLine(mode);
-    m_term.printAt(3, 10, m_comment, mode);
+    m_term.printAt(3, 10, m_clue.comment, mode);
     m_term.clearToEndOfLine(mode);
     m_term.goTo(4, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ", mode);
-    m_term.printAt(4, 10, m_clue, mode);
+    m_term.printAt(4, 10, m_clue.clueNumber, mode);
     m_term.clearToEndOfLine(mode);
 }
 
@@ -392,10 +401,10 @@ void Ui::displayMenu(terminal::OutputMode mode)
 void Ui::restart()
 {
     clearResults(terminal::OutputMode::immediate);
-    m_searchString.clear();
-    m_foundString.clear();
-    m_clue.clear();
-    m_comment.clear();
+    m_clue.searchString.clear();
+    m_clue.foundString.clear();
+    m_clue.clueNumber.clear();
+    m_clue.comment.clear();
     clearResults();
 }
 
@@ -418,7 +427,7 @@ void Ui::jumble()
     std::string foundLetters;
 
     // What are our found letters? Exclude '.' and '/'
-    std::ranges::copy_if(m_foundString, std::back_inserter(foundLetters), [](char c) {
+    std::ranges::copy_if(m_clue.foundString, std::back_inserter(foundLetters), [](char c) {
         return c != '.' && c != '/';
     });
     // Which letters are remaining in the search string?
@@ -427,14 +436,15 @@ void Ui::jumble()
         ++freq[c];
     }
     std::string remainingLetters;
-    std::ranges::copy_if(m_searchString, std::back_inserter(remainingLetters), [&freq](char c) {
-        auto it = freq.find(c);
-        if (it != freq.end() && it->second > 0) {
-            --it->second;
-            return false;
-        }
-        return true;
-    });
+    std::ranges::copy_if(
+        m_clue.searchString, std::back_inserter(remainingLetters), [&freq](char c) {
+            auto it = freq.find(c);
+            if (it != freq.end() && it->second > 0) {
+                --it->second;
+                return false;
+            }
+            return true;
+        });
     // Shuffle remainingLetters:
     std::random_device rd;
     std::mt19937 gen { rd() };
@@ -449,7 +459,7 @@ void Ui::jumble()
     m_results.vec.emplace_back("");
 
     std::string alreadyFound;
-    for (const auto& c : m_foundString) {
+    for (const auto& c : m_clue.foundString) {
         if (c == '.') {
             alreadyFound.append("_ ");
         } else {
@@ -468,15 +478,16 @@ void Ui::lookup()
         terminal::OutputMode::immediate); // draws immediately, disappears on next
                                           // m_term.render()
     clearResults();
-    std::string lowerCase { m_foundString };
+    std::string lowerCase { m_clue.foundString };
     std::transform(
-        m_foundString.begin(), m_foundString.end(), lowerCase.begin(), [](unsigned char c) {
-            return ascii::tolower(c);
-        });
+        m_clue.foundString.begin(),
+        m_clue.foundString.end(),
+        lowerCase.begin(),
+        [](unsigned char c) { return ascii::tolower(c); });
     std::ranges::replace(lowerCase, '/', ' ');
     auto results = m_ws->regexSearch(lowerCase);
-    if (!m_searchString.empty()) {
-        std::string sortedSearchString { m_searchString };
+    if (!m_clue.searchString.empty()) {
+        std::string sortedSearchString { m_clue.searchString };
         std::transform(
             sortedSearchString.begin(),
             sortedSearchString.end(),
@@ -485,7 +496,7 @@ void Ui::lookup()
         std::ranges::sort(sortedSearchString);
         for (const auto& word : results) {
             // Ensure that any regex match actually contains the letters
-            // in m_searchString
+            // in m_clue.searchString
             std::string w { word };
             w.erase(std::remove(w.begin(), w.end(), ' '), w.end());
             std::string sortedWord { w };
@@ -510,29 +521,29 @@ void Ui::lookup()
 void Ui::regular()
 {
     clearResults();
-    if (m_searchString.empty()) {
+    if (m_clue.searchString.empty()) {
         setResults("Please enter a search string first", ResultsType::FreeForm);
         return;
     }
     m_results.vec.emplace_back("Every two letters");
     m_results.vec.emplace_back("");
-    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_searchString, 2)));
+    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_clue.searchString, 2)));
     m_results.vec.emplace_back(
         std::format(
             "  Even:  {}",
-            utils::everyNth({ m_searchString.begin() + 1, m_searchString.end() }, 2)));
+            utils::everyNth({ m_clue.searchString.begin() + 1, m_clue.searchString.end() }, 2)));
     m_results.vec.emplace_back("");
     m_results.vec.emplace_back("Every three letters");
     m_results.vec.emplace_back("");
-    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_searchString, 3)));
+    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_clue.searchString, 3)));
     m_results.vec.emplace_back(
         std::format(
             "  Even:  {}",
-            utils::everyNth({ m_searchString.begin() + 1, m_searchString.end() }, 3)));
+            utils::everyNth({ m_clue.searchString.begin() + 1, m_clue.searchString.end() }, 3)));
     m_results.vec.emplace_back("");
     m_results.vec.emplace_back("Every two letters (reversed)");
     m_results.vec.emplace_back("");
-    std::string reverseSearchString { m_searchString };
+    std::string reverseSearchString { m_clue.searchString };
     std::reverse(reverseSearchString.begin(), reverseSearchString.end());
     m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 2)));
     m_results.vec.emplace_back(
@@ -552,25 +563,46 @@ void Ui::regular()
 void Ui::reverse()
 {
     clearResults();
-    if (m_searchString.empty()) {
+    if (m_clue.searchString.empty()) {
         setResults("Please enter a search string first", ResultsType::FreeForm);
         return;
     }
-    std::string reversed { m_searchString };
+    std::string reversed { m_clue.searchString };
     std::reverse(reversed.begin(), reversed.end());
     m_results.vec.emplace_back("");
-    m_results.vec.emplace_back(std::format("'{}' reversed is:", m_searchString));
+    m_results.vec.emplace_back(std::format("'{}' reversed is:", m_clue.searchString));
     m_results.vec.emplace_back("");
     m_results.vec.emplace_back(reversed);
 }
 
 void Ui::load()
 {
-    setResults("Load not yet implemented", ResultsType::FreeForm);
+    if (m_savedClues.empty()) {
+        setResults("No saved clues.", ResultsType::FreeForm);
+        return;
+    }
+    clearResults(terminal::OutputMode::immediate);
+    appendResults("Saved clues:");
+    appendResults("");
+    std::vector<std::string> vec;
+    for (const auto& [k, v] : m_savedClues) {
+        vec.emplace_back(
+            std::format("{} : '{}'/'{}', {}", k, v.searchString, v.foundString, v.comment));
+    }
+    for(const auto& s: vec) {
+        appendResults(s);
+    }
+    displayResults(terminal::OutputMode::immediate);
 }
 
-void Ui::save() {
-    setResults("Save not yet implemented", ResultsType::FreeForm);
+void Ui::save()
+{
+    if (m_clue.clueNumber.empty()) {
+        setResults("Please enter a clue number first", ResultsType::FreeForm);
+        return;
+    }
+    m_savedClues[m_clue.clueNumber] = m_clue;
+    setResults(std::format("Clue saved as '{}'.", m_clue.clueNumber), ResultsType::FreeForm);
 }
 
 void Ui::pageDownResults()
@@ -625,7 +657,7 @@ void Ui::enterFoundStringConstrained()
 {
     terminal::InputOptions opts;
     opts.mode = terminal::Mode::Overwrite;
-    opts.defaultValue = m_foundString;
+    opts.defaultValue = m_clue.foundString;
     opts.row = 2;
     opts.col = 10;
     opts.bgColour = terminal::Colour::Grey;
@@ -639,7 +671,7 @@ void Ui::enterFoundStringConstrained()
             return keyPress::RIGHT;
         }
         if (key == keyPress::CTRL_U) {
-            opts.currentValue = std::string(m_searchString.size(), '.');
+            opts.currentValue = std::string(m_clue.searchString.size(), '.');
             opts.maxLen = opts.currentValue.size();
             opts.cursorPos = 0;
             return keyPress::NO_KEY;
@@ -682,13 +714,13 @@ void Ui::enterFoundStringConstrained()
         }
         if (ascii::isprint(key)) {
             // Disallow any character not in search string IF the search string has been set
-            if (!m_searchString.empty()) {
+            if (!m_clue.searchString.empty()) {
                 if (ascii::toupper(key) == opts.currentValue.at(opts.cursorPos)) {
                     // we're just overwriting an existing "found" character
                     return ascii::toupper(key);
                 }
-                auto c1
-                    = std::count(m_searchString.begin(), m_searchString.end(), ascii::toupper(key));
+                auto c1 = std::count(
+                    m_clue.searchString.begin(), m_clue.searchString.end(), ascii::toupper(key));
                 auto c2 = std::count(
                     opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
                 if (c1 == 0 || c2 == c1) {
@@ -716,21 +748,21 @@ void Ui::enterFoundStringConstrained()
         }
         return true;
     };
-    if (!m_foundString.empty()) {
+    if (!m_clue.foundString.empty()) {
         // May have been extended with word separators
-        opts.maxLen = m_foundString.size();
+        opts.maxLen = m_clue.foundString.size();
     } else {
-        opts.maxLen = m_searchString.size();
+        opts.maxLen = m_clue.searchString.size();
     }
-    m_foundString = m_term.input(opts);
-    log(std::format("m_foundString (constrained) input: '{}'", m_foundString));
+    m_clue.foundString = m_term.input(opts);
+    log(std::format("m_clue.foundString (constrained) input: '{}'", m_clue.foundString));
 }
 
 void Ui::enterFoundStringUnconstrained()
 {
     displayHeader(terminal::OutputMode::immediate);
     terminal::InputOptions opts;
-    opts.defaultValue = m_foundString;
+    opts.defaultValue = m_clue.foundString;
     opts.row = 2;
     opts.col = 10;
     opts.bgColour = terminal::Colour::Grey;
@@ -755,10 +787,10 @@ void Ui::enterFoundStringUnconstrained()
         return keyPress::NO_KEY;
     };
     while (true) {
-        m_foundString = m_term.input(opts);
-        if (m_foundString.starts_with('/') || m_foundString.ends_with('/')) {
+        m_clue.foundString = m_term.input(opts);
+        if (m_clue.foundString.starts_with('/') || m_clue.foundString.ends_with('/')) {
             // TODO need an immediate messagebox with "press any key"
-            opts.defaultValue = m_foundString;
+            opts.defaultValue = m_clue.foundString;
             setResults(
                 "Found string cannot start with or end with a separator ('/')",
                 ResultsType::FreeForm);
@@ -766,9 +798,9 @@ void Ui::enterFoundStringUnconstrained()
             opts.cursorPos = 0;
             continue;
         }
-        if (m_foundString.contains("//")) {
+        if (m_clue.foundString.contains("//")) {
             // TODO need an immediate messagebox with "press any key"
-            opts.defaultValue = m_foundString;
+            opts.defaultValue = m_clue.foundString;
             setResults(
                 "Found string cannot contain two or more consecutive separators ('/')",
                 ResultsType::FreeForm);
@@ -779,14 +811,14 @@ void Ui::enterFoundStringUnconstrained()
         clearResults(terminal::OutputMode::immediate);
         break;
     }
-    log(std::format("m_foundString (unconstrained) input: '{}'", m_foundString));
+    log(std::format("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString));
 }
 
 void Ui::enterSearchString()
 {
     displayHeader(terminal::OutputMode::immediate);
     terminal::InputOptions opts;
-    opts.defaultValue = m_searchString;
+    opts.defaultValue = m_clue.searchString;
     opts.row = 1;
     opts.col = 10;
     opts.bgColour = terminal::Colour::Grey;
@@ -805,9 +837,9 @@ void Ui::enterSearchString()
         }
         return key;
     };
-    m_searchString = m_term.input(opts);
-    m_foundString = std::string(m_searchString.size(), '.');
-    log(std::format("m_searchString input: '{}'", m_searchString));
+    m_clue.searchString = m_term.input(opts);
+    m_clue.foundString = std::string(m_clue.searchString.size(), '.');
+    log(std::format("m_clue.searchString input: '{}'", m_clue.searchString));
 }
 
 void Ui::enterCommentString()
@@ -818,9 +850,9 @@ void Ui::enterCommentString()
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
-    opts.defaultValue = m_comment;
-    m_comment = m_term.input(opts);
-    log(std::format("m_comment input: '{}'", m_comment));
+    opts.defaultValue = m_clue.comment;
+    m_clue.comment = m_term.input(opts);
+    log(std::format("m_clue.comment input: '{}'", m_clue.comment));
 }
 
 void Ui::enterClueNumber()
@@ -831,10 +863,10 @@ void Ui::enterClueNumber()
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
-    opts.defaultValue = m_clue;
+    opts.defaultValue = m_clue.clueNumber;
     opts.keysAllowed = terminal::KeysAllowed::CapitalAlphanum;
-    m_clue = m_term.input(opts);
-    log(std::format("m_clue input: '{}'", m_clue));
+    m_clue.clueNumber = m_term.input(opts);
+    log(std::format("m_clue input: '{}'", m_clue.clueNumber));
 }
 
 std::size_t Ui::getResultsPaneRowSize()

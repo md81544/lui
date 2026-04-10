@@ -18,6 +18,13 @@ struct TerminalSize {
     std::size_t cols;
 };
 
+struct Clue {
+    std::string searchString;
+    std::string foundString;
+    std::string clueNumber;
+    std::string comment;
+};
+
 enum class ResultsType {
     FreeForm,
     Words,
@@ -70,11 +77,9 @@ private:
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;
+    Clue m_clue;
+    std::unordered_map<std::string, Clue> m_savedClues;
     std::unique_ptr<wordSearcher::WordSearcher> m_ws;
-    std::string m_searchString;
-    std::string m_foundString;
-    std::string m_clue;
-    std::string m_comment;
     Results m_results;
     std::vector<std::string> m_debugLog;
     uint8_t m_commandSeqCount { 0 }; // used for two-key commands, e.g. :q

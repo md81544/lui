@@ -78,7 +78,6 @@ void loadDefinitions(
             map.emplace(tokens[0], std::vector<std::string>{tokens[1]});
         }
     }
-    mgo::Log::debug("Loaded definitions");
 }
 
 } // anonymous namespace
