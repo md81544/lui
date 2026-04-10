@@ -587,8 +587,9 @@ void Ui::load()
     std::vector<std::string> vec;
     for (const auto& [k, v] : m_savedClues) {
         vec.emplace_back(
-            std::format("{} : '{}'/'{}', {}", k, v.searchString, v.foundString, v.comment));
+            std::format("{:>4} : '{}'/'{}', {}", k, v.searchString, v.foundString, v.comment));
     }
+    std::sort(vec.begin(), vec.end());
     for(const auto& s: vec) {
         appendResults(s);
     }
