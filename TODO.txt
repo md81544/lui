@@ -1,3 +1,5 @@
+* Maybe improve definitions display? Currently just dumps a vector.
+
 * Add a generic pre-hook function (to be called from pre-hooks) which can
   initially just check for ':' perhaps? Wouldn't be called from free-format entry
   like the "comment" entry.
