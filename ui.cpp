@@ -581,7 +581,7 @@ void Ui::load()
         setResults("No saved clues.", ResultsType::FreeForm);
         return;
     }
-    clearResults(terminal::OutputMode::immediate);
+    restart();
     appendResults("Saved clues:");
     appendResults("");
     std::vector<std::string> vec;
@@ -594,6 +594,25 @@ void Ui::load()
         appendResults(s);
     }
     displayResults(terminal::OutputMode::immediate);
+    terminal::InputOptions opts;
+    opts.row = 4;
+    opts.col = 10;
+    opts.bgColour = terminal::Colour::Grey;
+    opts.fgColour = terminal::Colour::BrightWhite;
+    opts.mode = terminal::Mode::Insert;
+    opts.keysAllowed = terminal::KeysAllowed::CapitalAlphanum;
+    opts.maxLen = 4;
+    std::string clueNumber = m_term.input(opts);
+    auto it = m_savedClues.find(clueNumber);
+    if (it == m_savedClues.end()) {
+        setResults(std::format("Cannot find clue '{}'", clueNumber), ResultsType::FreeForm);
+        return;
+    }
+    m_clue.searchString = it->second.searchString;
+    m_clue.foundString = it->second.foundString;
+    m_clue.clueNumber = it->second.clueNumber;
+    m_clue.comment = it->second.comment;
+    clearResults(terminal::OutputMode::immediate);
 }
 
 void Ui::save()
