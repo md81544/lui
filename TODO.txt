@@ -22,6 +22,7 @@
     the last mouse event (obviously Terminal will need to store the last row/col received)
 
 * Colon entry in input box should cancel entry and initiate command mode
+  - maybe not... what about free-form input?
 
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
@@ -29,13 +30,7 @@
 
 * Think about adding a help screen
 
-* Both of these should have an immediate input rather than
-  kludging an entry out of search string:
-  * Implement thesaurus lookup
-
-* Implement load & save. Save should just use the entered clue number.
-  Load should list all stored clues in the results pane and then
-  put an input box where normal clue entry goes.
+* Implement thesaurus lookup
 
 * Considering the kludge required to hide tmux's immediate printing
   of pasted text, it might be an idea to rethink output. Instead of
