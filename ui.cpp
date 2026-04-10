@@ -274,6 +274,7 @@ void Ui::clearResults(terminal::OutputMode mode)
 {
     m_results.vec.clear();
     m_results.scrollOffset = 0;
+    m_results.filtered = false;
     if (mode == terminal::OutputMode::immediate) {
         // If it's immediate we want to clear the results pane:
         for (size_t r = m_resultsTopRow + 1; r < m_resultsTopRow + getResultsPaneRowSize(); ++r) {
@@ -294,7 +295,6 @@ void Ui::setResults(const std::vector<std::string>& vec, ResultsType type /* = F
 void Ui::setResults(std::string_view result, ResultsType type /* = FreeForm */)
 {
     clearResults(terminal::OutputMode::immediate);
-    m_results.vec.clear();
     m_results.vec.emplace_back(result);
     m_results.type = type;
     m_results.scrollOffset = 0;
@@ -343,7 +343,11 @@ void Ui::displayResults(terminal::OutputMode mode)
 {
     std::size_t lastRowInSection = m_resultsTopRow + getResultsPaneRowSize() - 1;
     hr(m_resultsTopRow, mode);
+
     m_term.printAt(m_resultsTopRow, 1, "Results", mode);
+    if (m_results.filtered) {
+        m_term.printAt(m_resultsTopRow, 9, "(filtered)", mode);
+    }
 
     if (!m_results.vec.empty()) {
         terminal::Colour oldFgColour = m_term.getFgColour();
@@ -685,6 +689,7 @@ void Ui::filterResults()
         }
     }
     setResults(newResults, ResultsType::Words);
+    m_results.filtered = true;
 }
 
 void Ui::pageDownResults()

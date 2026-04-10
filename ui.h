@@ -35,6 +35,7 @@ struct Results {
     std::size_t scrollOffset { 0 };
     bool scrollAtBottom { true };
     std::vector<std::string> vec;
+    bool filtered { false };
 };
 
 class Ui final {
