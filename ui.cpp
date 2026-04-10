@@ -181,6 +181,7 @@ int Ui::run()
             case 'D':
                 if (m_results.type == ResultsType::Words) {
                     m_results.vec = m_ws->definitions(m_results.vec);
+                    m_results.type = ResultsType::FreeForm;
                 }
                 break;
             case 'f':
