@@ -181,6 +181,10 @@ int Ui::run()
                     lookup();
                 }
                 break;
+            case 'i':
+            case 'I':
+                filterResults();
+                break;
             case 'd':
             case 'D':
                 if (m_results.type == ResultsType::Words) {
@@ -596,7 +600,9 @@ void Ui::thesaurus()
     setResults(m_ws->thesaurus(lowercaseSearchString));
     if (m_results.vec.empty()) {
         setResults(std::format("--- {} not found ---", m_clue.searchString));
+        return;
     }
+    m_results.type = ResultsType::Words;
 }
 
 void Ui::load()
@@ -647,6 +653,38 @@ void Ui::save()
     }
     m_savedClues[m_clue.clueNumber] = m_clue;
     setResults(std::format("Clue saved as '{}'.", m_clue.clueNumber));
+}
+
+void Ui::filterResults()
+{
+    if (m_results.vec.empty() || m_results.type != ResultsType::Words) {
+        return;
+    }
+    m_term.messageBox(
+        m_resultsTopRow + 2,
+        2,
+        "Enter filter string. Results will be dropped unless they contain all characters entered.",
+        terminal::OutputMode::immediate);
+    terminal::InputOptions opts;
+    opts.row = m_termSize.rows - 1;
+    opts.col = 1;
+    opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
+    std::string filter = m_term.input(opts);
+    log(std::format("Filter string entered: '{}'", filter));
+    std::vector<std::string> newResults;
+    for (const auto& w : m_results.vec) {
+        bool matchedAll { true };
+        for (const auto& c : filter) {
+            if (!w.contains(ascii::tolower(c))) {
+                matchedAll = false;
+                break;
+            }
+        }
+        if (matchedAll) {
+            newResults.emplace_back(w);
+        }
+    }
+    setResults(newResults, ResultsType::Words);
 }
 
 void Ui::pageDownResults()

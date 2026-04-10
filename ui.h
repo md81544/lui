@@ -66,6 +66,7 @@ private:
     void thesaurus();
     void load();
     void save();
+    void filterResults();
     void pageDownResults();
     void pageUpResults();
     void log(std::string_view logEntry);
