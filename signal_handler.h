@@ -20,7 +20,8 @@ inline void signalHandler(int /*signal*/)
     shutdown_requested.store(true, std::memory_order_relaxed);
 }
 
-inline void installSignalHander() {
+inline void installSignalHander()
+{
     // Not using std::signal here because std::signal
     // does not provide a parameter to unset SA_RESTART
     struct sigaction sa {};
@@ -30,4 +31,3 @@ inline void installSignalHander() {
 }
 
 } // namespace mgo
-
