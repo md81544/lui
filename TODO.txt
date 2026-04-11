@@ -1,6 +1,10 @@
 * Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
   - Restart should check dirty flag (see below)
 
+* Remove clue from saved? Maybe some form of "done"?
+
+* Empty entry of clue number in load() should just quit, not show "Cannot find clue ''"
+
 * Need a "remove" option. Maybe results pane displays remaining letters?
 
 * Allow number entry in unconstrained "found" input. E.g. entering 4 would insert "...."
@@ -32,6 +36,9 @@
       REMEMBER that ANSI reports 1-based row / cols
   - The caller can then re-query the terminal object to get the stored row/col from
     the last mouse event (obviously Terminal will need to store the last row/col received)
+  - If mouse clicks ARE supported, the menu will need to be more object oriented. Maybe:
+      - Menu items are added one at a time, and length of entry will enable storage of
+        item position. A "new line" should be addable as part of this.
 
 * Colon entry in input box should cancel entry and initiate command mode
   - maybe not... what about free-form input?

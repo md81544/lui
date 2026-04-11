@@ -23,6 +23,7 @@ struct Clue {
     std::string foundString;
     std::string clueNumber;
     std::string comment;
+    bool dirty { true };
 };
 
 enum class ResultsType {

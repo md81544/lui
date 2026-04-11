@@ -413,11 +413,13 @@ void Ui::displayMenu(terminal::OutputMode mode)
 
 void Ui::restart()
 {
+    // TODO dirty check
     clearResults(terminal::OutputMode::immediate);
     m_clue.searchString.clear();
     m_clue.foundString.clear();
     m_clue.clueNumber.clear();
     m_clue.comment.clear();
+    m_clue.dirty = false;
     clearResults();
 }
 
@@ -836,6 +838,7 @@ void Ui::enterFoundStringConstrained()
         opts.maxLen = m_clue.searchString.size();
     }
     m_clue.foundString = m_term.input(opts);
+    m_clue.dirty = true;
     log(std::format("m_clue.foundString (constrained) input: '{}'", m_clue.foundString));
 }
 
@@ -886,6 +889,7 @@ void Ui::enterFoundStringUnconstrained()
         clearResults(terminal::OutputMode::immediate);
         break;
     }
+    m_clue.dirty = true;
     log(std::format("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString));
 }
 
@@ -913,7 +917,9 @@ void Ui::enterSearchString()
         return key;
     };
     m_clue.searchString = m_term.input(opts);
+    // TODO: sometimes we might want to keep the search string - maybe dialog when implemented
     m_clue.foundString = std::string(m_clue.searchString.size(), '.');
+    m_clue.dirty = true;
     log(std::format("m_clue.searchString input: '{}'", m_clue.searchString));
 }
 
@@ -927,6 +933,7 @@ void Ui::enterCommentString()
     opts.mode = terminal::Mode::Insert;
     opts.defaultValue = m_clue.comment;
     m_clue.comment = m_term.input(opts);
+    m_clue.dirty = true;
     log(std::format("m_clue.comment input: '{}'", m_clue.comment));
 }
 
@@ -942,6 +949,7 @@ void Ui::enterClueNumber()
     opts.keysAllowed = terminal::KeysAllowed::CapitalAlphanum;
     opts.maxLen = 4;
     m_clue.clueNumber = m_term.input(opts);
+    m_clue.dirty = true;
     log(std::format("m_clue input: '{}'", m_clue.clueNumber));
 }
 
