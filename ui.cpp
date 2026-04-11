@@ -669,7 +669,7 @@ void Ui::filterResults()
     m_term.messageBox(
         m_resultsTopRow + 2,
         2,
-        "Enter filter string. Will drop non-matches.",
+        "Enter filter string.\nWill drop non-matches.",
         terminal::OutputMode::immediate);
     terminal::InputOptions opts;
     opts.row = m_termSize.rows - 1;

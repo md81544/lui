@@ -3,16 +3,19 @@
 #include "keypress.h"
 #include "log.h"
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <iostream>
 #include <limits>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <tuple>
 #include <unistd.h>
+#include <vector>
 
 namespace {
 
@@ -304,18 +307,31 @@ void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg
     if (!m_isTty) {
         return;
     }
-    goTo(row, col, mode);
+    std::size_t localRow { row };
+    std::size_t maxLen = 0;
+    std::vector<std::string> msgRows;
+    for (auto subrange : msg | std::views::split('\n')) {
+        msgRows.emplace_back(subrange.begin(), subrange.end());
+        if (maxLen < subrange.size()) {
+            maxLen = subrange.size();
+        }
+    }
+    goTo(localRow, col, mode);
     output(utfOrAscii("┌─", "+-"), mode);
-    for (std::size_t n = 0; n < msg.size(); ++n) {
+    for (std::size_t n = 0; n < maxLen; ++n) {
         output(utfOrAscii("─", "-"), mode);
     }
     output(utfOrAscii("─┐", "-+"), mode);
-    goTo(row + 1, col, mode);
-    std::string s = std::format("{} {} {}", utfOrAscii("│", "|"), msg, utfOrAscii("│", "|"));
-    output(s, mode);
-    goTo(row + 2, col, mode);
+    for (const auto& l : msgRows) {
+        ++localRow;
+        goTo(localRow, col, mode);
+        std::string s
+            = std::format("{} {:{}} {}", utfOrAscii("│", "|"), l, maxLen, utfOrAscii("│", "|"));
+        output(s, mode);
+    }
+    goTo(++localRow, col, mode);
     output(utfOrAscii("└─", "+-"), mode);
-    for (std::size_t n = 0; n < msg.size(); ++n) {
+    for (std::size_t n = 0; n < maxLen; ++n) {
         output(utfOrAscii("─", "-"), mode);
     }
     output(utfOrAscii("─┘", "-+"), mode);
