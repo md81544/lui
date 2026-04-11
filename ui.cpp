@@ -667,24 +667,18 @@ void Ui::filterResults()
     m_term.messageBox(
         m_resultsTopRow + 2,
         2,
-        "Enter filter string. Results will be dropped unless they contain all characters entered.",
+        "Enter filter string. Will drop non-matches.",
         terminal::OutputMode::immediate);
     terminal::InputOptions opts;
     opts.row = m_termSize.rows - 1;
     opts.col = 1;
     opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
     std::string filter = m_term.input(opts);
+    std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
     log(std::format("Filter string entered: '{}'", filter));
     std::vector<std::string> newResults;
     for (const auto& w : m_results.vec) {
-        bool matchedAll { true };
-        for (const auto& c : filter) {
-            if (!w.contains(ascii::tolower(c))) {
-                matchedAll = false;
-                break;
-            }
-        }
-        if (matchedAll) {
+        if (w.contains(filter)) {
             newResults.emplace_back(w);
         }
     }
