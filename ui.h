@@ -73,6 +73,7 @@ private:
     void pageUpResults();
     void log(std::string_view logEntry);
     std::filesystem::path locateDataDirectory(std::string_view argv0);
+    void enterFoundString();
     void enterFoundStringConstrained();
     void enterFoundStringUnconstrained();
     void enterSearchString();

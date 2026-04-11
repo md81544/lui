@@ -194,11 +194,7 @@ int Ui::run()
                 break;
             case 'f':
             case 'F':
-                if (m_clue.searchString.empty()) {
-                    enterFoundStringUnconstrained();
-                } else {
-                    enterFoundStringConstrained();
-                }
+                enterFoundString();
                 break;
             case 'c':
             case 'C':
@@ -270,6 +266,23 @@ int Ui::run()
                         keyPress::lastMouseClick.button,
                         keyPress::lastMouseClick.row,
                         keyPress::lastMouseClick.col));
+                    switch (keyPress::lastMouseClick.row) {
+                        case 1:
+                            enterSearchString();
+                            break;
+                        case 2:
+                            enterFoundString();
+                            break;
+                        case 3:
+                            enterCommentString();
+                            break;
+                        case 4:
+                            enterClueNumber();
+                            break;
+                        default:
+                            // do nothing
+                            break;
+                    }
                 }
                 break;
             default:
@@ -743,6 +756,15 @@ std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
     }
     // If we get here we could not locate the data needed
     throw std::runtime_error("Could not locate data directory");
+}
+
+void Ui::enterFoundString()
+{
+    if (m_clue.searchString.empty()) {
+        enterFoundStringUnconstrained();
+    } else {
+        enterFoundStringConstrained();
+    }
 }
 
 void Ui::enterFoundStringConstrained()
