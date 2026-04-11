@@ -13,32 +13,6 @@
 
 namespace ui {
 
-struct TerminalSize {
-    std::size_t rows;
-    std::size_t cols;
-};
-
-struct Clue {
-    std::string searchString;
-    std::string foundString;
-    std::string clueNumber;
-    std::string comment;
-    bool dirty { true };
-};
-
-enum class ResultsType {
-    FreeForm,
-    Words,
-};
-
-struct Results {
-    ResultsType type { ResultsType::FreeForm };
-    std::size_t scrollOffset { 0 };
-    bool scrollAtBottom { true };
-    std::vector<std::string> vec;
-    bool filtered { false };
-};
-
 class Ui final {
 public:
     explicit Ui(std::string_view argv0, int wordComplexity);
@@ -47,9 +21,35 @@ public:
     Ui(Ui&&) = delete;
     Ui& operator=(const Ui&&) = delete;
     ~Ui() { };
-    void clearCommandPrompt();
     int run(); // main application run loop
 private:
+    struct TerminalSize {
+        std::size_t rows;
+        std::size_t cols;
+    };
+
+    struct Clue {
+        std::string searchString;
+        std::string foundString;
+        std::string clueNumber;
+        std::string comment;
+        bool dirty { true };
+    };
+
+    enum class ResultsType {
+        FreeForm,
+        Words,
+    };
+
+    struct Results {
+        ResultsType type { ResultsType::FreeForm };
+        std::size_t scrollOffset { 0 };
+        bool scrollAtBottom { true };
+        std::vector<std::string> vec;
+        bool filtered { false };
+    };
+
+    void clearCommandPrompt();
     void checkForTerminalResize();
     bool checkTerminalLargeEnough();
     void restart();
