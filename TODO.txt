@@ -1,3 +1,17 @@
+* Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
+  - Restart should check dirty flag (see below)
+
+* Need a "remove" option. Maybe results pane displays remaining letters?
+
+* Allow number entry in unconstrained "found" input. E.g. entering 4 would insert "...."
+
+* Add "dirty" flag if clue isn't saved but has changed (might need interactive
+  messageBox - see below)
+
+* Undo filter?
+
+* Multi-line message box. Include option to wait for, and return, keypress (use input)
+
 * Maybe improve definitions display? Currently just dumps a vector.
 * (related) allow horizontal scrolling of results (or at least the definitions portion)
 
