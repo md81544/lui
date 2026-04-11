@@ -5,8 +5,6 @@
   initially just check for ':' perhaps? Wouldn't be called from free-format entry
   like the "comment" entry.
 
-* Option to filter results
-
 * Immediate mode messageBox with a "press Enter" to dismiss
 
 * Support mouse clicks
@@ -23,6 +21,7 @@
 
 * Colon entry in input box should cancel entry and initiate command mode
   - maybe not... what about free-form input?
+  - although could work as an option flag, usable in non-comment input
 
 * Maybe a config file for colours? Currently doesn't display very
   nicely on a terminal configured with a light background
