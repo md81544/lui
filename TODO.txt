@@ -26,17 +26,7 @@
 * Immediate mode messageBox with a "press Enter" to dismiss
 
 * Support mouse clicks
-  - Enter SGR mode in Terminal ctor (std::cout << "\033[?1000h\033[?1006h";)
-  - Exit SGR mode in ~Terminal (std::cout << "\033[?1000l\033[?1006l";)
-  - Return Keypress::MouseButtonPressX or Keypress::MouseButtonReleaseX on a click sequence:
-      \033[<Cb;Cx;CyM    ← button press
-      \033[<Cb;Cx;Cym    ← button release (same but final char is 'm')
-      b, x, and y can be multiple characters -
-      i.e. seq should be like "<0;42;7M" (after the ESC[) 
-      REMEMBER that ANSI reports 1-based row / cols
-  - The caller can then re-query the terminal object to get the stored row/col from
-    the last mouse event (obviously Terminal will need to store the last row/col received)
-  - If mouse clicks ARE supported, the menu will need to be more object oriented. Maybe:
+  - Now mouse clicks are supported, the menu will need to be more object oriented. Maybe:
       - Menu items are added one at a time, and length of entry will enable storage of
         item position. A "new line" should be addable as part of this.
 

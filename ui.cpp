@@ -263,6 +263,15 @@ int Ui::run()
             case keyPress::ESC:
                 // currently does nothing
                 break;
+            case keyPress::MOUSE:
+                {
+                    log(std::format(
+                        "Mouse event: Button: {}, Row: {}, Col: {}",
+                        keyPress::lastMouseClick.button,
+                        keyPress::lastMouseClick.row,
+                        keyPress::lastMouseClick.col));
+                }
+                break;
             default:
                 m_term.bell();
         }

@@ -3,17 +3,33 @@
 #include <cerrno>
 #include <functional>
 #include <optional>
+#include <ranges>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
+#include <vector>
+
+// TODO this started out as a simple include file, it could really be
+// made into a full-fledged class now
 
 namespace keyPress {
 // If you want a shutdown flag to be checked when a signal handler requests
 // app termination (SIGTERM, for example), then set this to a function that
 // returns true if shutdown is requested via signal.
 inline std::function<bool()> shutdownCheckFunction;
-}
+
+struct MouseClick {
+    int button;
+    int row;
+    int col;
+};
+
+inline keyPress::MouseClick lastMouseClick;
+
+} // namespace keyPress
 
 namespace {
 
@@ -39,8 +55,8 @@ int readByte()
     }
     if (n < 0) {
         if (errno == EINTR) {
-            if (keyPress::shutdownCheckFunction) {
-                if (keyPress::shutdownCheckFunction()) {
+            if (keyPress::shutdownCheckFunction) { // if defined
+                if (keyPress::shutdownCheckFunction()) { // call it
                     throw(std::runtime_error("Interrupted"));
                 }
             }
@@ -60,6 +76,23 @@ struct TerminalGuard {
         tcsetattr(STDIN_FILENO, TCSANOW, &saved_attrs);
     }
 };
+
+void decodeMouseClick(std::string_view seq)
+{
+    // seq should be "<0;18;11M"
+    std::string s { seq };
+    s.erase(0, 1);
+    s.pop_back();
+    std::vector<std::string> vec;
+    for (auto subrange : s | std::views::split(';')) {
+        vec.emplace_back(subrange.begin(), subrange.end());
+    }
+    if (vec.size() >= 3) {
+        keyPress::lastMouseClick.button = std::stoi(vec[0]);
+        keyPress::lastMouseClick.col = std::stoi(vec[1]) - 1;
+        keyPress::lastMouseClick.row = std::stoi(vec[2]) - 1;
+    }
+}
 
 } // anonymous namespace
 
@@ -131,6 +164,13 @@ constexpr int F10 = 275;
 constexpr int F11 = 276;
 constexpr int F12 = 277;
 
+// A "key press" of MOUSE means the caller needs to call
+// getMouseEvent() to retrieve the last mouse click data.
+// There is currently no check to see whether this has
+// been updated between the "key press" and the call to
+// getMouseEvent().
+constexpr int MOUSE = 1024;
+
 // If called with blocking = false then returns
 // nullopt if no keypress is in the input queue
 inline std::optional<int> getKeyPress(bool blocking = true)
@@ -196,7 +236,8 @@ inline std::optional<int> getKeyPress(bool blocking = true)
                     return PGUP;
                 } else if (seq[0] == '6' && seq[1] == '~') {
                     return PGDN;
-                }
+                } // elsif (seq[0] == '<'
+
                 // F1–F4 (xterm style via CSI O...)  handled below
                 // F1–F4 (vt100 CSI [ A–D — rare)
                 else if (seq[0] == '1' && seq[1] == '1' && seq[2] == '~') {
@@ -223,6 +264,20 @@ inline std::optional<int> getKeyPress(bool blocking = true)
                     return F11;
                 } else if (seq[0] == '2' && seq[1] == '4' && seq[2] == '~') {
                     return F12;
+                }
+
+                // Mouse clicks (requires SGR mode set)
+                // seq should look like "<0;18;11M"
+                // where 0 = button
+                // 18 = col (remember 1-based)
+                // 11 = row (ditto)
+                else if (seq[0] == '<') {
+                    if (std::string { seq }.ends_with('M')) { // Only report button down events
+                        decodeMouseClick(seq); // stores into lastClick
+                        return MOUSE;
+                    } else {
+                        return std::nullopt;
+                    }
                 } else {
                     return std::nullopt;
                 }
