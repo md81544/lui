@@ -1,5 +1,7 @@
 * Add unit tests for WordSearcher
 
+* Implement scrolling of the results pane by mouse
+
 * Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
   - Restart should check dirty flag (see below)
 
@@ -26,11 +28,6 @@
   like the "comment" entry.
 
 * Immediate mode messageBox with a "press Enter" to dismiss
-
-* Support mouse clicks
-  - Now mouse clicks are supported, the menu will need to be more object oriented. Maybe:
-      - Menu items are added one at a time, and length of entry will enable storage of
-        item position. A "new line" should be addable as part of this.
 
 * Colon entry in input box should cancel entry and initiate command mode
   - maybe not... what about free-form input?
