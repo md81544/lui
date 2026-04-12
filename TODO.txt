@@ -1,3 +1,5 @@
+* Add unit tests for WordSearcher
+
 * Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
   - Restart should check dirty flag (see below)
 
