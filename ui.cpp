@@ -8,6 +8,7 @@
 #include "word_searcher.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
@@ -201,10 +202,7 @@ int Ui::run()
                 break;
             case 'd':
             case 'D':
-                if (m_results.type == ResultsType::Words) {
-                    m_results.vec = m_ws->definitions(m_results.vec);
-                    m_results.type = ResultsType::FreeForm;
-                }
+                define();
                 break;
             case 'f':
             case 'F':
@@ -280,7 +278,9 @@ int Ui::run()
                         keyPress::lastMouseClick.button,
                         keyPress::lastMouseClick.row,
                         keyPress::lastMouseClick.col));
-                    switch (keyPress::lastMouseClick.row) {
+                    std::size_t clickRow = keyPress::lastMouseClick.row;
+                    std::size_t clickCol = keyPress::lastMouseClick.col;
+                    switch (clickRow) {
                         case 1:
                             enterSearchString();
                             break;
@@ -294,8 +294,50 @@ int Ui::run()
                             enterClueNumber();
                             break;
                         default:
-                            // do nothing
                             break;
+                    }
+                    if (clickRow > m_termSize.rows - m_menuRowSize) {
+                        // a click in the menu area
+                        std::optional<int> menuItem = m_menu.getIdFromHitBox(clickRow, clickCol);
+                        if (menuItem.has_value()) {
+                            switch (menuItem.value()) {
+                                case MENU_JUMBLE:
+                                    jumble();
+                                    break;
+                                case MENU_REVERSE:
+                                    reverse();
+                                    break;
+                                case MENU_REGULAR:
+                                    regular();
+                                    break;
+                                case MENU_THESAURUS:
+                                    thesaurus();
+                                    break;
+                                case MENU_LOOKUP:
+                                    lookup();
+                                    break;
+                                case MENU_DEFINE:
+                                    define();
+                                    break;
+                                case MENU_FILTER:
+                                    filterResults();
+                                    break;
+                                case MENU_SAVE:
+                                    save();
+                                    break;
+                                case MENU_LOAD:
+                                    load();
+                                    break;
+                                case MENU_RESTART:
+                                    restart();
+                                    break;
+                                case MENU_QUIT:
+                                    finished = true;
+                                    break;
+                                default:
+                                    assert(false); // Item not handled; add item above
+                            }
+                        }
                     }
                 }
                 break;
@@ -426,7 +468,7 @@ void Ui::displayMenu(terminal::OutputMode mode)
         m_term.saveCursorPosition(mode);
     }
     m_term.printAt(topRow, 1, "Menu", mode);
-    m_menu.printMenu(topRow + 1, 1,  mode);
+    m_menu.printMenu(topRow + 1, 1, mode);
     if (m_commandSeqCount > 0) {
         m_term.restoreCursorPosition(mode);
         m_term.setCursorType(terminal::CursorType::BlockBlinking, mode);
@@ -634,6 +676,14 @@ void Ui::thesaurus()
         return;
     }
     m_results.type = ResultsType::Words;
+}
+
+void Ui::define()
+{
+    if (m_results.type == ResultsType::Words) {
+        m_results.vec = m_ws->definitions(m_results.vec);
+        m_results.type = ResultsType::FreeForm;
+    }
 }
 
 void Ui::load()

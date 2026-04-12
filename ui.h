@@ -80,6 +80,7 @@ private:
     void regular();
     void reverse();
     void thesaurus();
+    void define();
     void load();
     void save();
     void filterResults();

@@ -29,7 +29,7 @@ public:
     void addItem(int id, std::string_view text);
     void addNewLine();
     void printMenu(std::size_t row, std::size_t col, terminal::OutputMode mode);
-    int getIdFromHitBox(std::size_t clickRow, std::size_t clickCol);
+    std::optional<int> getIdFromHitBox(std::size_t clickRow, std::size_t clickCol);
 
 private:
     terminal::Terminal& m_term;

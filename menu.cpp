@@ -29,24 +29,29 @@ void Menu::printMenu(std::size_t row, std::size_t col, terminal::OutputMode mode
     m_col = col;
     std::size_t currentRow = 0;
     m_term.goTo(row, col, mode);
-    for( const auto& i : m_items) {
+    for (const auto& i : m_items) {
         if (i.row > currentRow) {
             currentRow = i.row;
             m_term.goTo(row + currentRow, col, mode);
         }
         m_term.printMenuString(
-            terminal::Colour::Default,
-            terminal::Colour::BrightWhite,
-            i.text + " ",
-            mode);
+            terminal::Colour::Default, terminal::Colour::BrightWhite, i.text + " ", mode);
     }
 }
 
-int Menu::getIdFromHitBox(std::size_t clickRow, std::size_t clickCol)
+std::optional<int> Menu::getIdFromHitBox(std::size_t clickRow, std::size_t clickCol)
 {
-    (void)clickRow; // TODO remove
-    (void)clickCol; // TODO remove
-    return 0;
+    std::size_t currentCol = m_col;
+    for (const auto& i : m_items) {
+        if (i.row != clickRow - m_row) {
+            continue;
+        }
+        if (clickCol >= currentCol && clickCol  <= currentCol + i.displayWidth) {
+            return i.id;
+        }
+        currentCol += (i.displayWidth + 1);
+    }
+    return std::nullopt;
 }
 
 } // namespace menu
