@@ -3,6 +3,8 @@
 // Ui is intended to be the main program interface.
 // This controls output via the Terminal class
 
+#include "menu.h"
+
 #include "terminal.h"
 #include "word_searcher.h"
 #include <cstddef>
@@ -12,6 +14,18 @@
 #include <vector>
 
 namespace ui {
+
+constexpr int MENU_JUMBLE = 1;
+constexpr int MENU_REVERSE = 2;
+constexpr int MENU_REGULAR = 3;
+constexpr int MENU_THESAURUS = 4;
+constexpr int MENU_LOOKUP = 5;
+constexpr int MENU_DEFINE = 6;
+constexpr int MENU_FILTER = 7;
+constexpr int MENU_SAVE = 8;
+constexpr int MENU_LOAD = 9;
+constexpr int MENU_RESTART = 10;
+constexpr int MENU_QUIT = 11;
 
 class Ui final {
 public:
@@ -94,6 +108,8 @@ private:
     static constexpr size_t m_resultsTopRow { m_headerRowSize };
     static constexpr size_t m_menuRowSize { 4 };
     [[nodiscard]] std::size_t getResultsPaneRowSize();
+
+    menu::Menu m_menu { m_term };
 };
 
 } // namespace ui

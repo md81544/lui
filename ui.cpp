@@ -96,6 +96,20 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
         dataDir / "definitions.txt",
         dataDir / "phrases.txt");
     log("Finished loading data");
+
+    // Set up the menu
+    m_menu.addItem(MENU_JUMBLE, "_Jumble");
+    m_menu.addItem(MENU_REVERSE, "re_Verse");
+    m_menu.addItem(MENU_REGULAR, "_Regular");
+    m_menu.addItem(MENU_THESAURUS, "_Thesaurus");
+    m_menu.addItem(MENU_LOOKUP, "_Lookup");
+    m_menu.addItem(MENU_DEFINE, "_Define");
+    m_menu.addNewLine();
+    m_menu.addItem(MENU_FILTER, "f_Ilter");
+    m_menu.addItem(MENU_SAVE, "_^_Save");
+    m_menu.addItem(MENU_LOAD, "_^_Load");
+    m_menu.addItem(MENU_RESTART, "_^_Restart");
+    m_menu.addItem(MENU_QUIT, "_^_Quit");
 }
 
 void Ui::checkForTerminalResize()
@@ -412,18 +426,7 @@ void Ui::displayMenu(terminal::OutputMode mode)
         m_term.saveCursorPosition(mode);
     }
     m_term.printAt(topRow, 1, "Menu", mode);
-    m_term.goTo(topRow + 1, 1, mode);
-    m_term.printMenuString(
-        terminal::Colour::Default,
-        terminal::Colour::BrightWhite,
-        "_Jumble re_Verse _Regular _Thesaurus _Lookup _Define",
-        mode);
-    m_term.goTo(topRow + 2, 1, mode);
-    m_term.printMenuString(
-        terminal::Colour::Default,
-        terminal::Colour::BrightWhite,
-        "F_ilter _^_Save _^_Load _^_Restart _^_Quit",
-        mode);
+    m_menu.printMenu(topRow + 1, 1,  mode);
     if (m_commandSeqCount > 0) {
         m_term.restoreCursorPosition(mode);
         m_term.setCursorType(terminal::CursorType::BlockBlinking, mode);
