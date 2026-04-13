@@ -5,8 +5,6 @@
 
 * Remove clue from saved? Maybe some form of "done"?
 
-* Empty entry of clue number in load() should just quit, not show "Cannot find clue ''"
-
 * Need a "remove" option. Maybe results pane displays remaining letters?
   - or, if search string is defined, "found" entry could have a dynamic "remaining letters"
     string displayed after it.

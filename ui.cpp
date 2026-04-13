@@ -709,7 +709,7 @@ void Ui::load()
         setResults("No saved clues.");
         return;
     }
-    restart();
+    clearResults(terminal::OutputMode::immediate);
     appendResults("Saved clues:");
     appendResults("");
     std::vector<std::string> vec;
@@ -731,15 +731,18 @@ void Ui::load()
     opts.keysAllowed = terminal::KeysAllowed::CapitalAlphanum;
     opts.maxLen = 4;
     std::string clueNumber = m_term.input(opts);
-    auto it = m_savedClues.find(clueNumber);
-    if (it == m_savedClues.end()) {
-        setResults(std::format("Cannot find clue '{}'", clueNumber));
-        return;
+    if (!clueNumber.empty()) {
+        auto it = m_savedClues.find(clueNumber);
+        if (it == m_savedClues.end()) {
+            setResults(std::format("Cannot find clue '{}'", clueNumber));
+            return;
+        }
+        restart();
+        m_clue.searchString = it->second.searchString;
+        m_clue.foundString = it->second.foundString;
+        m_clue.clueNumber = it->second.clueNumber;
+        m_clue.comment = it->second.comment;
     }
-    m_clue.searchString = it->second.searchString;
-    m_clue.foundString = it->second.foundString;
-    m_clue.clueNumber = it->second.clueNumber;
-    m_clue.comment = it->second.comment;
     clearResults(terminal::OutputMode::immediate);
 }
 
