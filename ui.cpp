@@ -340,6 +340,11 @@ int Ui::run()
                         }
                     }
                     if (clickRow > m_headerRowSize && clickRow < m_termSize.rows - m_menuRowSize) {
+                        // Scroll support for results pane
+                        // Currently only supports up (button 64) and down (button 65)
+                        // Horizontal scrolling would be button codes 96 (left) and 97 (right),
+                        // but support for this is patchy - it depends on both the terminal emulator
+                        // and the mouse/trackpad sending the events. Not needed yet, if at all.
                         if (keyPress::lastMouseClick.button == 65) { // scroll down
                             if (!m_results.scrollAtBottom) {
                                 ++m_results.scrollOffset;
