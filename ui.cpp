@@ -339,6 +339,18 @@ int Ui::run()
                             }
                         }
                     }
+                    if (clickRow > m_headerRowSize && clickRow < m_termSize.rows - m_menuRowSize) {
+                        if (keyPress::lastMouseClick.button == 65) { // scroll down
+                            if (!m_results.scrollAtBottom) {
+                                ++m_results.scrollOffset;
+                            }
+                        }
+                        if (keyPress::lastMouseClick.button == 64) { // scroll up
+                            if (m_results.scrollOffset > 0) {
+                                --m_results.scrollOffset;
+                            }
+                        }
+                    }
                 }
                 break;
             default:

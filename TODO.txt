@@ -1,7 +1,5 @@
 * Add unit tests for WordSearcher
 
-* Implement scrolling of the results pane by mouse
-
 * Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
   - Restart should check dirty flag (see below)
 
