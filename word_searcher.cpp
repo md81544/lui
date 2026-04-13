@@ -115,7 +115,15 @@ std::vector<std::string> WordSearcher::definitions(const std::vector<std::string
         std::string definition { w };
         auto d = m_definitions.find(w);
         if (d != m_definitions.end()) {
-            definition.append(std::format(" : {}", d->second));
+            definition.append(" : ");
+            bool bFirst = true;
+            for(const auto& def : d->second) {
+                if (! bFirst) {
+                    definition.append(" OR ");
+                }
+                definition.append(def);
+                bFirst = false;
+            }
         } else {
             definition.append(" : ---");
         }
