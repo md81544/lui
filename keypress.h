@@ -163,6 +163,7 @@ constexpr int F9 = 274;
 constexpr int F10 = 275;
 constexpr int F11 = 276;
 constexpr int F12 = 277;
+constexpr int SHIFT_TAB = 278;
 
 // A "key press" of MOUSE means the caller needs to call
 // getMouseEvent() to retrieve the last mouse click data.
@@ -224,6 +225,8 @@ inline std::optional<int> getKeyPress(bool blocking = true)
                     return HOME;
                 } else if (seq[0] == 'F') {
                     return END;
+                } else if (seq[0] == 'Z') {
+                    return SHIFT_TAB;
                 } else if (seq[0] == '1' && seq[1] == '~') { // VT220 variant for home
                     return HOME;
                 } else if (seq[0] == '2' && seq[1] == '~') {

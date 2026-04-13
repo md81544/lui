@@ -1,3 +1,6 @@
+* When in the header, tab key should act as enter & move to next input
+  (will shift-tab work? - yes, it yields <ESC>[Z)
+
 * Add unit tests for WordSearcher
 
 * Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
