@@ -25,6 +25,18 @@
 
 namespace {
 
+constexpr int MENU_JUMBLE = 1;
+constexpr int MENU_REVERSE = 2;
+constexpr int MENU_REGULAR = 3;
+constexpr int MENU_THESAURUS = 4;
+constexpr int MENU_LOOKUP = 5;
+constexpr int MENU_DEFINE = 6;
+constexpr int MENU_FILTER = 7;
+constexpr int MENU_SAVE = 8;
+constexpr int MENU_LOAD = 9;
+constexpr int MENU_RESTART = 10;
+constexpr int MENU_QUIT = 11;
+
 std::vector<std::string> lettersInACircle(std::string_view letters)
 {
     std::string localLetters { letters };
@@ -137,235 +149,100 @@ bool Ui::checkTerminalLargeEnough()
     return true;
 }
 
-void Ui::clearCommandPrompt()
-{
-    // Clear command prompt immediately
-    if (m_commandSeqCount > 0) {
-        m_commandSeqCount = 0;
-        displayMenu(terminal::OutputMode::immediate);
-    }
-}
 int Ui::run()
 {
     bool finished { false };
+    u_int8_t commandSeqCount = 0;
     while (!finished && !mgo::shutdown_requested.load(std::memory_order_relaxed)) {
-        if (m_commandSeqCount > 0) {
-            --m_commandSeqCount;
-        }
         checkForTerminalResize();
         displayHeader();
         displayResults();
         displayMenu();
+        if (commandSeqCount > 0) {
+            --commandSeqCount;
+        }
+        if (commandSeqCount > 0) {
+            displayCommandPrompt();
+        } else {
+            clearCommandPrompt();
+        }
         m_term.render();
         int keyPress;
-        if (!m_outstandingKeyPresses.empty()) {
-            keyPress = *m_outstandingKeyPresses.begin();
-            m_outstandingKeyPresses.pop_front();
+        Command cmd;
+
+        if (!m_commandQueue.empty()) {
+            cmd = *m_commandQueue.begin();
+            m_commandQueue.pop_front();
         } else {
             keyPress = m_term.getChar();
+            cmd = decodeKeyPress(keyPress, commandSeqCount > 0);
         }
-        switch (keyPress) {
-            case keyPress::NO_KEY: // key was consumed by input handler
+        switch (cmd) {
+            case Command::NoOp:
                 break;
-            case ':':
-                m_commandSeqCount = 2;
+            case Command::AwaitCommand: // Used if user presses '::
+                commandSeqCount = 2;
                 break;
-            case keyPress::CTRL_R:
-                // clear eveything down
-                restart();
-                break;
-            case 'q':
-            case 'Q':
-                if (m_commandSeqCount > 0) {
-                    // i.e. :q
-                    finished = true;
-                }
-                break;
-            case keyPress::CTRL_C:
-            case keyPress::CTRL_Q:
-                finished = true;
-                break;
-            case 'j':
-            case 'J':
+            case Command::Jumble:
                 jumble();
                 break;
-            case 't':
-            case 'T':
-                thesaurus();
-                break;
-            case 'l':
-            case 'L':
-                if (m_commandSeqCount > 0) {
-                    // i.e. :l
-                    load();
-                } else {
-                    lookup();
-                }
-                break;
-            case 'i':
-            case 'I':
-                filterResults();
-                break;
-            case 'd':
-            case 'D':
-                define();
-                break;
-            case 'f':
-            case 'F':
-                enterFoundString();
-                break;
-            case 'c':
-            case 'C':
-                enterCommentString();
-                break;
-            case 'n':
-            case 'N':
-                enterClueNumber();
-                break;
-            case 's':
-            case 'S':
-                if (m_commandSeqCount > 0) {
-                    // i.e. :s
-                    save();
-                } else {
-                    enterSearchString();
-                }
-                break;
-            case 'r':
-            case 'R':
-                if (m_commandSeqCount > 0) {
-                    // i.e. :r
-                    restart();
-                    clearCommandPrompt(); // To wipe out the commmand prompt
-                } else {
-                    regular();
-                }
-                break;
-            case 'v':
-            case 'V':
+            case Command::Reverse:
                 reverse();
                 break;
-            case keyPress::DOWN:
-                if (!m_results.scrollAtBottom) {
-                    ++m_results.scrollOffset;
-                }
+            case Command::Regular:
+                regular();
                 break;
-            case keyPress::UP:
-                if (m_results.scrollOffset > 0) {
-                    --m_results.scrollOffset;
-                }
+            case Command::Thesaurus:
+                thesaurus();
                 break;
-            case keyPress::PGDN:
-            case keyPress::CTRL_F:
-            case keyPress::SPACE:
-                pageDownResults();
+            case Command::Lookup:
+                lookup();
                 break;
-            case keyPress::PGUP:
-            case keyPress::CTRL_B: // Note Ctrl-B may be TMux's "prefix" key!
-                pageUpResults();
+            case Command::Define:
+                define();
                 break;
-            case keyPress::F12:
-                clearResults();
-                setResults(m_debugLog);
+            case Command::Filter:
+                filterResults();
                 break;
-            case keyPress::CTRL_S:
+            case Command::Save:
                 save();
                 break;
-            case keyPress::CTRL_L:
+            case Command::Load:
                 load();
                 break;
-            case keyPress::ESC:
-                // currently does nothing
+            case Command::Restart:
+                restart();
                 break;
-            case keyPress::MOUSE:
-                {
-                    log(std::format(
-                        "Mouse event: Button: {}, Row: {}, Col: {}",
-                        keyPress::lastMouseClick.button,
-                        keyPress::lastMouseClick.row,
-                        keyPress::lastMouseClick.col));
-                    std::size_t clickRow = keyPress::lastMouseClick.row;
-                    std::size_t clickCol = keyPress::lastMouseClick.col;
-                    switch (clickRow) {
-                        case 1:
-                            enterSearchString();
-                            break;
-                        case 2:
-                            enterFoundString();
-                            break;
-                        case 3:
-                            enterCommentString();
-                            break;
-                        case 4:
-                            enterClueNumber();
-                            break;
-                        default:
-                            break;
-                    }
-                    if (clickRow > m_termSize.rows - m_menuRowSize) {
-                        // a click in the menu area
-                        std::optional<int> menuItem = m_menu.getIdFromHitBox(clickRow, clickCol);
-                        if (menuItem.has_value()) {
-                            switch (menuItem.value()) {
-                                case MENU_JUMBLE:
-                                    jumble();
-                                    break;
-                                case MENU_REVERSE:
-                                    reverse();
-                                    break;
-                                case MENU_REGULAR:
-                                    regular();
-                                    break;
-                                case MENU_THESAURUS:
-                                    thesaurus();
-                                    break;
-                                case MENU_LOOKUP:
-                                    lookup();
-                                    break;
-                                case MENU_DEFINE:
-                                    define();
-                                    break;
-                                case MENU_FILTER:
-                                    filterResults();
-                                    break;
-                                case MENU_SAVE:
-                                    save();
-                                    break;
-                                case MENU_LOAD:
-                                    load();
-                                    break;
-                                case MENU_RESTART:
-                                    restart();
-                                    break;
-                                case MENU_QUIT:
-                                    finished = true;
-                                    break;
-                                default:
-                                    assert(false); // Item not handled; add item above
-                            }
-                        }
-                    }
-                    if (clickRow > m_headerRowSize && clickRow < m_termSize.rows - m_menuRowSize) {
-                        // Scroll support for results pane
-                        // Currently only supports up (button 64) and down (button 65)
-                        // Horizontal scrolling would be button codes 96 (left) and 97 (right),
-                        // but support for this is patchy - it depends on both the terminal emulator
-                        // and the mouse/trackpad sending the events. Not needed yet, if at all.
-                        if (keyPress::lastMouseClick.button == 65) { // scroll down
-                            if (!m_results.scrollAtBottom) {
-                                ++m_results.scrollOffset;
-                            }
-                        }
-                        if (keyPress::lastMouseClick.button == 64) { // scroll up
-                            if (m_results.scrollOffset > 0) {
-                                --m_results.scrollOffset;
-                            }
-                        }
-                    }
-                }
+            case Command::Quit:
+                finished = true;
                 break;
-            default:
-                m_term.bell();
+            case Command::EnterSearchString:
+                enterSearchString();
+                break;
+            case Command::EnterFoundString:
+                enterFoundString();
+                break;
+            case Command::EnterComment:
+                enterCommentString();
+                break;
+            case Command::EnterClueNumber:
+                enterClueNumber();
+                break;
+            case Command::ResultsScrollDown:
+                scrollDownResults();
+                break;
+            case Command::ResultsScrollUp:
+                scrollUpResults();
+                break;
+            case Command::ResultsPageDown:
+                pageDownResults();
+                break;
+            case Command::ResultsPageUp:
+                pageUpResults();
+                break;
+            case Command::ShowDebugLog:
+                ShowDebugLog();
+                break;
         }
     }
     return 0;
@@ -486,19 +363,25 @@ void Ui::displayMenu(terminal::OutputMode mode)
 {
     const std::size_t topRow = m_termSize.rows - m_menuRowSize;
     hr(topRow, mode);
-    if (m_commandSeqCount > 0) {
-        m_term.printAt(m_termSize.rows - 1, 0, ":", mode);
-        m_term.saveCursorPosition(mode);
-    }
     m_term.printAt(topRow, 1, "Menu", mode);
     m_menu.printMenu(topRow + 1, 1, mode);
-    if (m_commandSeqCount > 0) {
-        m_term.restoreCursorPosition(mode);
-        m_term.setCursorType(terminal::CursorType::BlockBlinking, mode);
-        m_term.cursorOn(mode);
-    } else {
-        m_term.cursorOff(mode);
-    }
+    m_term.cursorOff(mode);
+}
+
+void Ui::displayCommandPrompt(terminal::OutputMode mode)
+{
+    m_term.printAt(m_termSize.rows - 1, 0, ":", mode);
+    m_term.setCursorType(terminal::CursorType::BlockBlinking, mode);
+    m_term.cursorOn(mode);
+}
+
+void Ui::clearCommandPrompt(terminal::OutputMode mode)
+{
+    m_term.saveCursorPosition(mode);
+    m_term.goTo(m_termSize.rows - 1, 0, mode);
+    m_term.clearLine(mode);
+    m_term.restoreCursorPosition(mode);
+    m_term.cursorOff(mode);
 }
 
 void Ui::restart()
@@ -522,6 +405,7 @@ void Ui::restart()
     m_clue.comment.clear();
     m_clue.dirty = false;
     clearResults();
+    clearCommandPrompt();
 }
 
 void Ui::hr(std::size_t row, terminal::OutputMode mode)
@@ -814,6 +698,20 @@ void Ui::filterResults()
     m_results.filtered = true;
 }
 
+void Ui::scrollDownResults()
+{
+    if (!m_results.scrollAtBottom) {
+        ++m_results.scrollOffset;
+    }
+}
+
+void Ui::scrollUpResults()
+{
+    if (m_results.scrollOffset > 0) {
+        --m_results.scrollOffset;
+    }
+}
+
 void Ui::pageDownResults()
 {
     std::size_t resultsDisplaySize = getResultsPaneRowSize() - 3;
@@ -977,11 +875,11 @@ void Ui::enterFoundStringConstrained()
     log(std::format("m_clue.foundString (constrained) input: '{}'", m_clue.foundString));
     if (opts.EntryKey == keyPress::TAB) {
         // chain to comment entry
-        m_outstandingKeyPresses.push_back('c');
+        m_commandQueue.push_back(Command::EnterComment);
     }
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to search entry
-        m_outstandingKeyPresses.push_back('s');
+        m_commandQueue.push_back(Command::EnterSearchString);
     }
 }
 
@@ -1037,11 +935,11 @@ void Ui::enterFoundStringUnconstrained()
     log(std::format("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString));
     if (opts.EntryKey == keyPress::TAB) {
         // chain to comment entry
-        m_outstandingKeyPresses.push_back('c');
+        m_commandQueue.push_back(Command::EnterComment);
     }
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to search entry
-        m_outstandingKeyPresses.push_back('s');
+        m_commandQueue.push_back(Command::EnterSearchString);
     }
 }
 
@@ -1076,7 +974,7 @@ void Ui::enterSearchString()
     log(std::format("m_clue.searchString input: '{}'", m_clue.searchString));
     if (opts.EntryKey == keyPress::TAB) {
         // chain to enter found string
-        m_outstandingKeyPresses.push_back('f');
+        m_commandQueue.push_back(Command::EnterFoundString);
     }
 }
 
@@ -1094,11 +992,11 @@ void Ui::enterCommentString()
     log(std::format("m_clue.comment input: '{}'", m_clue.comment));
     if (opts.EntryKey == keyPress::TAB) {
         // chain to clue number entry
-        m_outstandingKeyPresses.push_back('n');
+        m_commandQueue.push_back(Command::EnterClueNumber);
     }
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to found entry
-        m_outstandingKeyPresses.push_back('f');
+        m_commandQueue.push_back(Command::EnterFoundString);
     }
 }
 
@@ -1118,13 +1016,156 @@ void Ui::enterClueNumber()
     log(std::format("m_clue input: '{}'", m_clue.clueNumber));
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to comment entry
-        m_outstandingKeyPresses.push_back('c');
+        m_commandQueue.push_back(Command::EnterComment);
     }
+}
+
+void Ui::ShowDebugLog()
+{
+    clearResults();
+    setResults(m_debugLog);
 }
 
 std::size_t Ui::getResultsPaneRowSize()
 {
     return m_termSize.rows - m_menuRowSize - m_headerRowSize;
+}
+
+Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
+{
+    switch (keyPress) {
+        case keyPress::NO_KEY: // key was consumed by input handler
+            return Command::NoOp;
+        case ':':
+            return Command::AwaitCommand;
+        case keyPress::CTRL_R:
+            // clear eveything down
+            return Command::Restart;
+        case 'q':
+        case keyPress::CTRL_C:
+        case keyPress::CTRL_Q:
+            return Command::Quit;
+        case 'j':
+            return Command::Jumble;
+        case 't':
+            return Command::Thesaurus;
+        case 'l':
+            if (extendedFunction) {
+                return Command::Load;
+            }
+            return Command::Lookup;
+        case 'i':
+            return Command::Filter;
+        case 'd':
+            return Command::Define;
+        case 'f':
+            return Command::EnterFoundString;
+        case 'c':
+            return Command::EnterComment;
+        case 'n':
+            return Command::EnterClueNumber;
+        case 's':
+            if (extendedFunction) {
+                return Command::Save;
+            }
+            return Command::EnterSearchString;
+        case 'r':
+            if (extendedFunction) {
+                return Command::Restart;
+            }
+            return Command::Regular;
+        case 'v':
+            return Command::Reverse;
+        case keyPress::DOWN:
+            return Command::ResultsScrollDown;
+        case keyPress::UP:
+            return Command::ResultsScrollUp;
+        case keyPress::PGDN:
+        case keyPress::CTRL_F:
+        case keyPress::SPACE:
+            return Command::ResultsPageDown;
+        case keyPress::PGUP:
+        case keyPress::CTRL_B: // Note Ctrl-B may be TMux's "prefix" key!
+            return Command::ResultsPageUp;
+        case keyPress::F12:
+            return Command::ShowDebugLog;
+        case keyPress::CTRL_S:
+            return Command::Save;
+        case keyPress::CTRL_L:
+            return Command::Load;
+        case keyPress::ESC:
+            // currently does nothing
+            return Command::NoOp;
+        case keyPress::MOUSE:
+            return decodeMouseClick(
+                keyPress::lastMouseClick.button,
+                keyPress::lastMouseClick.row,
+                keyPress::lastMouseClick.col);
+        default:
+            m_term.bell();
+    }
+    return Command::NoOp;
+}
+
+Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
+{
+    log(std::format("Mouse event: Button: {}, Row: {}, Col: {}", button, row, col));
+    switch (row) {
+        case 1:
+            return Command::EnterSearchString;
+        case 2:
+            return Command::EnterFoundString;
+        case 3:
+            return Command::EnterComment;
+        case 4:
+            return Command::EnterClueNumber;
+    }
+    if (row > m_termSize.rows - m_menuRowSize) {
+        // a click in the menu area
+        std::optional<int> menuItem = m_menu.getIdFromHitBox(row, col);
+        if (menuItem.has_value()) {
+            switch (menuItem.value()) {
+                case MENU_JUMBLE:
+                    return Command::Jumble;
+                case MENU_REVERSE:
+                    return Command::Reverse;
+                case MENU_REGULAR:
+                    return Command::Regular;
+                case MENU_THESAURUS:
+                    return Command::Thesaurus;
+                case MENU_LOOKUP:
+                    return Command::Lookup;
+                case MENU_DEFINE:
+                    return Command::Define;
+                case MENU_FILTER:
+                    return Command::Filter;
+                case MENU_SAVE:
+                    return Command::Save;
+                case MENU_LOAD:
+                    return Command::Load;
+                case MENU_RESTART:
+                    return Command::Restart;
+                case MENU_QUIT:
+                    return Command::Quit;
+                default:
+                    assert(false); // Item not handled
+            }
+        }
+    }
+    if (row > m_headerRowSize && row < m_termSize.rows - m_menuRowSize) {
+        // Scroll support for results pane
+        // Currently only supports up (button 64) and down (button 65)
+        // Horizontal scrolling would be button codes 96 (left) and 97 (right),
+        // but support for this is patchy - it depends on both the terminal emulator
+        // and the mouse/trackpad sending the events. Not needed yet, if at all.
+        if (keyPress::lastMouseClick.button == 65) { // scroll down
+            return Command::ResultsScrollDown;
+        }
+        if (keyPress::lastMouseClick.button == 64) { // scroll up
+            return Command::ResultsScrollUp;
+        }
+    }
+    return Command::NoOp;
 }
 
 } // namespace ui

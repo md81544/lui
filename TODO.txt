@@ -1,9 +1,5 @@
-* Raw keypresses are now pushed onto m_outstandingKeyPresses, this is fragile. Combined
-  with clicking menus returning MENU_* values, this all needs combining maybe into a
-  set of COMMAND_ values instead so a change of keypress recognised won't require
-  changes in multiple places
-    - m_outstandingKeyPresses should be a queue of *commands* to which keypresses or
-      mouse clicks (or other functions) can append to
+* MENU_ items should be an enum class to enforce errors if item
+  is not handled in a switch()
 
 * multiple colour support in results pane?
   - may be just as simple as including colour codes?
@@ -15,10 +11,11 @@
 * Remove clue from saved? Maybe some form of "done"?
 
 * Need a "remove" option. Maybe results pane displays remaining letters?
-  - or, if search string is defined, "found" entry could have a dynamic "remaining letters"
+  - or, constrained "found" entry could have a dynamic "remaining letters"
     string displayed after it.
 
 * Allow number entry in unconstrained "found" input. E.g. entering 4 would insert "...."
+  - How handle requirement of more than 9?
 
 * Undo filter?
 

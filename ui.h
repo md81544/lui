@@ -16,17 +16,30 @@
 
 namespace ui {
 
-constexpr int MENU_JUMBLE = 1;
-constexpr int MENU_REVERSE = 2;
-constexpr int MENU_REGULAR = 3;
-constexpr int MENU_THESAURUS = 4;
-constexpr int MENU_LOOKUP = 5;
-constexpr int MENU_DEFINE = 6;
-constexpr int MENU_FILTER = 7;
-constexpr int MENU_SAVE = 8;
-constexpr int MENU_LOAD = 9;
-constexpr int MENU_RESTART = 10;
-constexpr int MENU_QUIT = 11;
+enum class Command {
+    NoOp,
+    AwaitCommand, // Used if user presses ':'
+    Jumble,
+    Reverse,
+    Regular,
+    Thesaurus,
+    Lookup,
+    Define,
+    Filter,
+    Save,
+    Load,
+    Restart,
+    Quit,
+    EnterSearchString,
+    EnterFoundString,
+    EnterComment,
+    EnterClueNumber,
+    ResultsScrollDown,
+    ResultsScrollUp,
+    ResultsPageDown,
+    ResultsPageUp,
+    ShowDebugLog,
+};
 
 class Ui final {
 public:
@@ -64,7 +77,6 @@ private:
         bool filtered { false };
     };
 
-    void clearCommandPrompt();
     void checkForTerminalResize();
     bool checkTerminalLargeEnough();
     void restart();
@@ -75,6 +87,8 @@ private:
     void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayMenu(terminal::OutputMode mode = terminal::OutputMode::render);
+    void displayCommandPrompt(terminal::OutputMode mode = terminal::OutputMode::render);
+    void clearCommandPrompt(terminal::OutputMode mode = terminal::OutputMode::render);
     void hr(std::size_t row, terminal::OutputMode mode = terminal::OutputMode::render);
     void jumble();
     void lookup();
@@ -85,6 +99,8 @@ private:
     void load();
     void save();
     void filterResults();
+    void scrollDownResults(); // one line
+    void scrollUpResults(); // one line
     void pageDownResults();
     void pageUpResults();
     void log(std::string_view logEntry);
@@ -95,6 +111,9 @@ private:
     void enterSearchString();
     void enterCommentString();
     void enterClueNumber();
+    void ShowDebugLog();
+    Command decodeMouseClick(int button, std::size_t row, std::size_t col);
+    Command decodeKeyPress(int keyPress, bool extendedFunction);
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;
@@ -103,9 +122,8 @@ private:
     std::unique_ptr<wordSearcher::WordSearcher> m_ws;
     Results m_results;
     std::vector<std::string> m_debugLog;
-    uint8_t m_commandSeqCount { 0 }; // used for two-key commands, e.g. :q
 
-    std::list<int> m_outstandingKeyPresses;
+    std::list<Command> m_commandQueue;
 
     // UI layout
     static constexpr size_t m_headerRowSize { 6 };
