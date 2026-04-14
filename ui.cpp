@@ -242,6 +242,14 @@ int Ui::run()
             case Command::ResultsPageUp:
                 pageUpResults();
                 break;
+            case Command::ResultsSelection:
+                if (m_results.selectedItem.has_value()) {
+                    log(std::format(
+                        "Results item {} ('{}') selected",
+                        m_results.selectedItem.value(),
+                        m_results.vec.at(m_results.selectedItem.value())));
+                }
+                break;
             case Command::ShowDebugLog:
                 ShowDebugLog();
                 break;
@@ -1163,6 +1171,13 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
         }
         if (button == 64) { // scroll up
             return Command::ResultsScrollUp;
+        }
+        if (button == 0 && m_results.type == ResultsType::Words) {
+            std::size_t selection = row - m_resultsTopRow - 2 + m_results.scrollOffset;
+            if (m_results.vec.size() > selection) {
+                m_results.selectedItem = selection;
+                return Command::ResultsSelection;
+            }
         }
     }
     return Command::NoOp;

@@ -8,9 +8,9 @@
 #include "terminal.h"
 #include "word_searcher.h"
 #include <cstddef>
-#include <cstdint>
 #include <list>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -38,6 +38,7 @@ enum class Command {
     ResultsScrollUp,
     ResultsPageDown,
     ResultsPageUp,
+    ResultsSelection,
     ShowDebugLog,
 };
 
@@ -75,6 +76,7 @@ private:
         bool scrollAtBottom { true };
         std::vector<std::string> vec;
         bool filtered { false };
+        std::optional<std::size_t> selectedItem{ std::nullopt };
     };
 
     void checkForTerminalResize();
