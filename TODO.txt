@@ -1,6 +1,3 @@
-* MENU_ items should be an enum class to enforce errors if item
-  is not handled in a switch()
-
 * multiple colour support in results pane?
   - may be just as simple as including colour codes?
 

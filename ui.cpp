@@ -25,17 +25,19 @@
 
 namespace {
 
-constexpr int MENU_JUMBLE = 1;
-constexpr int MENU_REVERSE = 2;
-constexpr int MENU_REGULAR = 3;
-constexpr int MENU_THESAURUS = 4;
-constexpr int MENU_LOOKUP = 5;
-constexpr int MENU_DEFINE = 6;
-constexpr int MENU_FILTER = 7;
-constexpr int MENU_SAVE = 8;
-constexpr int MENU_LOAD = 9;
-constexpr int MENU_RESTART = 10;
-constexpr int MENU_QUIT = 11;
+enum class MenuItem {
+    Jumble,
+    Reverse,
+    Regular,
+    Thesaurus,
+    Lookup,
+    Define,
+    Filter,
+    Save,
+    Load,
+    Restart,
+    Quit,
+};
 
 std::vector<std::string> lettersInACircle(std::string_view letters)
 {
@@ -112,18 +114,18 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
     log("Finished loading data");
 
     // Set up the menu
-    m_menu.addItem(MENU_JUMBLE, "_Jumble");
-    m_menu.addItem(MENU_REVERSE, "re_Verse");
-    m_menu.addItem(MENU_REGULAR, "_Regular");
-    m_menu.addItem(MENU_THESAURUS, "_Thesaurus");
-    m_menu.addItem(MENU_LOOKUP, "_Lookup");
-    m_menu.addItem(MENU_DEFINE, "_Define");
+    m_menu.addItem(static_cast<int>(MenuItem::Jumble), "_Jumble");
+    m_menu.addItem(static_cast<int>(MenuItem::Reverse), "re_Verse");
+    m_menu.addItem(static_cast<int>(MenuItem::Regular), "_Regular");
+    m_menu.addItem(static_cast<int>(MenuItem::Thesaurus), "_Thesaurus");
+    m_menu.addItem(static_cast<int>(MenuItem::Lookup), "_Lookup");
+    m_menu.addItem(static_cast<int>(MenuItem::Define), "_Define");
     m_menu.addNewLine();
-    m_menu.addItem(MENU_FILTER, "f_Ilter");
-    m_menu.addItem(MENU_SAVE, "_^_Save");
-    m_menu.addItem(MENU_LOAD, "_^_Load");
-    m_menu.addItem(MENU_RESTART, "_^_Restart");
-    m_menu.addItem(MENU_QUIT, "_^_Quit");
+    m_menu.addItem(static_cast<int>(MenuItem::Filter), "f_Ilter");
+    m_menu.addItem(static_cast<int>(MenuItem::Save), "_^_Save");
+    m_menu.addItem(static_cast<int>(MenuItem::Load), "_^_Load");
+    m_menu.addItem(static_cast<int>(MenuItem::Restart), "_^_Restart");
+    m_menu.addItem(static_cast<int>(MenuItem::Quit), "_^_Quit");
 }
 
 void Ui::checkForTerminalResize()
@@ -1124,31 +1126,29 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
         // a click in the menu area
         std::optional<int> menuItem = m_menu.getIdFromHitBox(row, col);
         if (menuItem.has_value()) {
-            switch (menuItem.value()) {
-                case MENU_JUMBLE:
+            switch (static_cast<MenuItem>(menuItem.value())) {
+                case MenuItem::Jumble:
                     return Command::Jumble;
-                case MENU_REVERSE:
+                case MenuItem::Reverse:
                     return Command::Reverse;
-                case MENU_REGULAR:
+                case MenuItem::Regular:
                     return Command::Regular;
-                case MENU_THESAURUS:
+                case MenuItem::Thesaurus:
                     return Command::Thesaurus;
-                case MENU_LOOKUP:
+                case MenuItem::Lookup:
                     return Command::Lookup;
-                case MENU_DEFINE:
+                case MenuItem::Define:
                     return Command::Define;
-                case MENU_FILTER:
+                case MenuItem::Filter:
                     return Command::Filter;
-                case MENU_SAVE:
+                case MenuItem::Save:
                     return Command::Save;
-                case MENU_LOAD:
+                case MenuItem::Load:
                     return Command::Load;
-                case MENU_RESTART:
+                case MenuItem::Restart:
                     return Command::Restart;
-                case MENU_QUIT:
+                case MenuItem::Quit:
                     return Command::Quit;
-                default:
-                    assert(false); // Item not handled
             }
         }
     }
