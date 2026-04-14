@@ -1,3 +1,8 @@
+* Raw keypresses are now pushed onto m_outstandingKeyPresses, this is fragile. Combined
+  with clicking menus returning MENU_* values, this all needs combining maybe into a
+  set of COMMAND_ values instead so a change of keypress recognised won't require
+  changes in multiple places
+
 * multiple colour support in results pane?
   - may be just as simple as including colour codes?
 
