@@ -303,7 +303,7 @@ void Terminal::restore()
     m_savedRenderString = m_renderString;
 }
 
-int Terminal::messageBox( MessageBoxOptions& opts)
+int Terminal::messageBox(MessageBoxOptions& opts)
 {
     if (opts.waitForKey && opts.mode != OutputMode::immediate) {
         opts.waitForKey = false;
@@ -358,7 +358,13 @@ int Terminal::messageBox( MessageBoxOptions& opts)
         cursorRight(1, opts.mode);
         setCursorType(CursorType::BlockBlinking, opts.mode);
         cursorOn(opts.mode);
-        int key = getChar();
+        int key { 0 };
+        while (true) {
+            key = getChar();
+            if (ascii::isascii(key) && key != 0 && key != keyPress::MOUSE) {
+                break;
+            }
+        }
         cursorOff(opts.mode);
         return key;
     } else {
