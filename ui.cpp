@@ -713,9 +713,13 @@ void Ui::load()
     appendResults("Saved clues:");
     appendResults("");
     std::vector<std::string> vec;
-    for (const auto& [k, v] : m_savedClues) {
-        vec.emplace_back(
-            std::format("{:>4} : '{}'/'{}', {}", k, v.searchString, v.foundString, v.comment));
+    for (const auto& [clueNo, clue] : m_savedClues) {
+        std::string entry = std::format("{:>4} : ", clueNo);
+        entry.append(std::format("'{}', '{}'", clue.searchString, clue.foundString));
+        if (!clue.comment.empty()) {
+            entry.append(std::format(", {}", clue.comment));
+        }
+        vec.emplace_back(entry);
     }
     std::sort(vec.begin(), vec.end());
     for (const auto& s : vec) {
@@ -774,11 +778,11 @@ void Ui::filterResults()
     std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
     std::vector<std::string> newResults;
     std::string regexPrefix;
-    if(!filter.contains("^")) {
+    if (!filter.contains("^")) {
         regexPrefix = "^.*";
     }
     std::string regexSuffix;
-    if(!filter.contains("$")) {
+    if (!filter.contains("$")) {
         regexSuffix = "^.*$";
     }
     filter = std::format("{}{}{}", regexPrefix, filter, regexSuffix);
