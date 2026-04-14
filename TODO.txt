@@ -1,6 +1,3 @@
-* When in the header, tab key should act as enter & move to next input
-  (will shift-tab work? - yes, it yields <ESC>[Z)
-
 * multiple colour support in results pane?
   - may be just as simple as including colour codes?
 

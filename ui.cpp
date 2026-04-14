@@ -979,6 +979,10 @@ void Ui::enterFoundStringConstrained()
         // chain to comment entry
         m_outstandingKeyPresses.push_back('c');
     }
+    if (opts.EntryKey == keyPress::SHIFT_TAB) {
+        // chain to search entry
+        m_outstandingKeyPresses.push_back('s');
+    }
 }
 
 void Ui::enterFoundStringUnconstrained()
@@ -1004,7 +1008,8 @@ void Ui::enterFoundStringUnconstrained()
         if (key == keyPress::BACKSPACE || key == keyPress::LEFT || key == keyPress::RIGHT
             || key == keyPress::DELETE || key == keyPress::CTRL_A || key == keyPress::CTRL_E
             || key == keyPress::END || key == keyPress::HOME || key == keyPress::CTRL_U
-            || key == keyPress::ENTER || key == keyPress::ESC) {
+            || key == keyPress::ENTER || key == keyPress::ESC || key == keyPress::TAB
+            || key == keyPress::SHIFT_TAB) {
             return key;
         }
         return keyPress::NO_KEY;
@@ -1033,6 +1038,10 @@ void Ui::enterFoundStringUnconstrained()
     if (opts.EntryKey == keyPress::TAB) {
         // chain to comment entry
         m_outstandingKeyPresses.push_back('c');
+    }
+    if (opts.EntryKey == keyPress::SHIFT_TAB) {
+        // chain to search entry
+        m_outstandingKeyPresses.push_back('s');
     }
 }
 
@@ -1087,6 +1096,10 @@ void Ui::enterCommentString()
         // chain to clue number entry
         m_outstandingKeyPresses.push_back('n');
     }
+    if (opts.EntryKey == keyPress::SHIFT_TAB) {
+        // chain to found entry
+        m_outstandingKeyPresses.push_back('f');
+    }
 }
 
 void Ui::enterClueNumber()
@@ -1103,6 +1116,10 @@ void Ui::enterClueNumber()
     m_clue.clueNumber = m_term.input(opts);
     m_clue.dirty = true;
     log(std::format("m_clue input: '{}'", m_clue.clueNumber));
+    if (opts.EntryKey == keyPress::SHIFT_TAB) {
+        // chain to comment entry
+        m_outstandingKeyPresses.push_back('c');
+    }
 }
 
 std::size_t Ui::getResultsPaneRowSize()
