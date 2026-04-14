@@ -169,7 +169,8 @@ constexpr int SHIFT_TAB = 278;
 // getMouseEvent() to retrieve the last mouse click data.
 // There is currently no check to see whether this has
 // been updated between the "key press" and the call to
-// getMouseEvent().
+// getMouseEvent(), but as key handling is sequential this
+// should not be a problem.
 constexpr int MOUSE = 1024;
 
 // If called with blocking = false then returns
