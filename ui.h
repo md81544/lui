@@ -47,7 +47,7 @@ private:
         std::string foundString;
         std::string clueNumber;
         std::string comment;
-        bool dirty { true };
+        bool dirty { false };
     };
 
     enum class ResultsType {

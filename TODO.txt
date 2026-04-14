@@ -7,7 +7,6 @@
 * Add unit tests for WordSearcher
 
 * Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
-  - Restart should check dirty flag (see below)
 
 * Remove clue from saved? Maybe some form of "done"?
 
@@ -16,9 +15,6 @@
     string displayed after it.
 
 * Allow number entry in unconstrained "found" input. E.g. entering 4 would insert "...."
-
-* Add "dirty" flag if clue isn't saved but has changed (might need interactive
-  messageBox - see below)
 
 * Undo filter?
 

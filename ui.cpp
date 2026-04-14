@@ -497,7 +497,18 @@ void Ui::displayMenu(terminal::OutputMode mode)
 
 void Ui::restart()
 {
-    // TODO dirty check
+    if (m_clue.dirty) {
+        terminal::MessageBoxOptions opts;
+        opts.row = m_resultsTopRow + 2;
+        opts.col = 2;
+        opts.message = "Clue has changed!\n";
+        opts.prompt = "Sure? (y/n)";
+        opts.waitForKey = true;
+        int key = m_term.messageBox(opts);
+        if (key != 'y' && key != 'Y') {
+            return;
+        }
+    }
     clearResults(terminal::OutputMode::immediate);
     m_clue.searchString.clear();
     m_clue.foundString.clear();
@@ -757,6 +768,7 @@ void Ui::save()
     }
     m_savedClues[m_clue.clueNumber] = m_clue;
     setResults(std::format("Clue saved as '{}'.", m_clue.clueNumber));
+    m_clue.dirty = false;
 }
 
 void Ui::filterResults()
