@@ -17,6 +17,7 @@
 #include <memory>
 #include <numbers>
 #include <random>
+#include <regex>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -157,7 +158,6 @@ int Ui::run()
         displayMenu();
         m_term.render();
         int keyPress = m_term.getChar();
-        log(std::format("Key press: {}", keyPress));
         switch (keyPress) {
             case keyPress::NO_KEY: // key was consumed by input handler
                 break;
@@ -769,13 +769,23 @@ void Ui::filterResults()
     terminal::InputOptions opts;
     opts.row = m_termSize.rows - 1;
     opts.col = 1;
-    opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
+    opts.keysAllowed = terminal::KeysAllowed::All;
     std::string filter = m_term.input(opts);
     std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
-    log(std::format("Filter string entered: '{}'", filter));
     std::vector<std::string> newResults;
+    std::string regexPrefix;
+    if(!filter.contains("^")) {
+        regexPrefix = "^.*";
+    }
+    std::string regexSuffix;
+    if(!filter.contains("$")) {
+        regexSuffix = "^.*$";
+    }
+    filter = std::format("{}{}{}", regexPrefix, filter, regexSuffix);
+    log(std::format("Filter regex: '{}'", filter));
+    const std::regex regex(filter);
     for (const auto& w : m_results.vec) {
-        if (w.contains(filter)) {
+        if (std::regex_match(w, regex)) {
             newResults.emplace_back(w);
         }
     }

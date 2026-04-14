@@ -20,7 +20,6 @@
 * Add "dirty" flag if clue isn't saved but has changed (might need interactive
   messageBox - see below)
 
-* Filter should do a regex search rather than just look for substrings
 * Undo filter?
 
 * Multi-line message box. Include option to wait for, and return, keypress (use input)
