@@ -1,5 +1,7 @@
 #pragma once
 
+#include "keypress.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -110,6 +112,11 @@ struct InputOptions {
     std::function<bool()> postInsertHook { []() -> bool { return true; } };
     // Appends number of characters entered after the value if true:
     bool reportSize { false };
+    // Tab / shift tab also acts as an "enter" key. The user can
+    // check this value after input to determine whether to move
+    // to a different field (e.g. if EntryKey == SHIFT_TAB, immediately
+    // start input in a previous field). Up to the caller.
+    int EntryKey{ keyPress::ENTER };
 };
 
 class Terminal final {

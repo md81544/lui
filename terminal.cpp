@@ -1,6 +1,5 @@
 #include "terminal.h"
 #include "ascii.h" // for locale-independent functions
-#include "keypress.h"
 #include "log.h"
 #include <cassert>
 #include <cstddef>
@@ -461,6 +460,9 @@ std::string Terminal::input(InputOptions& opts)
             case keyPress::NO_KEY:
                 break;
             case keyPress::ENTER:
+            case keyPress::TAB:
+            case keyPress::SHIFT_TAB:
+                opts.EntryKey = key;
                 done = true;
                 break;
             case keyPress::BACKSPACE:
