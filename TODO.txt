@@ -18,8 +18,6 @@
 
 * Undo filter?
 
-* Multi-line message box. Include option to wait for, and return, keypress (use input)
-
 * Maybe improve definitions display? Currently just dumps a vector.
 * (related) allow horizontal scrolling of results (or at least the definitions portion)
 * (related) consider returning something more structured from WordSearcher::define()
