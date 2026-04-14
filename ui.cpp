@@ -1158,10 +1158,10 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
         // Horizontal scrolling would be button codes 96 (left) and 97 (right),
         // but support for this is patchy - it depends on both the terminal emulator
         // and the mouse/trackpad sending the events. Not needed yet, if at all.
-        if (keyPress::lastMouseClick.button == 65) { // scroll down
+        if (button == 65) { // scroll down
             return Command::ResultsScrollDown;
         }
-        if (keyPress::lastMouseClick.button == 64) { // scroll up
+        if (button == 64) { // scroll up
             return Command::ResultsScrollUp;
         }
     }
