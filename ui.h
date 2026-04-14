@@ -9,6 +9,7 @@
 #include "word_searcher.h"
 #include <cstddef>
 #include <cstdint>
+#include <list>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -103,6 +104,8 @@ private:
     Results m_results;
     std::vector<std::string> m_debugLog;
     uint8_t m_commandSeqCount { 0 }; // used for two-key commands, e.g. :q
+
+    std::list<int> m_outstandingKeyPresses;
 
     // UI layout
     static constexpr size_t m_headerRowSize { 6 };

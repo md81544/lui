@@ -462,7 +462,7 @@ std::string Terminal::input(InputOptions& opts)
             case keyPress::ENTER:
             case keyPress::TAB:
             case keyPress::SHIFT_TAB:
-                opts.EntryKey = key;
+                opts.EntryKey = keyOrig;
                 done = true;
                 break;
             case keyPress::BACKSPACE:

@@ -157,7 +157,13 @@ int Ui::run()
         displayResults();
         displayMenu();
         m_term.render();
-        int keyPress = m_term.getChar();
+        int keyPress;
+        if (!m_outstandingKeyPresses.empty()) {
+            keyPress = *m_outstandingKeyPresses.begin();
+            m_outstandingKeyPresses.pop_front();
+        } else {
+            keyPress = m_term.getChar();
+        }
         switch (keyPress) {
             case keyPress::NO_KEY: // key was consumed by input handler
                 break;
@@ -969,6 +975,10 @@ void Ui::enterFoundStringConstrained()
     m_clue.foundString = m_term.input(opts);
     m_clue.dirty = true;
     log(std::format("m_clue.foundString (constrained) input: '{}'", m_clue.foundString));
+    if (opts.EntryKey == keyPress::TAB) {
+        // chain to comment entry
+        m_outstandingKeyPresses.push_back('c');
+    }
 }
 
 void Ui::enterFoundStringUnconstrained()
@@ -1020,6 +1030,10 @@ void Ui::enterFoundStringUnconstrained()
     }
     m_clue.dirty = true;
     log(std::format("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString));
+    if (opts.EntryKey == keyPress::TAB) {
+        // chain to comment entry
+        m_outstandingKeyPresses.push_back('c');
+    }
 }
 
 void Ui::enterSearchString()
@@ -1051,6 +1065,10 @@ void Ui::enterSearchString()
     }
     m_clue.dirty = true;
     log(std::format("m_clue.searchString input: '{}'", m_clue.searchString));
+    if (opts.EntryKey == keyPress::TAB) {
+        // chain to enter found string
+        m_outstandingKeyPresses.push_back('f');
+    }
 }
 
 void Ui::enterCommentString()
@@ -1065,6 +1083,10 @@ void Ui::enterCommentString()
     m_clue.comment = m_term.input(opts);
     m_clue.dirty = true;
     log(std::format("m_clue.comment input: '{}'", m_clue.comment));
+    if (opts.EntryKey == keyPress::TAB) {
+        // chain to clue number entry
+        m_outstandingKeyPresses.push_back('n');
+    }
 }
 
 void Ui::enterClueNumber()
