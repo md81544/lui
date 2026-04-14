@@ -1021,8 +1021,9 @@ void Ui::enterSearchString()
         return key;
     };
     m_clue.searchString = m_term.input(opts);
-    // TODO: sometimes we might want to keep the search string - maybe dialog when implemented
-    m_clue.foundString = std::string(m_clue.searchString.size(), '.');
+    if (separatedStringSize(m_clue.foundString) != m_clue.searchString.size()) {
+        m_clue.foundString = std::string(m_clue.searchString.size(), '.');
+    }
     m_clue.dirty = true;
     log(std::format("m_clue.searchString input: '{}'", m_clue.searchString));
 }

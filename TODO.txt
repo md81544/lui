@@ -27,12 +27,15 @@
 
 * Maybe improve definitions display? Currently just dumps a vector.
 * (related) allow horizontal scrolling of results (or at least the definitions portion)
+* (related) consider returning something more structured from WordSearcher::define()
+  to allow for the caller to add, say, colour to the output (e.g. definitions, words,
+  and undefined to have separate colours)
 
 * Add a generic pre-hook function (to be called from pre-hooks) which can
   initially just check for ':' perhaps? Wouldn't be called from free-format entry
   like the "comment" entry.
 
-* Immediate mode messageBox with a "press Enter" to dismiss
+* Immediate mode messageBox with a wait for keypress to dismiss
 
 * Colon entry in input box should cancel entry and initiate command mode
   - maybe not... what about free-form input?
@@ -42,7 +45,7 @@
   nicely on a terminal configured with a light background
   - or a "light mode" (or monochrome) switcher?
 
-* Think about adding a help screen
+* Think about adding a help screen (F1 or :h)
 
 * Considering the kludge required to hide tmux's immediate printing
   of pasted text, it might be an idea to rethink output. Instead of
