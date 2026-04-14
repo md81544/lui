@@ -58,6 +58,15 @@ enum class Mode {
     Overwrite,
 };
 
+struct MessageBoxOptions {
+    std::size_t row { 0 }; // Top row of box
+    std::size_t col { 0 }; // Left-most col of box
+    std::string message; // Use '\n' for multi-line
+    bool waitForKey;
+    std::string prompt; // Prompt to display on bottom row if waiting for key
+    OutputMode mode { OutputMode::immediate };
+};
+
 // Input keys allowed; these are for convenience. The caller is free
 // to add more complex rules via the hook callback. Note extended characters
 // are supported, if this is not required then add a check for the key value
@@ -152,11 +161,7 @@ public:
     void store();
     // Restore saved screen
     void restore();
-    void messageBox(
-        std::size_t row,
-        std::size_t col,
-        std::string_view msg,
-        OutputMode mode = OutputMode::render);
+    int messageBox(MessageBoxOptions& opts);
     // Passes to keyPress any shutdown function. Function should return true
     // if, say, SIGTERM is received.
     void setShutdownCheckFunction(std::function<bool()>);

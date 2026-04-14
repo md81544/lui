@@ -304,39 +304,67 @@ void Terminal::restore()
     m_savedRenderString = m_renderString;
 }
 
-void Terminal::messageBox(std::size_t row, std::size_t col, std::string_view msg, OutputMode mode)
+int Terminal::messageBox( MessageBoxOptions& opts)
 {
-    if (!m_isTty) {
-        return;
+    if (opts.waitForKey && opts.mode != OutputMode::immediate) {
+        opts.waitForKey = false;
+        mgo::Log::error("waitForKey == true doesn't make sense in non-immediate mode");
     }
-    std::size_t localRow { row };
+    if (!m_isTty) {
+        return keyPress::NO_KEY;
+    }
+    std::size_t localRow { opts.row };
     std::size_t maxLen = 0;
     std::vector<std::string> msgRows;
-    for (auto subrange : msg | std::views::split('\n')) {
+    for (auto subrange : opts.message | std::views::split('\n')) {
         msgRows.emplace_back(subrange.begin(), subrange.end());
         if (maxLen < subrange.size()) {
             maxLen = subrange.size();
         }
     }
-    goTo(localRow, col, mode);
-    output(utfOrAscii("┌─", "+-"), mode);
-    for (std::size_t n = 0; n < maxLen; ++n) {
-        output(utfOrAscii("─", "-"), mode);
+    if (maxLen < opts.prompt.size() + 2) {
+        maxLen = opts.prompt.size() + 2;
     }
-    output(utfOrAscii("─┐", "-+"), mode);
+    goTo(localRow, opts.col, opts.mode);
+    output(utfOrAscii("┌─", "+-"), opts.mode);
+    for (std::size_t n = 0; n < maxLen; ++n) {
+        output(utfOrAscii("─", "-"), opts.mode);
+    }
+    output(utfOrAscii("─┐", "-+"), opts.mode);
     for (const auto& l : msgRows) {
         ++localRow;
-        goTo(localRow, col, mode);
+        goTo(localRow, opts.col, opts.mode);
         std::string s
             = std::format("{} {:{}} {}", utfOrAscii("│", "|"), l, maxLen, utfOrAscii("│", "|"));
-        output(s, mode);
+        output(s, opts.mode);
     }
-    goTo(++localRow, col, mode);
-    output(utfOrAscii("└─", "+-"), mode);
+    if (opts.waitForKey) {
+        ++localRow;
+        goTo(localRow, opts.col, opts.mode);
+        saveCursorPosition(opts.mode);
+        std::string s
+            = std::format("{} {:{}} {}", utfOrAscii("│", "|"), "", maxLen, utfOrAscii("│", "|"));
+        output(s, opts.mode);
+    }
+    goTo(++localRow, opts.col, opts.mode);
+    output(utfOrAscii("└─", "+-"), opts.mode);
     for (std::size_t n = 0; n < maxLen; ++n) {
-        output(utfOrAscii("─", "-"), mode);
+        output(utfOrAscii("─", "-"), opts.mode);
     }
-    output(utfOrAscii("─┘", "-+"), mode);
+    output(utfOrAscii("─┘", "-+"), opts.mode);
+    if (opts.waitForKey) {
+        restoreCursorPosition(opts.mode);
+        cursorRight(2, opts.mode);
+        output(opts.prompt, opts.mode);
+        cursorRight(1, opts.mode);
+        setCursorType(CursorType::BlockBlinking, opts.mode);
+        cursorOn(opts.mode);
+        int key = getChar();
+        cursorOff(opts.mode);
+        return key;
+    } else {
+        return keyPress::NO_KEY;
+    }
 }
 
 void Terminal::setShutdownCheckFunction(std::function<bool()> fn)

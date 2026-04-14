@@ -570,12 +570,11 @@ void Ui::jumble()
 
 void Ui::lookup()
 {
-    m_term.messageBox(
-        8,
-        3,
-        "Searching...",
-        terminal::OutputMode::immediate); // draws immediately, disappears on next
-                                          // m_term.render()
+    terminal::MessageBoxOptions opts;
+    opts.row = 8;
+    opts.col = 3;
+    opts.message = "Searching...";
+    m_term.messageBox(opts);
     clearResults();
     std::string lowerCase { m_clue.foundString };
     std::transform(
@@ -765,16 +764,16 @@ void Ui::filterResults()
     if (m_results.vec.empty() || m_results.type != ResultsType::Words) {
         return;
     }
-    m_term.messageBox(
-        m_resultsTopRow + 2,
-        2,
-        "Enter filter string.\nWill drop non-matches.",
-        terminal::OutputMode::immediate);
-    terminal::InputOptions opts;
-    opts.row = m_termSize.rows - 1;
-    opts.col = 1;
-    opts.keysAllowed = terminal::KeysAllowed::All;
-    std::string filter = m_term.input(opts);
+    terminal::MessageBoxOptions msgboxOpts;
+    msgboxOpts.row = m_resultsTopRow + 2;
+    msgboxOpts.col = 2;
+    msgboxOpts.message = "Enter filter string.\nWill drop non-matches.";
+    m_term.messageBox(msgboxOpts);
+    terminal::InputOptions inputOpts;
+    inputOpts.row = m_termSize.rows - 1;
+    inputOpts.col = 1;
+    inputOpts.keysAllowed = terminal::KeysAllowed::All;
+    std::string filter = m_term.input(inputOpts);
     std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
     std::vector<std::string> newResults;
     std::string regexPrefix;

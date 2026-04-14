@@ -34,8 +34,6 @@
   initially just check for ':' perhaps? Wouldn't be called from free-format entry
   like the "comment" entry.
 
-* Immediate mode messageBox with a wait for keypress to dismiss
-
 * Colon entry in input box should cancel entry and initiate command mode
   - maybe not... what about free-form input?
   - although could work as an option flag, usable in non-comment input
