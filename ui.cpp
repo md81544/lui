@@ -493,6 +493,8 @@ void Ui::lookup()
         lowerCase.begin(),
         [](unsigned char c) { return ascii::tolower(c); });
     std::ranges::replace(lowerCase, '/', ' ');
+    // Don't allow dots to match on spaces:
+    lowerCase = std::regex_replace(lowerCase, std::regex("\\."), "[a-z]");
     auto results = m_ws->regexSearch(lowerCase);
     if (!m_clue.searchString.empty()) {
         std::string sortedSearchString { m_clue.searchString };
