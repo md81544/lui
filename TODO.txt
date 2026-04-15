@@ -1,3 +1,7 @@
+* Entering a found string of, say, ..../.... (4/4)
+  should not match against "a la mode" in lookup (i.e.
+  dots shouldn't match against spaces)
+  
 * Add Reverse video: on = "\e[7m", off = "\e[27m"
 
 * Think about some form of selection box for loading
