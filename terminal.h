@@ -151,6 +151,8 @@ public:
     void clearToEndOfLine(OutputMode mode = OutputMode::render);
     void clearToStartOfLine(OutputMode mode = OutputMode::render);
     void clearLine(OutputMode mode = OutputMode::render);
+    /// NOTE! save and restore cursor position on many terminals will
+    // also save/restore style (e.g. underline or bold) 
     void saveCursorPosition(OutputMode mode = OutputMode::render);
     void restoreCursorPosition(OutputMode mode = OutputMode::render);
     void cursorOn(OutputMode mode = OutputMode::render);
@@ -184,6 +186,15 @@ public:
     // to see each individual "key press" from the pasted string.
     std::string input(InputOptions& opts);
 
+    // Get ANSI sequences as strings for inclusion elsewhere, for
+    // example if the caller wants to embed in a string.
+    std::string getAnsiSequenceBold(bool on);
+    std::string getAnsiSequenceItalic(bool on);
+    std::string getAnsiSequenceUnderline(bool);
+    std::string getAnsiSequenceNoStyle();
+    std::string getAnsiSequenceFgColour(Colour colour);
+    std::string getAnsiSequenceBgColour(Colour colour);
+
 private:
     // if UTF is supported, return utfVersion, otherwise return asciiVersion
     std::string_view utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion);
@@ -197,6 +208,7 @@ private:
     bool m_utf8Supported { false };
     Colour m_currentFgColour { Colour::Default };
     Colour m_currentBgColour { Colour::Default };
+    
 };
 
 } // namespace terminal

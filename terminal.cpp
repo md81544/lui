@@ -157,33 +157,21 @@ void Terminal::cursorLeft(uint8_t n, OutputMode mode)
 void Terminal::styleBold(bool on, OutputMode mode)
 {
     if (m_isTty) {
-        if (on) {
-            output("\033[1m", mode);
-        } else {
-            output("\033[22m", mode);
-        }
+        output(getAnsiSequenceBold(on), mode);
     }
 }
 
 void Terminal::styleItalic(bool on, OutputMode mode)
 {
     if (m_isTty) {
-        if (on) {
-            output("\033[3m", mode);
-        } else {
-            output("\033[23m", mode);
-        }
+        output(getAnsiSequenceItalic(on), mode);
     }
 }
 
 void Terminal::styleUnderline(bool on, OutputMode mode)
 {
     if (m_isTty) {
-        if (on) {
-            output("\033[4m", mode);
-        } else {
-            output("\033[24m", mode);
-        }
+        output(getAnsiSequenceUnderline(on), mode);
     }
 }
 
@@ -352,6 +340,7 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     if (!m_isTty) {
         return keyPress::NO_KEY;
     }
+    styleBold(true, opts.mode);
     std::size_t localRow { opts.row };
     std::size_t maxLen = 0;
     std::vector<std::string> msgRows;
@@ -380,7 +369,7 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     if (opts.waitForKey) {
         ++localRow;
         goTo(localRow, opts.col, opts.mode);
-        saveCursorPosition(opts.mode);
+        saveCursorPosition(opts.mode); // NOTE! Also saves style on many terminals
         std::string s
             = std::format("{} {:{}} {}", utfOrAscii("│", "|"), "", maxLen, utfOrAscii("│", "|"));
         output(s, opts.mode);
@@ -391,8 +380,10 @@ int Terminal::messageBox(MessageBoxOptions& opts)
         output(utfOrAscii("─", "-"), opts.mode);
     }
     output(utfOrAscii("─┘", "-+"), opts.mode);
+    styleBold(false, opts.mode);
     if (opts.waitForKey) {
         restoreCursorPosition(opts.mode);
+        styleBold(false, opts.mode); // required again because restore cursor restores style as well
         cursorRight(2, opts.mode);
         output(opts.prompt, opts.mode);
         cursorRight(1, opts.mode);
@@ -624,6 +615,48 @@ std::string Terminal::input(InputOptions& opts)
     }
     cursorOff(imm);
     return opts.currentValue;
+}
+
+std::string Terminal::getAnsiSequenceBold(bool on)
+{
+    if (on) {
+        return "\033[1m";
+    } else {
+        return "\033[22m";
+    }
+}
+
+std::string Terminal::getAnsiSequenceItalic(bool on)
+{
+    if (on) {
+        return "\033[3m";
+    } else {
+        return "\033[23m";
+    }
+}
+
+std::string Terminal::getAnsiSequenceUnderline(bool on)
+{
+    if (on) {
+        return "\033[4m";
+    } else {
+        return "\033[24m";
+    }
+}
+
+std::string Terminal::getAnsiSequenceNoStyle()
+{
+    return "\033[0m";
+}
+
+std::string Terminal::getAnsiSequenceFgColour(Colour colour)
+{
+    return colourToAnsiFg(colour);
+}
+
+std::string Terminal::getAnsiSequenceBgColour(Colour colour)
+{
+    return colourToAnsiBg(colour);
 }
 
 // Private member functions:
