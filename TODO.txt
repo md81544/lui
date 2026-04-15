@@ -1,9 +1,14 @@
 * Bug in the "remaining letters" in constrained "found" input - the letter
   doesn't get put back into remaining letters if deleted or overwritten
 
+* Filter doesn't work with just dots, need something like lookup such that
+  (for example) ....../..... should match "basset hound".
+  Actually doesn't seem to work at all now... e.g. entering "dog" when 
+  trying to filter "dog" thesaurus lists yields no results.
+
 * Plain tab on its own should start search string entry
 
-* Add Reverse video: on = "\e[7m", off = "\e[27m"
+* Add reverse video in Terminal: on = "\e[7m", off = "\e[27m"
 
 * Think about some form of selection box for loading
 
