@@ -1,10 +1,6 @@
-* Think about some form of selection box for loading
+* Add Reverse video: on = "\e[7m", off = "\e[27m"
 
-* The fact that save/restore cursor ANSI sequences also saves/restores style
-  is a surprising side-effect. Need a work-around for this. Might be difficult
-  as we may not know we are in a "style" (e.g. bold) because Terminal's callers
-  might have triggered it with an embedded sequence. Maybe just reset style in
-  cursor restore? Might be less surprising.
+* Think about some form of selection box for loading
 
 * multiple colour support in results pane?
   - may be just as simple as including colour codes?

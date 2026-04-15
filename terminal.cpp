@@ -249,6 +249,7 @@ void Terminal::restoreCursorPosition(OutputMode mode)
 {
     if (m_isTty) {
         output("\033[u", mode);
+        output(getAnsiSequenceNoStyle(), mode); // see note in header
     }
 }
 
@@ -383,7 +384,6 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     styleBold(false, opts.mode);
     if (opts.waitForKey) {
         restoreCursorPosition(opts.mode);
-        styleBold(false, opts.mode); // required again because restore cursor restores style as well
         cursorRight(2, opts.mode);
         output(opts.prompt, opts.mode);
         cursorRight(1, opts.mode);

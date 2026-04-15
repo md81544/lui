@@ -151,9 +151,12 @@ public:
     void clearToEndOfLine(OutputMode mode = OutputMode::render);
     void clearToStartOfLine(OutputMode mode = OutputMode::render);
     void clearLine(OutputMode mode = OutputMode::render);
-    /// NOTE! save and restore cursor position on many terminals will
-    // also save/restore style (e.g. underline or bold) 
     void saveCursorPosition(OutputMode mode = OutputMode::render);
+    /// Note! restoreCursorPosition will also reset style (e.g. bold).
+    /// This is because on many terminals, saving the cursor position
+    /// also saves the style, which is restored on a cursor position restore.
+    /// Which is surprising unless you are aware of it. So the reset
+    /// seems the lesser of two evils.
     void restoreCursorPosition(OutputMode mode = OutputMode::render);
     void cursorOn(OutputMode mode = OutputMode::render);
     void cursorOff(OutputMode mode = OutputMode::render);
