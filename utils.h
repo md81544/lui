@@ -3,6 +3,7 @@
 #include <chrono>
 #include <ctime>
 #include <ranges>
+#include <regex>
 #include <string>
 #include <string_view>
 
@@ -25,6 +26,7 @@ inline std::string currentTimeString()
     return std::format("{:02}:{:02}:{:02}.{:03}", tm.tm_hour, tm.tm_min, tm.tm_sec, ms.count());
 }
 
+/// Return every nth character from a string
 inline std::string everyNth(std::string_view s, std::size_t n)
 {
     // Could use std::views::stride() here but as of writing my
@@ -33,6 +35,13 @@ inline std::string everyNth(std::string_view s, std::size_t n)
         | std::views::filter([n](std::size_t i) { return i % n == 0; });
     auto chars = indices | std::views::transform([&s](std::size_t i) { return s[i]; });
     return std::string(chars.begin(), chars.end());
+}
+
+/// Remove any ANSI Escape sequences from a string
+inline std::string stripAnsi(const std::string& input)
+{
+    static const std::regex rgx(R"(\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]))");
+    return std::regex_replace(input, rgx, "");
 }
 
 } // namespace utils
