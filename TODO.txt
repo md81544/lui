@@ -1,3 +1,8 @@
+* Bug in the "remaining letters" in constrained "found" input - the letter
+  doesn't get put back into remaining letters if deleted or overwritten
+
+* Plain tab on its own should start search string entry
+
 * Add Reverse video: on = "\e[7m", off = "\e[27m"
 
 * Think about some form of selection box for loading
