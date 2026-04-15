@@ -1,5 +1,6 @@
 #include "terminal.h"
 #include "ascii.h" // for locale-independent functions
+#include "keypress.h"
 #include "log.h"
 #include <cassert>
 #include <cstddef>
@@ -66,6 +67,8 @@ Terminal::~Terminal()
         setCursorType(CursorType::Default, OutputMode::immediate); // reset any cursor change
         std::cout << "\033[?1049l" << std::flush; // switch back to normal screen
         std::cout << "\033[?1000l\033[?1006l"; // exit SGR mode
+        // Drain input queue
+        keyPress::drainInputQueue();
     }
 }
 

@@ -173,6 +173,12 @@ constexpr int SHIFT_TAB = 278;
 // should not be a problem.
 constexpr int MOUSE = 1024;
 
+inline void drainInputQueue() {
+    // Discard all data received but not yet read,
+    // call this in an RAII terminal quit routine ideally
+    tcflush(STDIN_FILENO, TCIFLUSH);
+}
+
 // If called with blocking = false then returns
 // nullopt if no keypress is in the input queue
 inline std::optional<int> getKeyPress(bool blocking = true)
