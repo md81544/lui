@@ -1076,6 +1076,10 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             // clear eveything down
             return Command::Restart;
         case 'q':
+            if(extendedFunction) {
+                return Command::Quit;
+            }
+            break;
         case keyPress::CTRL_C:
         case keyPress::CTRL_Q:
             return Command::Quit;
