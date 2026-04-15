@@ -154,6 +154,46 @@ void Terminal::cursorLeft(uint8_t n, OutputMode mode)
     }
 }
 
+void Terminal::styleBold(bool on, OutputMode mode)
+{
+    if (m_isTty) {
+        if (on) {
+            output("\033[1m", mode);
+        } else {
+            output("\033[22m", mode);
+        }
+    }
+}
+
+void Terminal::styleItalic(bool on, OutputMode mode)
+{
+    if (m_isTty) {
+        if (on) {
+            output("\033[3m", mode);
+        } else {
+            output("\033[23m", mode);
+        }
+    }
+}
+
+void Terminal::styleUnderline(bool on, OutputMode mode)
+{
+    if (m_isTty) {
+        if (on) {
+            output("\033[4m", mode);
+        } else {
+            output("\033[24m", mode);
+        }
+    }
+}
+
+void Terminal::noStyle(OutputMode mode)
+{
+    if (m_isTty) {
+        output("\033[0m", mode);
+    }
+}
+
 void Terminal::setCursorType(CursorType type, OutputMode mode)
 {
     if (!m_isTty) {

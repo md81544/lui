@@ -143,6 +143,10 @@ public:
     void cursorDown(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorRight(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorLeft(uint8_t n, OutputMode mode = OutputMode::render);
+    void styleBold(bool on, OutputMode mode = OutputMode::render);
+    void styleItalic(bool on, OutputMode mode = OutputMode::render);
+    void styleUnderline(bool on, OutputMode mode = OutputMode::render);
+    void noStyle(OutputMode mode = OutputMode::render); // turn off bold, italic, and underline
     void setCursorType(CursorType type, OutputMode = OutputMode::render);
     void clearToEndOfLine(OutputMode mode = OutputMode::render);
     void clearToStartOfLine(OutputMode mode = OutputMode::render);
