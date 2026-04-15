@@ -11,9 +11,6 @@
 
 * Remove clue from saved? Maybe some form of "done"?
 
-* Allow number entry in unconstrained "found" input. E.g. entering 4 would insert "...."
-  - How handle requirement of more than 9?
-
 * Undo filter? Although this can be done by just re-querying
 
 * Maybe improve definitions display? Currently just dumps a vector.

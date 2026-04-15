@@ -927,6 +927,11 @@ void Ui::enterFoundStringUnconstrained()
         if (key == '/' || key == '.' || ascii::isalpha(key)) {
             return ascii::toupper(key);
         }
+        if (ascii::isdigit(key)) {
+            opts.currentValue.insert(opts.cursorPos, std::string(key - 48, '.'));
+            opts.cursorPos += key - 48;
+            return keyPress::NO_KEY;
+        }
         // Because we've specified KeysAllowed::All we need to let these special keys
         // through but not others.
         // TODO: Desperately need a bitset on KeysAllowed
