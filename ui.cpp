@@ -301,15 +301,9 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ", mode);
     if (!m_clue.searchString.empty()) {
-        m_term.printAt(
-            1,
-            10,
-            m_clue.searchString,
-            mode);
+        m_term.printAt(1, 10, m_clue.searchString, mode);
         m_term.styleItalic(true, mode);
-        m_term.print(
-            std::format("  ({} letters)", m_clue.searchString.size()),
-            mode);
+        m_term.print(std::format("  ({} letters)", m_clue.searchString.size()), mode);
         m_term.styleItalic(false, mode);
     }
     m_term.clearToEndOfLine(mode);
