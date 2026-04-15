@@ -74,7 +74,6 @@ struct TerminalGuard {
     ~TerminalGuard()
     {
         tcsetattr(STDIN_FILENO, TCSANOW, &saved_attrs);
-        tcflush(STDIN_FILENO, TCIFLUSH);  // discard any unread input
     }
 };
 
@@ -173,6 +172,14 @@ constexpr int SHIFT_TAB = 278;
 // getMouseEvent(), but as key handling is sequential this
 // should not be a problem.
 constexpr int MOUSE = 1024;
+
+inline void drainInputQueue()
+{
+    // Discard all data received but not yet read,
+    // call this in an RAII terminal quit routine ideally
+    // For some reason this doesn't work reliably in ~TerminalGuard
+    tcflush(STDIN_FILENO, TCIFLUSH);
+}
 
 // If called with blocking = false then returns
 // nullopt if no keypress is in the input queue
