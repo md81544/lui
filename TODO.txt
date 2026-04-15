@@ -11,10 +11,6 @@
 
 * Remove clue from saved? Maybe some form of "done"?
 
-* Need a "remove" option. Maybe results pane displays remaining letters?
-  - OR, constrained "found" entry could have a dynamic "remaining letters"
-    string displayed after it.
-
 * Allow number entry in unconstrained "found" input. E.g. entering 4 would insert "...."
   - How handle requirement of more than 9?
 

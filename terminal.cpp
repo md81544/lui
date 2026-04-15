@@ -443,11 +443,17 @@ std::string Terminal::input(InputOptions& opts)
         }
         setFgColour(oldFg, imm);
         setBgColour(oldBg, imm);
-        if (opts.reportSize && !opts.currentValue.empty()) {
+        if (opts.reportStatus == InputReportStatus::SizeInLetters && !opts.currentValue.empty()) {
             styleItalic(true, imm);
             std::cout << std::format("  ({} letters)", opts.currentValue.size());
             styleItalic(false, imm);
         }
+        if (opts.reportStatus == InputReportStatus::Status) {
+            styleItalic(true, imm);
+            std::cout << std::format("  {}", opts.statusData);
+            styleItalic(false, imm);
+        }
+
         clearToEndOfLine(imm); // See note in header; this works around tmux behaviour;
                                // Downside is anything after the input will be cleared.
         // Position cursor to insertion/overwrite point

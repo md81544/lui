@@ -791,6 +791,7 @@ void Ui::enterFoundStringConstrained()
     // Because we have a special use case here we allow all keys
     // and handle them specifically in the callback hook
     opts.keysAllowed = terminal::KeysAllowed::All;
+    opts.reportStatus = terminal::InputReportStatus::Status;
     opts.preInsertHook = [&](int key) -> int {
         if (key == keyPress::SPACE) {
             return keyPress::RIGHT;
@@ -856,7 +857,24 @@ void Ui::enterFoundStringConstrained()
                     m_term.bell(terminal::OutputMode::immediate);
                     return keyPress::NO_KEY;
                 } else {
-                    return ascii::toupper(key);
+                    int k = ascii::toupper(key);
+                    std::string lettersRemaining = m_clue.searchString;
+                    for (const auto& c : opts.currentValue) {
+                        auto it = lettersRemaining.find(c);
+                        if (it != std::string::npos) {
+                            lettersRemaining.erase(it, 1);
+                        }
+                    }
+                    auto it = lettersRemaining.find(k);
+                    if (it != std::string::npos) {
+                        lettersRemaining.erase(it, 1);
+                    }
+                    if (lettersRemaining.empty()) {
+                        opts.statusData = "";
+                    } else {
+                        opts.statusData = "Letters remaining: " + lettersRemaining + " ";
+                    }
+                    return k;
                 }
             } else {
                 return ascii::toupper(key);
@@ -962,7 +980,7 @@ void Ui::enterSearchString()
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
-    opts.reportSize = true;
+    opts.reportStatus = terminal::InputReportStatus::SizeInLetters;
     opts.preInsertHook = [&](int key) -> int {
         // Disallow spaces
         if (key == ' ') {

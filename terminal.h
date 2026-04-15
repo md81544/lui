@@ -60,6 +60,12 @@ enum class Mode {
     Overwrite,
 };
 
+enum class InputReportStatus {
+    None,
+    SizeInLetters,
+    Status,
+};
+
 struct MessageBoxOptions {
     std::size_t row { 0 }; // Top row of box
     std::size_t col { 0 }; // Left-most col of box
@@ -110,13 +116,15 @@ struct InputOptions {
     // Note post hook returns a bool. A false return indicates the
     // caller wants to cancel the insertion.
     std::function<bool()> postInsertHook { []() -> bool { return true; } };
-    // Appends number of characters entered after the value if true:
-    bool reportSize { false };
+    // Appends a status string after the input:
+    InputReportStatus reportStatus { InputReportStatus::None };
+    std::string statusData; // The caller can manipulate this in hooks and it will
+                            // be displayed after the input if reportStatus == Status
     // Tab / shift tab also acts as an "enter" key. The user can
     // check this value after input to determine whether to move
     // to a different field (e.g. if EntryKey == SHIFT_TAB, immediately
     // start input in a previous field). Up to the caller.
-    int EntryKey{ keyPress::ENTER };
+    int EntryKey { keyPress::ENTER };
 };
 
 class Terminal final {
@@ -211,7 +219,6 @@ private:
     bool m_utf8Supported { false };
     Colour m_currentFgColour { Colour::Default };
     Colour m_currentBgColour { Colour::Default };
-    
 };
 
 } // namespace terminal
