@@ -304,8 +304,13 @@ void Ui::displayHeader(terminal::OutputMode mode)
         m_term.printAt(
             1,
             10,
-            std::format("{}  ({} letters)", m_clue.searchString, m_clue.searchString.size()),
+            m_clue.searchString,
             mode);
+        m_term.styleItalic(true, mode);
+        m_term.print(
+            std::format("  ({} letters)", m_clue.searchString.size()),
+            mode);
+        m_term.styleItalic(false, mode);
     }
     m_term.clearToEndOfLine(mode);
     m_term.goTo(2, 1, mode);
