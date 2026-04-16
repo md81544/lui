@@ -425,10 +425,14 @@ std::string Terminal::input(InputOptions& opts)
     Colour oldBg = getBgColour();
     cursorOn(imm);
     bool done = false;
-    if (opts.mode == Mode::Insert) {
-        setCursorType(CursorType::VLineBlinking, imm);
+    if (opts.overrideCursorType != CursorType::Default) {
+        setCursorType(opts.overrideCursorType, imm);
     } else {
-        setCursorType(CursorType::BlockBlinking, imm);
+        if (opts.mode == Mode::Insert) {
+            setCursorType(CursorType::VLineBlinking, imm);
+        } else {
+            setCursorType(CursorType::BlockBlinking, imm);
+        }
     }
     while (!done) {
         // Print the current value

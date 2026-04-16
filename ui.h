@@ -68,6 +68,7 @@ private:
     enum class ResultsType {
         FreeForm,
         Words,
+        Load,
     };
 
     struct Results {

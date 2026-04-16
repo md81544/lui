@@ -686,8 +686,13 @@ void Ui::filterResults()
     inputOpts.row = m_termSize.rows - 1;
     inputOpts.col = 1;
     inputOpts.keysAllowed = terminal::KeysAllowed::All;
+    inputOpts.overrideCursorType = terminal::CursorType::BlockBlinking;
     std::string filter = m_term.input(inputOpts);
     std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
+    // dots shouldn't match spaces
+    filter = std::regex_replace(filter, std::regex("\\."), "[a-z]");
+    // separators -> spaces
+    filter = std::regex_replace(filter, std::regex("/"), " ");
     std::vector<std::string> newResults;
     std::string regexPrefix;
     if (!filter.contains("^")) {
@@ -695,7 +700,7 @@ void Ui::filterResults()
     }
     std::string regexSuffix;
     if (!filter.contains("$")) {
-        regexSuffix = "^.*$";
+        regexSuffix = ".*$";
     }
     filter = std::format("{}{}{}", regexPrefix, filter, regexSuffix);
     log(std::format("Filter regex: '{}'", filter));

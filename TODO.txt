@@ -1,14 +1,8 @@
-* Multiple-character extended commands, e.g. :r! to restart without
+* (maybe) Multiple-character extended commands, e.g. :r! to restart without
   "are you sure?" message if m_clue is dirty
 
 * Bug in the "remaining letters" in constrained "found" input - the letter
   doesn't get put back into remaining letters if deleted or overwritten
-
-* Filter doesn't work with just dots, need something like lookup such that
-  (for example) ....../..... should match "basset hound".
-  Actually doesn't seem to work at all now... e.g. entering "dog" when 
-  trying to filter "dog" thesaurus lists yields no results.
-  - Filter input should use block cursor for visibility
 
 * Plain tab on its own should start search string entry
 

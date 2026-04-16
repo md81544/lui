@@ -70,7 +70,7 @@ struct MessageBoxOptions {
     std::size_t row { 0 }; // Top row of box
     std::size_t col { 0 }; // Left-most col of box
     std::string message; // Use '\n' for multi-line
-    bool waitForKey;
+    bool waitForKey { false };
     std::string prompt; // Prompt to display on bottom row if waiting for key
     OutputMode mode { OutputMode::immediate };
 };
@@ -98,6 +98,7 @@ struct InputOptions {
     std::size_t cursorPos { 0 };
     std::string defaultValue {};
     Mode mode { Mode::Insert };
+    CursorType overrideCursorType { CursorType::Default };
     Colour fgColour { Colour::Default };
     Colour bgColour { Colour::Default };
     // Restriction is for convenience, the caller is free to use
