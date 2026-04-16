@@ -400,7 +400,7 @@ void Ui::restart()
         opts.row = m_resultsTopRow + 2;
         opts.col = 2;
         opts.message = "Clue has changed!\n";
-        opts.prompt = "Sure? (y/n)";
+        opts.prompt = "Continue? (Y/N)";
         opts.waitForKey = true;
         int key = m_term.messageBox(opts);
         if (key != 'y' && key != 'Y') {
@@ -800,94 +800,125 @@ void Ui::enterFoundStringConstrained()
     opts.keysAllowed = terminal::KeysAllowed::All;
     opts.reportStatus = terminal::InputReportStatus::Status;
     opts.preInsertHook = [&](int key) -> int {
-        if (key == keyPress::SPACE) {
-            return keyPress::RIGHT;
-        }
-        if (key == keyPress::CTRL_U) {
-            opts.currentValue = std::string(m_clue.searchString.size(), '.');
-            opts.maxLen = opts.currentValue.size();
-            opts.cursorPos = 0;
-            return keyPress::NO_KEY;
-        }
-        if (key < 0) {
-            // disallow extended characters, e.g. 'é'
-            return keyPress::NO_KEY;
-        }
-        if (key == keyPress::BACKSPACE && opts.cursorPos > 0
-            && opts.currentValue.at(opts.cursorPos - 1) == '/') {
-            --opts.maxLen;
-            return key;
-        }
-        if (key == keyPress::BACKSPACE && opts.cursorPos > 0) {
-            --opts.cursorPos;
-            opts.currentValue[opts.cursorPos] = '.';
-            return keyPress::NO_KEY;
-        }
-        if (key == keyPress::DELETE && opts.currentValue[opts.cursorPos] == '/') {
-            opts.currentValue.erase(opts.cursorPos, 1);
-            --opts.maxLen;
-            return keyPress::NO_KEY;
-        }
-        if (key == keyPress::DELETE) {
-            opts.currentValue[opts.cursorPos] = '.';
-            return keyPress::NO_KEY;
-        }
-        if (key == '/') {
-            // Disallow entry of separator at beginning or end
-            if (opts.cursorPos == 0 || opts.cursorPos > opts.currentValue.size() - 1) {
-                return keyPress::NO_KEY;
-            }
-            // Disallow entry of separator immediately next to an existing separator
-            if (opts.currentValue.at(opts.cursorPos) == '/'
-                || opts.currentValue.at(opts.cursorPos - 1) == '/') {
-                return keyPress::NO_KEY;
-            }
-            ++opts.maxLen;
-            return key;
-        }
-        if (ascii::isprint(key)) {
-            // Disallow any character not in search string IF the search string has been set
-            if (!m_clue.searchString.empty()) {
-                if (ascii::toupper(key) == opts.currentValue.at(opts.cursorPos)) {
-                    // we're just overwriting an existing "found" character
-                    return ascii::toupper(key);
+        int rc = key;
+        std::string lettersRemaining = m_clue.searchString;
+        while (true) { // Note this breaks after the first loop
+            // For report status:
+            for (const auto& c : opts.currentValue) {
+                auto it = lettersRemaining.find(c);
+                if (it != std::string::npos) {
+                    lettersRemaining.erase(it, 1);
                 }
-                auto c1 = std::count(
-                    m_clue.searchString.begin(), m_clue.searchString.end(), ascii::toupper(key));
-                auto c2 = std::count(
-                    opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
-                if (c1 == 0 || c2 == c1) {
-                    m_term.bell(terminal::OutputMode::immediate);
-                    return keyPress::NO_KEY;
+            }
+
+            if (key == keyPress::SPACE) {
+                rc = keyPress::RIGHT;
+                break;
+            }
+            if (key == keyPress::CTRL_U) {
+                opts.currentValue = std::string(m_clue.searchString.size(), '.');
+                opts.maxLen = opts.currentValue.size();
+                opts.cursorPos = 0;
+                rc = keyPress::NO_KEY;
+                break;
+            }
+            if (key < 0) {
+                // disallow extended characters, e.g. 'é'
+                rc = keyPress::NO_KEY;
+                break;
+            }
+            if (key == keyPress::BACKSPACE && opts.cursorPos > 0
+                && opts.currentValue.at(opts.cursorPos - 1) == '/') {
+                --opts.maxLen;
+                rc = key;
+                break;
+            }
+            if (key == keyPress::BACKSPACE && opts.cursorPos > 0) {
+                --opts.cursorPos;
+                if (ascii::isalpha(opts.currentValue.at(opts.cursorPos))) {
+                    lettersRemaining.push_back(opts.currentValue[opts.cursorPos]);
                 }
-                if (!ascii::isalpha(key)) {
-                    m_term.bell(terminal::OutputMode::immediate);
-                    return keyPress::NO_KEY;
-                } else {
-                    int k = ascii::toupper(key);
-                    std::string lettersRemaining = m_clue.searchString;
-                    for (const auto& c : opts.currentValue) {
-                        auto it = lettersRemaining.find(c);
+                opts.currentValue[opts.cursorPos] = '.';
+                rc = keyPress::NO_KEY;
+                break;
+            }
+            if (key == keyPress::DELETE && opts.currentValue[opts.cursorPos] == '/') {
+                opts.currentValue.erase(opts.cursorPos, 1);
+                --opts.maxLen;
+                rc = keyPress::NO_KEY;
+                break;
+            }
+            if (key == keyPress::DELETE) {
+                if (ascii::isalpha(opts.currentValue.at(opts.cursorPos))) {
+                    lettersRemaining.push_back(opts.currentValue[opts.cursorPos]);
+                }
+                opts.currentValue[opts.cursorPos] = '.';
+                rc = keyPress::NO_KEY;
+                break;
+            }
+            if (key == '/') {
+                // Disallow entry of separator at beginning or end
+                if (opts.cursorPos == 0 || opts.cursorPos > opts.currentValue.size() - 1) {
+                    rc = keyPress::NO_KEY;
+                }
+                // Disallow entry of separator immediately next to an existing separator
+                if (opts.currentValue.at(opts.cursorPos) == '/'
+                    || opts.currentValue.at(opts.cursorPos - 1) == '/') {
+                    rc = keyPress::NO_KEY;
+                }
+                ++opts.maxLen;
+                rc = key;
+                break;
+            }
+            if (ascii::isprint(key)) {
+                // Disallow any character not in search string IF the search string has been set
+                if (!m_clue.searchString.empty()) {
+                    if (ascii::toupper(key) == opts.currentValue.at(opts.cursorPos)) {
+                        // we're just overwriting an existing "found" character
+                        rc = ascii::toupper(key);
+                        break;
+                    }
+                    auto c1 = std::count(
+                        m_clue.searchString.begin(),
+                        m_clue.searchString.end(),
+                        ascii::toupper(key));
+                    auto c2 = std::count(
+                        opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
+                    if (c1 == 0 || c2 == c1) {
+                        m_term.bell(terminal::OutputMode::immediate);
+                        rc = keyPress::NO_KEY;
+                        break;
+                    }
+                    if (!ascii::isalpha(key)) {
+                        m_term.bell(terminal::OutputMode::immediate);
+                        rc = keyPress::NO_KEY;
+                        break;
+                    } else {
+                        if (ascii::isalpha(opts.currentValue[opts.cursorPos])) {
+                            lettersRemaining.push_back(opts.currentValue[opts.cursorPos]);
+                        }
+                        int k = ascii::toupper(key);
+                        auto it = lettersRemaining.find(k);
                         if (it != std::string::npos) {
                             lettersRemaining.erase(it, 1);
                         }
+                        rc = k;
+                        break;
                     }
-                    auto it = lettersRemaining.find(k);
-                    if (it != std::string::npos) {
-                        lettersRemaining.erase(it, 1);
-                    }
-                    if (lettersRemaining.empty()) {
-                        opts.statusData = "";
-                    } else {
-                        opts.statusData = "Letters remaining: " + lettersRemaining + " ";
-                    }
-                    return k;
+                } else {
+                    rc = ascii::toupper(key);
+                    break;
                 }
-            } else {
-                return ascii::toupper(key);
             }
+            break;
         }
-        return key;
+        if (lettersRemaining.empty()) {
+            opts.statusData = "";
+        } else {
+            std::sort(lettersRemaining.begin(), lettersRemaining.end());
+            opts.statusData = "Letters remaining: " + lettersRemaining + " ";
+        }
+        return rc;
     };
     opts.postInsertHook = [&]() -> bool {
         // Always pad out with dots if smaller than default size
@@ -1081,7 +1112,7 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             // clear eveything down
             return Command::Restart;
         case 'q':
-            if(extendedFunction) {
+            if (extendedFunction) {
                 return Command::Quit;
             }
             break;

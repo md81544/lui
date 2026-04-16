@@ -1,8 +1,7 @@
+* Scratchpad command - just allows free entry?
+
 * (maybe) Multiple-character extended commands, e.g. :r! to restart without
   "are you sure?" message if m_clue is dirty
-
-* Bug in the "remaining letters" in constrained "found" input - the letter
-  doesn't get put back into remaining letters if deleted or overwritten
 
 * Plain tab on its own should start search string entry
 
