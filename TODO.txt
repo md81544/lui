@@ -1,3 +1,19 @@
+* "More" menu? With numbered commands? Could just display a message box
+  with numbered items, e.g. "1: Debug log/2: Add phrase" etc
+  - "Add phrase" would need to check whether the current directory is
+    git-controlled
+    
+* Pressing '.' in constrained found input should overwrite
+
+* Space in unconstrained found input should enter '.'
+
+* Auto disappearing messageBox
+
+* Clickable options on messageBox
+
+* Add regex check to ensure clue number is in the correct format
+  - regex should be "^\d{1,3}[AD]$" (and enforce capitals in input)
+
 * Scratchpad command - just allows free entry?
 
 * (maybe) Multiple-character extended commands, e.g. :r! to restart without

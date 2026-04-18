@@ -1183,7 +1183,9 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
 
 Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
 {
-    log(std::format("Mouse event: Button: {}, Row: {}, Col: {}", button, row, col));
+    if (button != 64 && button != 65) { // don't log scroll events, too many
+        log(std::format("Mouse event: Button: {}, Row: {}, Col: {}", button, row, col));
+    }
     switch (row) {
         case 1:
             return Command::EnterSearchString;
