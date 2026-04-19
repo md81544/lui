@@ -173,6 +173,10 @@ constexpr int SHIFT_TAB = 278;
 // should not be a problem.
 constexpr int MOUSE = 1024;
 
+// Focus reporting
+constexpr int FOCUS_IN = 1025;
+constexpr int FOCUS_OUT = 1026;
+
 inline void drainInputQueue()
 {
     // Discard all data received but not yet read,
@@ -248,7 +252,11 @@ inline std::optional<int> getKeyPress(bool blocking = true)
                     return PGUP;
                 } else if (seq[0] == '6' && seq[1] == '~') {
                     return PGDN;
-                } // elsif (seq[0] == '<'
+                } else if (seq[0] == 'I') {
+                    return FOCUS_IN;
+                } else if (seq[0] == 'O') {
+                    return FOCUS_OUT;
+                }
 
                 // F1–F4 (xterm style via CSI O...)  handled below
                 // F1–F4 (vt100 CSI [ A–D — rare)

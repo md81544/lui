@@ -1175,6 +1175,12 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
                 keyPress::lastMouseClick.button,
                 keyPress::lastMouseClick.row,
                 keyPress::lastMouseClick.col);
+        case keyPress::FOCUS_IN:
+            log("Gained focus");
+            return Command::NoOp;
+        case keyPress::FOCUS_OUT:
+            log("Lost focus");
+            return Command::NoOp;
         default:
             m_term.bell();
     }

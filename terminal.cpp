@@ -52,6 +52,7 @@ Terminal::Terminal()
     m_renderString.clear();
     if (m_isTty) {
         std::cout << "\033[?1000h\033[?1006h"; // SGR mode (if supported) for mouse reporting
+        std::cout << "\033[?1004h"; // enable focus reporting
         std::cout << "\033[?1049h"; // switch to alternate screen
         std::cout << "\033[2J"; // clear screen
         std::cout << "\033[H"; // cursor to home (1,1)
@@ -65,8 +66,10 @@ Terminal::~Terminal()
         mgo::Log::debug("Resetting terminal in ~Terminal()");
         std::cout << "\033[?25h"; // cursor unhide in case it was off
         setCursorType(CursorType::Default, OutputMode::immediate); // reset any cursor change
-        std::cout << "\033[?1049l" << std::flush; // switch back to normal screen
+        std::cout << "\033[?1049l"; // switch back to normal screen
+        std::cout << "\033[?1004l"; // disable focus reporting
         std::cout << "\033[?1000l\033[?1006l"; // exit SGR mode
+        std::cout << std::flush;
         keyPress::drainInputQueue(); // clear any remaining input
     }
 }
