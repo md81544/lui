@@ -1,5 +1,9 @@
+* Lost focus processing currently won't trigger if in an input.
+  Maybe consider using a loop in input with a non-blocking event wait?
+  - if a non-handled "key"/event is received then input could be terminated
+
 * keypress.h is now more than just a basic keypress handler
-  - rename to, say, terminal_input
+  - rename to, say, terminal_input or terminal_event
   - should now be a proper class
 
 * "More" menu? With numbered commands? Could just display a message box
@@ -9,7 +13,7 @@
     
 * Auto disappearing messageBox
 
-* Clickable options on messageBox
+* Clickable options on messageBox... buttons?
 
 * Add regex check to ensure clue number is in the correct format
   - regex should be "^\d{1,3}[AD]$" (and enforce capitals in input)

@@ -250,6 +250,12 @@ int Ui::run()
                         m_results.vec.at(m_results.selectedItem.value())));
                 }
                 break;
+            case Command::LostFocus:
+                lostFocus();
+                break;
+            case Command::GainedFocus:
+                // Does nothing
+                break;
             case Command::ShowDebugLog:
                 ShowDebugLog();
                 break;
@@ -1096,6 +1102,19 @@ void Ui::ShowDebugLog()
     setResults(m_debugLog);
 }
 
+void Ui::lostFocus()
+{
+    terminal::MessageBoxOptions opts;
+    opts.message = "Focus lost";
+    opts.col = 2;
+    opts.row = m_resultsTopRow + 2;
+    opts.prompt = "Waiting...";
+    opts.waitForKey = true;
+    m_term.messageBox(opts);
+    // The "focus gained" message will terminate (and
+    // be swallowed by) the messageBox when focus is regained
+}
+
 std::size_t Ui::getResultsPaneRowSize()
 {
     return m_termSize.rows - m_menuRowSize - m_headerRowSize;
@@ -1177,10 +1196,10 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
                 keyPress::lastMouseClick.col);
         case keyPress::FOCUS_IN:
             log("Gained focus");
-            return Command::NoOp;
+            return Command::GainedFocus;
         case keyPress::FOCUS_OUT:
             log("Lost focus");
-            return Command::NoOp;
+            return Command::LostFocus;
         default:
             m_term.bell();
     }
