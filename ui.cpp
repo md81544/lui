@@ -884,12 +884,12 @@ void Ui::enterFoundStringConstrained()
                         ascii::toupper(key));
                     auto c2 = std::count(
                         opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
-                    if (c1 == 0 || c2 == c1) {
+                    if (key != '.' && (c1 == 0 || c2 == c1)) {
                         m_term.bell(terminal::OutputMode::immediate);
                         rc = keyPress::NO_KEY;
                         break;
                     }
-                    if (!ascii::isalpha(key)) {
+                    if (key != '.' && !ascii::isalpha(key)) {
                         m_term.bell(terminal::OutputMode::immediate);
                         rc = keyPress::NO_KEY;
                         break;

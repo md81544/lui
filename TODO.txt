@@ -1,12 +1,12 @@
+* keypress.h is now more than just a basic keypress handler
+  - rename to, say, terminal_input
+  - should now be a proper class
+
 * "More" menu? With numbered commands? Could just display a message box
   with numbered items, e.g. "1: Debug log/2: Add phrase" etc
   - "Add phrase" would need to check whether the current directory is
     git-controlled
     
-* Pressing '.' in constrained found input should overwrite
-
-* Space in unconstrained found input should enter '.'
-
 * Auto disappearing messageBox
 
 * Clickable options on messageBox
