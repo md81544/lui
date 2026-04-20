@@ -215,6 +215,9 @@ int Ui::run()
             case Command::Restart:
                 restart();
                 break;
+            case Command::HardRestart:
+                restart(true);
+                break;
             case Command::Quit:
                 finished = true;
                 break;
@@ -399,9 +402,9 @@ void Ui::clearCommandPrompt(terminal::OutputMode mode)
     m_term.cursorOff(mode);
 }
 
-void Ui::restart()
+void Ui::restart(bool force)
 {
-    if (m_clue.dirty) {
+    if (m_clue.dirty && !force) {
         terminal::MessageBoxOptions opts;
         opts.row = m_resultsTopRow + 2;
         opts.col = 2;
@@ -1130,6 +1133,8 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
         case keyPress::CTRL_R:
             // clear eveything down
             return Command::Restart;
+        case 'R':
+            return Command::HardRestart;
         case 'q':
             if (extendedFunction) {
                 return Command::Quit;

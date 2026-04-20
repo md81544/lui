@@ -29,6 +29,7 @@ enum class Command {
     Save,
     Load,
     Restart,
+    HardRestart,
     Quit,
     EnterSearchString,
     EnterFoundString,
@@ -79,12 +80,12 @@ private:
         bool scrollAtBottom { true };
         std::vector<std::string> vec;
         bool filtered { false };
-        std::optional<std::size_t> selectedItem{ std::nullopt };
+        std::optional<std::size_t> selectedItem { std::nullopt };
     };
 
     void checkForTerminalResize();
     bool checkTerminalLargeEnough();
-    void restart();
+    void restart(bool force = false);
     void clearResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void setResults(const std::vector<std::string>& vec, ResultsType type = ResultsType::FreeForm);
     void setResults(std::string_view, ResultsType type = ResultsType::FreeForm);
