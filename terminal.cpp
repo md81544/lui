@@ -9,6 +9,7 @@
 #include <iostream>
 #include <limits>
 #include <ranges>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <sys/ioctl.h>
@@ -44,45 +45,39 @@ namespace terminal {
 Terminal::Terminal()
 {
     if (!isatty(STDOUT_FILENO)) {
-        m_isTty = false;
+        throw std::runtime_error("Terminal is not a TTY");
     }
     if (hasUtf8Support()) {
         m_utf8Supported = true;
     }
     m_renderString.clear();
-    if (m_isTty) {
-        std::cout << "\033[?1000h\033[?1006h"; // SGR mode (if supported) for mouse reporting
-        std::cout << "\033[?1004h"; // enable focus reporting
-        std::cout << "\033[?1049h"; // switch to alternate screen
-        std::cout << "\033[2J"; // clear screen
-        std::cout << "\033[H"; // cursor to home (1,1)
-        std::cout << std::flush;
-    }
+    std::cout << "\033[?1000h\033[?1006h"; // SGR mode (if supported) for mouse reporting
+    std::cout << "\033[?1004h"; // enable focus reporting
+    std::cout << "\033[?1049h"; // switch to alternate screen
+    std::cout << "\033[2J"; // clear screen
+    std::cout << "\033[H"; // cursor to home (1,1)
+    std::cout << std::flush;
 }
 
 Terminal::~Terminal()
 {
-    if (m_isTty) {
-        mgo::Log::debug("Resetting terminal in ~Terminal()");
-        std::cout << "\033[?25h"; // cursor unhide in case it was off
-        setCursorType(CursorType::Default, OutputMode::immediate); // reset any cursor change
-        std::cout << "\033[?1049l"; // switch back to normal screen
-        std::cout << "\033[?1004l"; // disable focus reporting
-        std::cout << "\033[?1000l\033[?1006l"; // exit SGR mode
-        std::cout << std::flush;
-        keyPress::drainInputQueue(); // clear any remaining input
-    }
+    mgo::Log::debug("Resetting terminal in ~Terminal()");
+    std::cout << "\033[?25h"; // cursor unhide in case it was off
+    setCursorType(CursorType::Default, OutputMode::immediate); // reset any cursor change
+    std::cout << "\033[?1049l"; // switch back to normal screen
+    std::cout << "\033[?1004l"; // disable focus reporting
+    std::cout << "\033[?1000l\033[?1006l"; // exit SGR mode
+    std::cout << std::flush;
+    keyPress::drainInputQueue(); // clear any remaining input
 }
 
 void Terminal::render()
 {
     std::cout << m_renderString << std::flush;
     m_renderString.clear();
-    if (m_isTty) {
-        m_renderString.append("\033[2J\033[H"); // clear screen
-        setFgColour(Colour::Default);
-        setBgColour(Colour::Default);
-    }
+    m_renderString.append("\033[2J\033[H"); // clear screen
+    setFgColour(Colour::Default);
+    setBgColour(Colour::Default);
 }
 
 void Terminal::printAt(std::size_t row, std::size_t col, std::string_view text, OutputMode mode)
@@ -100,25 +95,19 @@ void Terminal::goTo(std::size_t row, std::size_t col, OutputMode mode)
 {
     // Note this function is 0-based whereas ANSI codes are 1-based
     std::string text = std::format("\033[{};{}H", row + 1, col + 1);
-    if (m_isTty) {
-        output(text, mode);
-    }
+    output(text, mode);
 }
 
 void Terminal::setFgColour(Colour colour, OutputMode mode)
 {
     m_currentFgColour = colour;
-    if (m_isTty) {
-        output(colourToAnsiFg(colour), mode);
-    }
+    output(colourToAnsiFg(colour), mode);
 }
 
 void Terminal::setBgColour(Colour colour, OutputMode mode)
 {
     m_currentBgColour = colour;
-    if (m_isTty) {
-        output(colourToAnsiBg(colour), mode);
-    }
+    output(colourToAnsiBg(colour), mode);
 }
 
 Colour Terminal::getFgColour() const
@@ -133,65 +122,46 @@ Colour Terminal::getBgColour() const
 
 void Terminal::cursorUp(uint8_t n, OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[" + std::to_string(n) + "A", mode);
-    }
+    output("\033[" + std::to_string(n) + "A", mode);
 }
 
 void Terminal::cursorDown(uint8_t n, OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[" + std::to_string(n) + "B", mode);
-    }
+    output("\033[" + std::to_string(n) + "B", mode);
 }
 
 void Terminal::cursorRight(uint8_t n, OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[" + std::to_string(n) + "C", mode);
-    }
+    output("\033[" + std::to_string(n) + "C", mode);
 }
 
 void Terminal::cursorLeft(uint8_t n, OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[" + std::to_string(n) + "D", mode);
-    }
+    output("\033[" + std::to_string(n) + "D", mode);
 }
 
 void Terminal::styleBold(bool on, OutputMode mode)
 {
-    if (m_isTty) {
-        output(getAnsiSequenceBold(on), mode);
-    }
+    output(getAnsiSequenceBold(on), mode);
 }
 
 void Terminal::styleItalic(bool on, OutputMode mode)
 {
-    if (m_isTty) {
-        output(getAnsiSequenceItalic(on), mode);
-    }
+    output(getAnsiSequenceItalic(on), mode);
 }
 
 void Terminal::styleUnderline(bool on, OutputMode mode)
 {
-    if (m_isTty) {
-        output(getAnsiSequenceUnderline(on), mode);
-    }
+    output(getAnsiSequenceUnderline(on), mode);
 }
 
 void Terminal::noStyle(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[0m", mode);
-    }
+    output("\033[0m", mode);
 }
 
 void Terminal::setCursorType(CursorType type, OutputMode mode)
 {
-    if (!m_isTty) {
-        return;
-    }
     output("\033[", mode);
     switch (type) {
         case CursorType::Default:
@@ -224,68 +194,49 @@ void Terminal::setCursorType(CursorType type, OutputMode mode)
 
 void Terminal::clearToEndOfLine(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[K", mode);
-    }
+    output("\033[K", mode);
 }
 
 void Terminal::clearToStartOfLine(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[1K", mode);
-    }
+    output("\033[1K", mode);
 }
 
 void Terminal::clearLine(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[2K", mode);
-    }
+    output("\033[2K", mode);
 }
 
 void Terminal::saveCursorPosition(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[s", mode);
-    }
+    output("\033[s", mode);
 }
 
 void Terminal::restoreCursorPosition(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[u", mode);
-        output(getAnsiSequenceNoStyle(), mode); // see note in header
-    }
+    output("\033[u", mode);
+    output(getAnsiSequenceNoStyle(), mode); // see note in header
 }
 
 void Terminal::cursorOn(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[?25h", mode);
-    }
+    output("\033[?25h", mode);
 }
 
 void Terminal::cursorOff(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\033[?25l", mode);
-    }
+    output("\033[?25l", mode);
 }
 
 int Terminal::getChar()
 {
-    if (!m_isTty) {
-        return keyPress::ESC;
-    }
     auto key = keyPress::getKeyPress();
     return key.value_or(keyPress::NO_KEY);
 }
 
 void Terminal::bell(OutputMode mode)
 {
-    if (m_isTty) {
-        output("\007", mode);
-    }
+    output("\007", mode);
 }
 
 void Terminal::printMenuString(
@@ -342,9 +293,6 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     if (opts.waitForKey && opts.mode != OutputMode::immediate) {
         opts.waitForKey = false;
         mgo::Log::error("waitForKey == true doesn't make sense in non-immediate mode");
-    }
-    if (!m_isTty) {
-        return keyPress::NO_KEY;
     }
     styleBold(true, opts.mode);
     std::size_t localRow { opts.row };
@@ -419,9 +367,6 @@ std::string Terminal::input(InputOptions& opts)
     // has hooks to probably cover needs, it IS a separate dependency which
     // may or may not be available when compiling (and will need -I locations
     // determining, especially if installed by homebrew). This should suffice.
-    if (!m_isTty) {
-        return std::string {};
-    }
     constexpr OutputMode imm = OutputMode::immediate;
     opts.currentValue = opts.defaultValue;
     Colour oldFg = getFgColour();

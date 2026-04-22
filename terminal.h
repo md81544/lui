@@ -218,7 +218,6 @@ private:
     std::string colourToAnsiBg(Colour colour);
     std::string m_renderString;
     std::string m_savedRenderString;
-    bool m_isTty { true };
     bool m_utf8Supported { false };
     Colour m_currentFgColour { Colour::Default };
     Colour m_currentBgColour { Colour::Default };
