@@ -468,38 +468,46 @@ std::string Terminal::input(InputOptions& opts)
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         int key = getChar();
-        if (ascii::isprint(key)) {
-            switch (opts.keysAllowed) {
-                case terminal::KeysAllowed::All:
-                    // Nothing to do, all keys allowed
-                    break;
-                case terminal::KeysAllowed::Alphanum:
-                    if (!ascii::isalnum(key)) {
-                        key = keyPress::NO_KEY;
-                    }
-                    break;
-                case terminal::KeysAllowed::CapitalAlphanum:
-                    if (ascii::isalnum(key)) {
-                        key = ascii::toupper(key);
-                    } else {
-                        key = keyPress::NO_KEY;
-                    }
-                    break;
-                case terminal::KeysAllowed::Numeric:
-                    if (!ascii::isdigit(key)) {
-                        key = keyPress::NO_KEY;
-                    }
-                    break;
-                case terminal::KeysAllowed::CapitalAlpha:
-                    if (ascii::isalpha(key)) {
-                        key = ascii::toupper(key);
-                    } else {
-                        key = keyPress::NO_KEY;
-                    }
-                    break;
-                default:
-                    // Unhandled enum
-                    assert(false);
+        if (ascii::isprint(key) && opts.keysAllowed > 0) {
+            bool matched = false;
+            if (opts.keysAllowed & keysAllowed::alpha) {
+                if (ascii::isalpha(key)) {
+                    matched = true;
+                }
+            }
+            if (opts.keysAllowed & keysAllowed::numeric) {
+                if (ascii::isdigit(key)) {
+                    matched = true;
+                }
+            }
+            if (opts.keysAllowed & keysAllowed::decimal) {
+                if (ascii::isdigit(key) || key == '.') {
+                    matched = true;
+                }
+            }
+            if (opts.keysAllowed & keysAllowed::punct) {
+                if (ascii::ispunct(key)) {
+                    matched = true;
+                }
+            }
+            if (opts.keysAllowed & keysAllowed::special) {
+                if (opts.specialKeys.contains(key)) {
+                    matched = true;
+                }
+            }
+            if (!matched) {
+                key = keyPress::NO_KEY;
+            }
+        }
+        // The following two "keysAllowed" actually just force upper / lowercase
+        if (opts.keysAllowed & keysAllowed::upper) {
+            if (ascii::isalpha(key)) {
+                key = ascii::toupper(key);
+            }
+        }
+        if (opts.keysAllowed & keysAllowed::lower) {
+            if (ascii::isalpha(key)) {
+                key = ascii::tolower(key);
             }
         }
         // Call any pre hook the caller set:

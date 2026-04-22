@@ -71,4 +71,12 @@ constexpr bool iequal(unsigned char a, unsigned char b) noexcept
     return tolower(a) == tolower(b);
 }
 
+constexpr bool ispunct(unsigned char c)
+{
+    if (!isprint(c)) {
+        return false;
+    }
+    return !(isdigit(c) || isalpha(c));
+}
+
 } // namespace ascii

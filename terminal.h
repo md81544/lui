@@ -75,25 +75,26 @@ struct MessageBoxOptions {
     OutputMode mode { OutputMode::immediate };
 };
 
-// Input keys allowed; these are for convenience. The caller is free
-// to add more complex rules via the hook callback. Note extended characters
-// are supported, if this is not required then add a check for the key value
-// being between 32 and 126 inclusive in the pre hook.
-
+// Bitmasks for keys allowed flag for Input Options:
+// May be ORed together, e.g. alpha | numeric will allow letters and numbers
+// Note these work off ascii.h functions so no locale issues
+namespace keysAllowed {
 // clang-format off
-// TODO: this should be a std::bitset to allow for combination of options
-enum class KeysAllowed {
-    All,             // No restriction
-    Alphanum,        // Alphas and numerics only allowed
-    CapitalAlpha,    // lower case will be CONVERTED, numbers ignored
-    Numeric,         // non-numerics will be ignored
-    CapitalAlphanum, // lower case will be CONVERTED, numbers allowed
-};
+constexpr uint8_t print   = 0b00000000; // printable characters; the default
+constexpr uint8_t alpha   = 0b00000001; // letters
+constexpr uint8_t numeric = 0b00000010; // digits
+constexpr uint8_t decimal = 0b00000100; // decimal point
+constexpr uint8_t punct   = 0b00001000; // punctuation chars
+constexpr uint8_t upper   = 0b00010000; // Lower case will be CONVERTED to upper
+constexpr uint8_t lower   = 0b00100000; // Upper case will be CONVERTED to lower
+constexpr uint8_t special = 0b01000000; // Include any characters in
+                                        // InputOptions.specialChars
 // clang-format on
+}
 
 struct InputOptions {
-    std::size_t row;
-    std::size_t col;
+    std::size_t row { 0 };
+    std::size_t col { 0 };
     std::size_t maxLen { 0 };
     std::size_t cursorPos { 0 };
     std::string defaultValue {};
@@ -103,7 +104,8 @@ struct InputOptions {
     Colour bgColour { Colour::Default };
     // Restriction is for convenience, the caller is free to use
     // more logic in the hook callback.
-    KeysAllowed keysAllowed { KeysAllowed::All };
+    uint8_t keysAllowed { keysAllowed::print };
+    std::string specialKeys {}; // see keysAllowed::special
     // currentValue allows the hook caller to see the current
     // state of the input string (and modify it as required).
     std::string currentValue {};

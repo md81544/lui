@@ -652,7 +652,9 @@ void Ui::load()
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
-    opts.keysAllowed = terminal::KeysAllowed::CapitalAlphanum;
+    // Capital alphas & numbers only:
+    opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
+        | terminal::keysAllowed::upper;
     opts.maxLen = 4;
     std::string clueNumber = m_term.input(opts);
     if (!clueNumber.empty()) {
@@ -694,7 +696,6 @@ void Ui::filterResults()
     terminal::InputOptions inputOpts;
     inputOpts.row = m_termSize.rows - 1;
     inputOpts.col = 1;
-    inputOpts.keysAllowed = terminal::KeysAllowed::All;
     inputOpts.overrideCursorType = terminal::CursorType::BlockBlinking;
     std::string filter = m_term.input(inputOpts);
     std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
@@ -806,7 +807,6 @@ void Ui::enterFoundStringConstrained()
     opts.maxLen = separatedStringSize(opts.defaultValue);
     // Because we have a special use case here we allow all keys
     // and handle them specifically in the callback hook
-    opts.keysAllowed = terminal::KeysAllowed::All;
     opts.reportStatus = terminal::InputReportStatus::Status;
     opts.preInsertHook = [&](int key) -> int {
         int rc = key;
@@ -966,7 +966,6 @@ void Ui::enterFoundStringUnconstrained()
     opts.col = 10;
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
-    opts.keysAllowed = terminal::KeysAllowed::All;
     opts.preInsertHook = [&](int key) -> int {
         if (key == ' ') {
             return '.';
@@ -1031,7 +1030,7 @@ void Ui::enterSearchString()
     opts.col = 10;
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
-    opts.keysAllowed = terminal::KeysAllowed::CapitalAlpha;
+    opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::upper;
     opts.reportStatus = terminal::InputReportStatus::SizeInLetters;
     opts.preInsertHook = [&](int key) -> int {
         // Disallow spaces
@@ -1088,7 +1087,8 @@ void Ui::enterClueNumber()
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
     opts.defaultValue = m_clue.clueNumber;
-    opts.keysAllowed = terminal::KeysAllowed::CapitalAlphanum;
+    opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
+        | terminal::keysAllowed::upper;
     opts.maxLen = 4;
     m_clue.clueNumber = m_term.input(opts);
     m_clue.dirty = true;
