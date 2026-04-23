@@ -307,7 +307,11 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     if (maxLen < opts.prompt.size() + 2) {
         maxLen = opts.prompt.size() + 2;
     }
-    goTo(localRow, opts.col, opts.mode);
+    std::size_t col = opts.col;
+    if (opts.alignRight) {
+        col -= maxLen + 4;
+    }
+    goTo(localRow, col, opts.mode);
     output(utfOrAscii("┌─", "+-"), opts.mode);
     for (std::size_t n = 0; n < maxLen; ++n) {
         output(utfOrAscii("─", "-"), opts.mode);
@@ -315,20 +319,20 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     output(utfOrAscii("─┐", "-+"), opts.mode);
     for (const auto& l : msgRows) {
         ++localRow;
-        goTo(localRow, opts.col, opts.mode);
+        goTo(localRow, col, opts.mode);
         std::string s
             = std::format("{} {:{}} {}", utfOrAscii("│", "|"), l, maxLen, utfOrAscii("│", "|"));
         output(s, opts.mode);
     }
     if (opts.waitForKey) {
         ++localRow;
-        goTo(localRow, opts.col, opts.mode);
+        goTo(localRow, col, opts.mode);
         saveCursorPosition(opts.mode); // NOTE! Also saves style on many terminals
         std::string s
             = std::format("{} {:{}} {}", utfOrAscii("│", "|"), "", maxLen, utfOrAscii("│", "|"));
         output(s, opts.mode);
     }
-    goTo(++localRow, opts.col, opts.mode);
+    goTo(++localRow, col, opts.mode);
     output(utfOrAscii("└─", "+-"), opts.mode);
     for (std::size_t n = 0; n < maxLen; ++n) {
         output(utfOrAscii("─", "-"), opts.mode);

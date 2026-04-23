@@ -1109,8 +1109,9 @@ void Ui::lostFocus()
 {
     terminal::MessageBoxOptions opts;
     opts.message = "Focus lost";
-    opts.col = 2;
-    opts.row = m_resultsTopRow + 2;
+    opts.alignRight = true;
+    opts.col = m_termSize.cols - 2;
+    opts.row = 1;
     opts.prompt = "Waiting...";
     opts.waitForKey = true;
     m_term.messageBox(opts);

@@ -69,6 +69,8 @@ enum class InputReportStatus {
 struct MessageBoxOptions {
     std::size_t row { 0 }; // Top row of box
     std::size_t col { 0 }; // Left-most col of box
+    bool alignRight { false }; // if true, col becomes right-most col of box
+                               // (text is still left-aligned)
     std::string message; // Use '\n' for multi-line
     bool waitForKey { false };
     std::string prompt; // Prompt to display on bottom row if waiting for key
