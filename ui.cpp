@@ -1217,43 +1217,45 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
     if (button != 64 && button != 65) { // don't log scroll events, too many
         log(std::format("Mouse event: Button: {}, Row: {}, Col: {}", button, row, col));
     }
-    switch (row) {
-        case 1:
-            return Command::EnterSearchString;
-        case 2:
-            return Command::EnterFoundString;
-        case 3:
-            return Command::EnterComment;
-        case 4:
-            return Command::EnterClueNumber;
-    }
-    if (row > m_termSize.rows - m_menuRowSize) {
-        // a click in the menu area
-        std::optional<int> menuItem = m_menu.getIdFromHitBox(row, col);
-        if (menuItem.has_value()) {
-            switch (static_cast<MenuItem>(menuItem.value())) {
-                case MenuItem::Jumble:
-                    return Command::Jumble;
-                case MenuItem::Reverse:
-                    return Command::Reverse;
-                case MenuItem::Regular:
-                    return Command::Regular;
-                case MenuItem::Thesaurus:
-                    return Command::Thesaurus;
-                case MenuItem::Lookup:
-                    return Command::Lookup;
-                case MenuItem::Define:
-                    return Command::Define;
-                case MenuItem::Filter:
-                    return Command::Filter;
-                case MenuItem::Save:
-                    return Command::Save;
-                case MenuItem::Load:
-                    return Command::Load;
-                case MenuItem::Restart:
-                    return Command::Restart;
-                case MenuItem::Quit:
-                    return Command::Quit;
+    if (button == 0) {
+        switch (row) {
+            case 1:
+                return Command::EnterSearchString;
+            case 2:
+                return Command::EnterFoundString;
+            case 3:
+                return Command::EnterComment;
+            case 4:
+                return Command::EnterClueNumber;
+        }
+        if (row > m_termSize.rows - m_menuRowSize) {
+            // a click in the menu area
+            std::optional<int> menuItem = m_menu.getIdFromHitBox(row, col);
+            if (menuItem.has_value()) {
+                switch (static_cast<MenuItem>(menuItem.value())) {
+                    case MenuItem::Jumble:
+                        return Command::Jumble;
+                    case MenuItem::Reverse:
+                        return Command::Reverse;
+                    case MenuItem::Regular:
+                        return Command::Regular;
+                    case MenuItem::Thesaurus:
+                        return Command::Thesaurus;
+                    case MenuItem::Lookup:
+                        return Command::Lookup;
+                    case MenuItem::Define:
+                        return Command::Define;
+                    case MenuItem::Filter:
+                        return Command::Filter;
+                    case MenuItem::Save:
+                        return Command::Save;
+                    case MenuItem::Load:
+                        return Command::Load;
+                    case MenuItem::Restart:
+                        return Command::Restart;
+                    case MenuItem::Quit:
+                        return Command::Quit;
+                }
             }
         }
     }
