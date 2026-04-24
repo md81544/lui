@@ -1,6 +1,13 @@
+* Remove clue from saved - if the clue is loaded, pressing ^D (add menu option)
+  should remove clue number from saved list and then do a restart
+
+* Should be able to load a clue from the "load" list by clicking on item
+
 * Lost focus processing currently won't trigger if in an input.
   Maybe consider using a loop in input with a non-blocking event wait?
   - if a non-handled "key"/event is received then input could be terminated
+
+* Make "saved as" notification a message box rather than obliterate existing results
 
 * keypress.h is now more than just a basic keypress handler
   - rename to, say, terminal_input or terminal_event
@@ -32,16 +39,12 @@
 
 * Add reverse video in Terminal: on = "\e[7m", off = "\e[27m"
 
-* Think about some form of selection box for loading
-
 * multiple colour support in results pane?
   - may be just as simple as including colour codes?
 
 * Add unit tests for WordSearcher
 
 * Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
-
-* Remove clue from saved? Maybe some form of "done"?
 
 * Undo filter? Although this can be done by just re-querying
 
