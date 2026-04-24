@@ -33,6 +33,7 @@ enum class MenuItem {
     Lookup,
     Define,
     Filter,
+    Done,
     Save,
     Load,
     Restart,
@@ -122,6 +123,7 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
     m_menu.addItem(static_cast<int>(MenuItem::Define), "_Define");
     m_menu.addNewLine();
     m_menu.addItem(static_cast<int>(MenuItem::Filter), "f_Ilter");
+    m_menu.addItem(static_cast<int>(MenuItem::Done), "_^_Done");
     m_menu.addItem(static_cast<int>(MenuItem::Save), "_^_Save");
     m_menu.addItem(static_cast<int>(MenuItem::Load), "_^_Load");
     m_menu.addItem(static_cast<int>(MenuItem::Restart), "_^_Restart");
@@ -205,6 +207,9 @@ int Ui::run()
                 break;
             case Command::Filter:
                 filterResults();
+                break;
+            case Command::Done:
+                done();
                 break;
             case Command::Save:
                 save();
@@ -621,6 +626,15 @@ void Ui::define()
         m_results.vec = m_ws->definitions(m_results.vec);
         m_results.type = ResultsType::FreeForm;
     }
+}
+
+void Ui::done()
+{
+    if (m_clue.clueNumber.empty()) {
+        return;
+    }
+    m_savedClues.erase(m_clue.clueNumber);
+    restart(true);
 }
 
 void Ui::load()
@@ -1247,6 +1261,8 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
                         return Command::Define;
                     case MenuItem::Filter:
                         return Command::Filter;
+                    case MenuItem::Done:
+                        return Command::Done;
                     case MenuItem::Save:
                         return Command::Save;
                     case MenuItem::Load:

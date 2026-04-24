@@ -26,6 +26,7 @@ enum class Command {
     Lookup,
     Define,
     Filter,
+    Done,
     Save,
     Load,
     Restart,
@@ -102,6 +103,7 @@ private:
     void reverse();
     void thesaurus();
     void define();
+    void done();
     void load();
     void save();
     void filterResults();

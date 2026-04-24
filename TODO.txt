@@ -1,6 +1,3 @@
-* Remove clue from saved - if the clue is loaded, pressing ^D (add menu option)
-  should remove clue number from saved list and then do a restart
-
 * Should be able to load a clue from the "load" list by clicking on item
 
 * Lost focus processing currently won't trigger if in an input.
