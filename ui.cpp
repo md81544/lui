@@ -1155,8 +1155,12 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
                 return Command::Quit;
             }
             break;
+        case keyPress::CTRL_D:
+        case 'D':
+            return Command::Done;
         case keyPress::CTRL_C:
         case keyPress::CTRL_Q:
+        case 'Q':
             return Command::Quit;
         case 'j':
             return Command::Jumble;
@@ -1203,8 +1207,10 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
         case keyPress::F12:
             return Command::ShowDebugLog;
         case keyPress::CTRL_S:
+        case 'S':
             return Command::Save;
         case keyPress::CTRL_L:
+        case 'L':
             return Command::Load;
         case keyPress::ESC:
             // currently does nothing
