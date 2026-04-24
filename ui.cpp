@@ -630,10 +630,9 @@ void Ui::define()
 
 void Ui::done()
 {
-    if (m_clue.clueNumber.empty()) {
-        return;
+    if (!m_clue.clueNumber.empty()) {
+        m_savedClues.erase(m_clue.clueNumber);
     }
-    m_savedClues.erase(m_clue.clueNumber);
     restart(true);
 }
 
