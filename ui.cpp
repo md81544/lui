@@ -855,8 +855,14 @@ void Ui::enterFoundStringConstrained()
                 rc = key;
                 break;
             }
-            if (key == keyPress::BACKSPACE && opts.cursorPos > 0) {
-                --opts.cursorPos;
+            if (key == keyPress::BACKSPACE && opts.cursorPos >= 0) {
+                if (opts.cursorPos > 0 && opts.cursorPos < opts.currentValue.size() - 1) {
+                    --opts.cursorPos;
+                } else if (
+                    opts.cursorPos == opts.currentValue.size() - 1
+                    && opts.currentValue[opts.cursorPos] == '.' && opts.cursorPos > 0) {
+                    --opts.cursorPos;
+                }
                 if (ascii::isalpha(opts.currentValue.at(opts.cursorPos))) {
                     lettersRemaining.push_back(opts.currentValue[opts.cursorPos]);
                 }
