@@ -1,5 +1,8 @@
 * Should be able to load a clue from the "load" list by clicking on item
 
+* If "jumble" results are shown then changes to "found" should cause it to
+  redraw dynamically (would need a "jumble" results type)
+
 * Add letter count in regular() output
 
 * Lost focus processing currently won't trigger if in an input.
