@@ -884,15 +884,30 @@ void Ui::enterFoundStringConstrained()
                 rc = keyPress::NO_KEY;
                 break;
             }
-            if (key == '/') {
+            if (key == '/' || ascii::isdigit(key)) {
+                if (key != '/') { // i.e. is a digit
+                    // move cursor the number entered
+                    if (opts.cursorPos + (key - 48) > opts.currentValue.size() - 1) {
+                        rc = keyPress::NO_KEY;
+                        break;
+                    }
+                    opts.cursorPos += key - 48;
+                    key = '/';
+                }
                 // Disallow entry of separator at beginning or end
                 if (opts.cursorPos == 0 || opts.cursorPos > opts.currentValue.size() - 1) {
                     rc = keyPress::NO_KEY;
+                    break;
                 }
                 // Disallow entry of separator immediately next to an existing separator
-                if (opts.currentValue.at(opts.cursorPos) == '/'
+                if ((opts.cursorPos < opts.currentValue.size() - 3
+                     && opts.currentValue.at(opts.cursorPos + 1) == '/')
+                    || opts.currentValue.at(opts.cursorPos) == '/'
                     || opts.currentValue.at(opts.cursorPos - 1) == '/') {
-                    rc = keyPress::NO_KEY;
+                    {
+                        rc = keyPress::NO_KEY;
+                        break;
+                    }
                 }
                 ++opts.maxLen;
                 rc = key;
