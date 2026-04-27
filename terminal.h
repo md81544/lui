@@ -11,8 +11,9 @@
 #include <tuple>
 
 // Notes:
-//  - This class caches all "prints". Nothing is output to the
-//    physical terminal until .render() is called.
+//  - By default, this class caches all "prints". Nothing is output to the
+//    physical terminal until .render() is called. Immediate mode is an
+//    option however for non-render output.
 //  - It is expected that a blocking call (e.g. getChar()) is
 //    called once per display loop otherwise the refresh rate
 //    will be needlessly fast. If the caller doesn't need to
