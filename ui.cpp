@@ -277,6 +277,7 @@ void Ui::clearResults(terminal::OutputMode mode)
     m_results.vec.clear();
     m_results.scrollOffset = 0;
     m_results.filtered = false;
+    m_results.type = ResultsType::FreeForm;
     if (mode == terminal::OutputMode::immediate) {
         // If it's immediate we want to clear the results pane:
         for (size_t r = m_resultsTopRow + 1; r < m_resultsTopRow + getResultsPaneRowSize(); ++r) {
