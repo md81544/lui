@@ -690,12 +690,18 @@ void Ui::load()
 
 void Ui::save()
 {
+    terminal::MessageBoxOptions opts;
+    opts.col = 2;
+    opts.row = m_resultsTopRow + 2;
+    opts.mode = terminal::OutputMode::render;
     if (m_clue.clueNumber.empty()) {
-        setResults("Please enter a clue number first");
+        opts.message = "Please enter a clue number first";
+        m_term.messageBox(opts);
         return;
     }
     m_savedClues[m_clue.clueNumber] = m_clue;
-    setResults(std::format("Clue saved as '{}'.", m_clue.clueNumber));
+    opts.message = std::format("Clue saved as '{}'.", m_clue.clueNumber);
+    m_term.messageBox(opts);
     m_clue.dirty = false;
 }
 

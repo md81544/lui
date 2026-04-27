@@ -64,11 +64,3 @@
   - or a "light mode" (or monochrome) switcher?
 
 * Think about adding a help screen (F1 or :h)
-
-* Considering the kludge required to hide tmux's immediate printing
-  of pasted text, it might be an idea to rethink output. Instead of
-  a large string with all the text, we could have a "UiElement" class
-  which contains row, col, text (inc ANSI codes). A render would just
-  work through a vector of these to generate output. If we need to
-  clear a line when in immediate mode (i.e. input()) we could clear
-  it and then re-render any elements which share that line.

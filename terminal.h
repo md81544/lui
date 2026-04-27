@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -64,6 +65,50 @@ enum class InputReportStatus {
     None,
     SizeInLetters,
     Status,
+};
+
+class ZHeight {
+    friend class ZHeightGuard;
+
+public:
+    uint8_t getZHeight()
+    {
+        return m_currentZHeight;
+    }
+
+private:
+    // Note private, can only set via ZHeightGuard
+    void setZHeight(uint8_t zHeight)
+    {
+        m_originalZHeight = m_currentZHeight;
+        m_currentZHeight = zHeight;
+    }
+    void restoreZHeight()
+    {
+        m_currentZHeight = m_originalZHeight;
+    }
+    uint8_t m_currentZHeight { 0 };
+    uint8_t m_originalZHeight { 0 };
+};
+
+class ZHeightGuard {
+public:
+    explicit ZHeightGuard(ZHeight& zh, uint8_t zHeight)
+        : m_zh(zh)
+    {
+        zh.setZHeight(zHeight);
+    }
+    ~ZHeightGuard()
+    {
+        m_zh.restoreZHeight();
+    }
+    ZHeightGuard(const ZHeightGuard&) = delete;
+    ZHeightGuard(const ZHeightGuard&&) = delete;
+    const ZHeightGuard operator=(const ZHeightGuard&) = delete;
+    const ZHeightGuard operator=(const ZHeightGuard&&) = delete;
+
+private:
+    ZHeight& m_zh;
 };
 
 struct MessageBoxOptions {
@@ -214,12 +259,14 @@ public:
 private:
     // if UTF is supported, return utfVersion, otherwise return asciiVersion
     std::string_view utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion);
-    // Output either to render string or direct depending on mode parameter:
+    // Output either to render string or direct depending on mode parameter.
+    // Note m_zHeight is used to determine z position IF mode is render
     void output(std::string_view text, OutputMode mode = OutputMode::render);
     std::string colourToAnsiFg(Colour colour);
     std::string colourToAnsiBg(Colour colour);
-    std::string m_renderString;
-    std::string m_savedRenderString;
+    ZHeight m_zHeight;
+    std::multimap<uint8_t, std::string> m_renderMap;
+    std::multimap<uint8_t, std::string> m_savedRenderMap;
     bool m_utf8Supported { false };
     Colour m_currentFgColour { Colour::Default };
     Colour m_currentBgColour { Colour::Default };

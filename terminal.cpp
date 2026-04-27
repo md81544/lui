@@ -50,7 +50,7 @@ Terminal::Terminal()
     if (hasUtf8Support()) {
         m_utf8Supported = true;
     }
-    m_renderString.clear();
+    m_renderMap.clear();
     std::cout << "\033[?1000h\033[?1006h"; // SGR mode (if supported) for mouse reporting
     std::cout << "\033[?1004h"; // enable focus reporting
     std::cout << "\033[?1049h"; // switch to alternate screen
@@ -73,11 +73,14 @@ Terminal::~Terminal()
 
 void Terminal::render()
 {
-    std::cout << m_renderString << std::flush;
-    m_renderString.clear();
-    m_renderString.append("\033[2J\033[H"); // clear screen
-    setFgColour(Colour::Default);
-    setBgColour(Colour::Default);
+    std::cout << "\033[2J\033[H"; // clear screen
+    setFgColour(Colour::Default, OutputMode::immediate);
+    setBgColour(Colour::Default, OutputMode::immediate);
+    for (const auto& [_, text] : m_renderMap) {
+        std::cout << text;
+    }
+    std::cout << std::flush;
+    m_renderMap.clear();
 }
 
 void Terminal::printAt(std::size_t row, std::size_t col, std::string_view text, OutputMode mode)
@@ -280,16 +283,19 @@ bool Terminal::utf8Supported()
 
 void Terminal::store()
 {
-    m_renderString = m_savedRenderString;
+    m_renderMap = m_savedRenderMap;
 }
 
 void Terminal::restore()
 {
-    m_savedRenderString = m_renderString;
+    m_savedRenderMap = m_renderMap;
 }
 
 int Terminal::messageBox(MessageBoxOptions& opts)
 {
+    // Provided we're not in render mode, messageBox will have the highest
+    // z position to ensure it's rendered last, to appear "on top".
+    ZHeightGuard zHeightGuard(m_zHeight, std::numeric_limits<uint8_t>::max());
     if (opts.waitForKey && opts.mode != OutputMode::immediate) {
         opts.waitForKey = false;
         mgo::Log::error("waitForKey == true doesn't make sense in non-immediate mode");
@@ -770,7 +776,7 @@ void Terminal::output(std::string_view text, OutputMode mode)
     if (mode == OutputMode::immediate) {
         std::cout << text << std::flush;
     } else {
-        m_renderString.append(text);
+        m_renderMap.insert(std::pair(m_zHeight.getZHeight(), text));
     }
 }
 
