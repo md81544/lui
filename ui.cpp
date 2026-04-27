@@ -551,37 +551,33 @@ void Ui::regular()
     }
     m_results.vec.emplace_back("Every two letters");
     m_results.vec.emplace_back("");
-    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_clue.searchString, 2)));
-    m_results.vec.emplace_back(
-        std::format(
-            "  Even:  {}",
-            utils::everyNth({ m_clue.searchString.begin() + 1, m_clue.searchString.end() }, 2)));
+    std::string t = utils::everyNth(m_clue.searchString, 2);
+    m_results.vec.emplace_back(std::format("  Odd:   {} ({} letters)", t, t.size()));
+    t = utils::everyNth({ m_clue.searchString.begin() + 1, m_clue.searchString.end() }, 2);
+    m_results.vec.emplace_back(std::format("  Even:  {} ({} letters)", t, t.size()));
     m_results.vec.emplace_back("");
     m_results.vec.emplace_back("Every three letters");
     m_results.vec.emplace_back("");
-    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(m_clue.searchString, 3)));
-    m_results.vec.emplace_back(
-        std::format(
-            "  Even:  {}",
-            utils::everyNth({ m_clue.searchString.begin() + 1, m_clue.searchString.end() }, 3)));
+    t = utils::everyNth(m_clue.searchString, 3);
+    m_results.vec.emplace_back(std::format("  Odd:   {} ({} letters)", t, t.size()));
+    t = utils::everyNth({ m_clue.searchString.begin() + 1, m_clue.searchString.end() }, 3);
+    m_results.vec.emplace_back(std::format("  Even:  {} ({} letters)", t, t.size()));
     m_results.vec.emplace_back("");
     m_results.vec.emplace_back("Every two letters (reversed)");
     m_results.vec.emplace_back("");
     std::string reverseSearchString { m_clue.searchString };
     std::reverse(reverseSearchString.begin(), reverseSearchString.end());
-    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 2)));
-    m_results.vec.emplace_back(
-        std::format(
-            "  Even:  {}",
-            utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 2)));
+    t = utils::everyNth(reverseSearchString, 2);
+    m_results.vec.emplace_back(std::format("  Odd:   {} ({} letters)", t, t.size()));
+    t = utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 2);
+    m_results.vec.emplace_back(std::format("  Even:  {} ({} letters)", t, t.size()));
     m_results.vec.emplace_back("");
     m_results.vec.emplace_back("Every three letters (reversed)");
     m_results.vec.emplace_back("");
-    m_results.vec.emplace_back(std::format("  Odd:   {}", utils::everyNth(reverseSearchString, 3)));
-    m_results.vec.emplace_back(
-        std::format(
-            "  Even:  {}",
-            utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 3)));
+    t = utils::everyNth(reverseSearchString, 3);
+    m_results.vec.emplace_back(std::format("  Odd:   {} ({} letters)", t, t.size()));
+    t = utils::everyNth({ reverseSearchString.begin() + 1, reverseSearchString.end() }, 3);
+    m_results.vec.emplace_back(std::format("  Even:  {} ({} letters)", t, t.size()));
 }
 
 void Ui::reverse()
