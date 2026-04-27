@@ -1025,7 +1025,7 @@ void Ui::enterFoundStringUnconstrained()
         }
         // Because we've specified KeysAllowed::All we need to let these special keys
         // through but not others.
-        // TODO: Desperately need a bitset on KeysAllowed
+        // TODO: Could use the new bitmask to simplify this
         if (key == keyPress::BACKSPACE || key == keyPress::LEFT || key == keyPress::RIGHT
             || key == keyPress::DELETE || key == keyPress::CTRL_A || key == keyPress::CTRL_E
             || key == keyPress::END || key == keyPress::HOME || key == keyPress::CTRL_U
