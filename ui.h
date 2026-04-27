@@ -73,6 +73,7 @@ private:
         FreeForm,
         Words,
         Load,
+        Jumble,
     };
 
     struct Results {
@@ -97,7 +98,9 @@ private:
     void displayCommandPrompt(terminal::OutputMode mode = terminal::OutputMode::render);
     void clearCommandPrompt(terminal::OutputMode mode = terminal::OutputMode::render);
     void hr(std::size_t row, terminal::OutputMode mode = terminal::OutputMode::render);
-    void jumble();
+    void jumble(
+        std::string remainingLetters = "",
+        terminal::OutputMode mode = terminal::OutputMode::render);
     void lookup();
     void regular();
     void reverse();

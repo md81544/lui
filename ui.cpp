@@ -445,14 +445,17 @@ void Ui::hr(std::size_t row, terminal::OutputMode mode)
     m_term.print(hr, mode);
 }
 
-void Ui::jumble()
+void Ui::jumble(std::string foundString, terminal::OutputMode mode)
 {
+    if (foundString.empty()) {
+        foundString = m_clue.foundString;
+    }
+
     std::string foundLetters;
 
     // What are our found letters? Exclude '.' and '/'
-    std::ranges::copy_if(m_clue.foundString, std::back_inserter(foundLetters), [](char c) {
-        return c != '.' && c != '/';
-    });
+    std::ranges::copy_if(
+        foundString, std::back_inserter(foundLetters), [](char c) { return c != '.' && c != '/'; });
     // Which letters are remaining in the search string?
     std::unordered_map<char, int> freq;
     for (char c : foundLetters) {
@@ -473,7 +476,7 @@ void Ui::jumble()
     std::mt19937 gen { rd() };
     std::ranges::shuffle(remainingLetters, gen);
     auto grid = lettersInACircle(remainingLetters);
-    clearResults();
+    clearResults(mode);
     m_results.vec.emplace_back("");
     for (const auto& s : grid) {
         m_results.vec.emplace_back(" " + s);
@@ -482,7 +485,7 @@ void Ui::jumble()
     m_results.vec.emplace_back("");
 
     std::string alreadyFound;
-    for (const auto& c : m_clue.foundString) {
+    for (const auto& c : foundString) {
         if (c == '.') {
             alreadyFound.append("_ ");
         } else {
@@ -490,6 +493,10 @@ void Ui::jumble()
         }
     }
     m_results.vec.emplace_back(alreadyFound);
+    m_results.type = ResultsType::Jumble;
+    if (mode == terminal::OutputMode::immediate) {
+        displayResults(mode);
+    }
 }
 
 void Ui::lookup()
@@ -965,6 +972,9 @@ void Ui::enterFoundStringConstrained()
         std::size_t dfSize = separatedStringSize(opts.defaultValue); // ditto
         if (cvSize < dfSize) {
             opts.currentValue.append(std::string(dfSize - cvSize, '.'));
+        }
+        if (m_results.type == ResultsType::Jumble) {
+            jumble(opts.currentValue, terminal::OutputMode::immediate);
         }
         return true;
     };

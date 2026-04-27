@@ -3,9 +3,6 @@
 * Don't sort "letters remaining" in found entry; they should be in the order
   in which they appear in the search string
 
-* If "jumble" results are shown then changes to "found" should cause it to
-  redraw dynamically (would need a "jumble" results type)
-
 * Lost focus processing currently won't trigger if in an input.
   Maybe consider using a loop in input with a non-blocking event wait?
   - if a non-handled "key"/event is received then input could be terminated
