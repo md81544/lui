@@ -961,7 +961,6 @@ void Ui::enterFoundStringConstrained()
         if (lettersRemaining.empty()) {
             opts.statusData = "";
         } else {
-            std::sort(lettersRemaining.begin(), lettersRemaining.end());
             opts.statusData = "Letters remaining: " + lettersRemaining + " ";
         }
         return rc;
