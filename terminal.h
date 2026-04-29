@@ -157,6 +157,9 @@ struct InputOptions {
     // currentValue allows the hook caller to see the current
     // state of the input string (and modify it as required).
     std::string currentValue {};
+    // previousValue is available to postInsertHook or afterEveryIterationHook
+    // to compare what changed (if anything).
+    std::string previousValue {};
     // Hooks are called after a key is pressed, before it is inserted to
     // the input string (for pre-) and after it is inserted (for post-).
     // Defaults do nothing. To disallow a key (or cancel the operation
@@ -165,8 +168,11 @@ struct InputOptions {
     // caller can modify it as part of the hook if needed.
     std::function<int(int key)> preInsertHook { [](int key) -> int { return key; } };
     // Note post hook returns a bool. A false return indicates the
-    // caller wants to cancel the insertion.
+    // caller wants to cancel the insertion. ** Only called if the preInsertHook
+    // didn't set the keypress to keyPress::NO_KEY **
     std::function<bool()> postInsertHook { []() -> bool { return true; } };
+    // Always called after every iteration:
+    std::function<void()> afterEveryIterationHook { []() { } };
     // Appends a status string after the input:
     InputReportStatus reportStatus { InputReportStatus::None };
     std::string statusData; // The caller can manipulate this in hooks and it will

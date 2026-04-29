@@ -558,7 +558,7 @@ std::string Terminal::input(InputOptions& opts)
                 }
         }
         // Finally add/insert to value
-        std::string oldValue = opts.currentValue; // for restoration if caller cancels in post hook
+        opts.previousValue = opts.currentValue; // for restoration if caller cancels in post hook
         if (!done && key != keyPress::NO_KEY) {
             std::size_t localMaxLen = opts.maxLen;
             if (localMaxLen == 0) {
@@ -587,9 +587,10 @@ std::string Terminal::input(InputOptions& opts)
         if (key != keyPress::NO_KEY) {
             if (!opts.postInsertHook()) {
                 // false signifies the caller wants to abort the insertion
-                opts.currentValue = oldValue;
+                opts.currentValue = opts.previousValue;
             }
         }
+        opts.afterEveryIterationHook();
     }
     cursorOff(imm);
     return opts.currentValue;

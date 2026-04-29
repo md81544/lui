@@ -851,6 +851,7 @@ void Ui::enterFoundStringConstrained()
                 opts.currentValue = std::string(m_clue.searchString.size(), '.');
                 opts.maxLen = opts.currentValue.size();
                 opts.cursorPos = 0;
+                lettersRemaining = m_clue.searchString;
                 rc = keyPress::NO_KEY;
                 break;
             }
@@ -979,10 +980,12 @@ void Ui::enterFoundStringConstrained()
         if (cvSize < dfSize) {
             opts.currentValue.append(std::string(dfSize - cvSize, '.'));
         }
-        if (m_results.type == ResultsType::Jumble) {
+        return true;
+    };
+    opts.afterEveryIterationHook = [&]() {
+        if (m_results.type == ResultsType::Jumble && opts.currentValue != opts.previousValue) {
             jumble(opts.currentValue, terminal::OutputMode::immediate);
         }
-        return true;
     };
     if (!m_clue.foundString.empty()) {
         // May have been extended with word separators
