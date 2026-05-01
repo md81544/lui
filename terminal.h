@@ -27,6 +27,13 @@ enum class OutputMode {
     immediate,
 };
 
+enum class ColourDepth {
+    None,
+    Ansi16,
+    Ansi256,
+    TrueColour
+};
+
 enum class Colour : std::uint8_t {
     Default,
     Black,
@@ -202,6 +209,14 @@ public:
     void goTo(std::size_t row, std::size_t col, OutputMode mode = OutputMode::render);
     void setFgColour(Colour colour, OutputMode mode = OutputMode::render);
     void setBgColour(Colour colour, OutputMode mode = OutputMode::render);
+    // Note, the following two set colours ONLY if the terminal supports more than
+    // 16 colours. Otherwise they are no-ops. Therefore a safe way to call is to
+    // set a 16-bit colour first as a fallback, and then call an RGB version.
+    // Additionally, the (potential) new high-colour won't be saved as the 
+    // current colour. Resetting colours assumes 16-colour mode (see ColourGuard).
+    void setFgColour(int r, int g, int b, OutputMode mode = OutputMode::render);
+    void setBgColour(int r, int g, int b, OutputMode mode = OutputMode::render);
+
     Colour getFgColour() const;
     Colour getBgColour() const;
     void cursorUp(uint8_t n, OutputMode mode = OutputMode::render);
@@ -263,6 +278,8 @@ public:
     std::string getAnsiSequenceFgColour(Colour colour);
     std::string getAnsiSequenceBgColour(Colour colour);
 
+    ColourDepth detectColourDepth();
+
 private:
     // if UTF is supported, return utfVersion, otherwise return asciiVersion
     std::string_view utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion);
@@ -277,6 +294,31 @@ private:
     bool m_utf8Supported { false };
     Colour m_currentFgColour { Colour::Default };
     Colour m_currentBgColour { Colour::Default };
+    ColourDepth m_colourDepth;
+};
+
+class ColourGuard {
+public:
+    explicit ColourGuard(Terminal* term) noexcept
+        : m_term(term)
+        , m_fg(term->getFgColour())
+        , m_bg(term->getBgColour())
+    {
+    }
+    ~ColourGuard() noexcept
+    {
+        m_term->setFgColour(m_fg);
+        m_term->setBgColour(m_bg);
+    }
+
+private:
+    Terminal* m_term;
+    ColourGuard(const ColourGuard&) = delete;
+    ColourGuard(const ColourGuard&&) = delete;
+    const ColourGuard operator=(const ColourGuard&) = delete;
+    const ColourGuard operator=(const ColourGuard&&) = delete;
+    Colour m_fg;
+    Colour m_bg;
 };
 
 } // namespace terminal

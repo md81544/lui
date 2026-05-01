@@ -50,6 +50,7 @@ Terminal::Terminal()
     if (hasUtf8Support()) {
         m_utf8Supported = true;
     }
+    m_colourDepth = detectColourDepth();
     m_renderMap.clear();
     std::cout << "\033[?1000h\033[?1006h"; // SGR mode (if supported) for mouse reporting
 #ifdef NDEBUG
@@ -115,6 +116,30 @@ void Terminal::setBgColour(Colour colour, OutputMode mode)
 {
     m_currentBgColour = colour;
     output(colourToAnsiBg(colour), mode);
+}
+
+void Terminal::setFgColour(int r, int g, int b, OutputMode mode)
+{
+    if (m_colourDepth == ColourDepth::TrueColour) {
+        output(std::format("\x1b[38;2;{};{};{}m", r, g, b), mode);
+    }
+    if (m_colourDepth == ColourDepth::Ansi256) {
+        // Quantise to nearest 256-palette entry (RGB cube, channels 0-5)
+        int ri = r * 5 / 255, gi = g * 5 / 255, bi = b * 5 / 255;
+        output(std::format("\x1b[38;5;{}m", 16 + 36 * ri + 6 * gi + bi), mode);
+    }
+}
+
+void Terminal::setBgColour(int r, int g, int b, OutputMode mode)
+{
+    if (m_colourDepth == ColourDepth::TrueColour) {
+        output(std::format("\x1b[48;2;{};{};{}m", r, g, b), mode);
+    }
+    if (m_colourDepth == ColourDepth::Ansi256) {
+        // Quantise to nearest 256-palette entry (RGB cube, channels 0-5)
+        int ri = r * 5 / 255, gi = g * 5 / 255, bi = b * 5 / 255;
+        output(std::format("\x1b[48;5;{}m", 16 + 36 * ri + 6 * gi + bi), mode);
+    }
 }
 
 Colour Terminal::getFgColour() const
@@ -252,6 +277,7 @@ void Terminal::printMenuString(
     std::string_view text,
     OutputMode mode)
 {
+    ColourGuard cg(this);
     bool highlighting { false };
     setFgColour(normal, mode);
     for (const char c : text) {
@@ -640,6 +666,57 @@ std::string Terminal::getAnsiSequenceFgColour(Colour colour)
 std::string Terminal::getAnsiSequenceBgColour(Colour colour)
 {
     return colourToAnsiBg(colour);
+}
+
+ColourDepth Terminal::detectColourDepth()
+{
+    const auto env = [](const char* name) -> std::string_view {
+        const char* v = std::getenv(name);
+        return v ? v : "";
+    };
+
+    // If inside tmux, COLORTERM is unreliable — check the outer terminal instead.
+    // tmux sets TERM=screen or TERM=tmux (plus -256color variants) and TMUX is set.
+    const bool in_tmux = !env("TMUX").empty();
+
+    if (in_tmux) {
+        // tmux >=2.2 passes through truecolor if terminal-overrides is configured.
+        // The outer terminal is described by TERM_PROGRAM (set by the launching shell).
+        auto tp = env("TERM_PROGRAM");
+        if (tp == "iTerm.app" || tp == "vscode" || tp == "Hyper") {
+            return ColourDepth::TrueColour;
+        }
+
+        // tmux advertises 256-color support via its own TERM string
+        auto term = env("TERM");
+        if (term.find("256color") != std::string_view::npos
+            || term.find("tmux") != std::string_view::npos) {
+            return ColourDepth::Ansi256;
+        }
+
+        return ColourDepth::Ansi16;
+    }
+
+    // Outside tmux: strongest signal first.
+    auto ct = env("COLORTERM");
+    if (ct == "truecolor" || ct == "24bit") {
+        return ColourDepth::TrueColour;
+    }
+
+    auto tp = env("TERM_PROGRAM");
+    if (tp == "iTerm.app" || tp == "vscode") {
+        return ColourDepth::TrueColour;
+    }
+
+    auto term = env("TERM");
+    if (term.find("256color") != std::string_view::npos) {
+        return ColourDepth::Ansi256;
+    }
+    if (term == "dumb" || term.empty()) {
+        return ColourDepth::None;
+    }
+
+    return ColourDepth::Ansi16;
 }
 
 // Private member functions:

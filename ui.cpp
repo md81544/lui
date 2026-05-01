@@ -97,6 +97,23 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
         throw(std::runtime_error("Terminal size is too small!"));
     }
     log("DEBUG LOG");
+    terminal::ColourDepth colourDepth = m_term.detectColourDepth();
+    switch (colourDepth) {
+        case terminal::ColourDepth::None:
+            log("Terminal colour depth = none");
+            break;
+        case terminal::ColourDepth::Ansi16:
+            log("Terminal colour depth = 16");
+            break;
+        case terminal::ColourDepth::Ansi256:
+            log("Terminal colour depth = 256");
+            break;
+        case terminal::ColourDepth::TrueColour:
+            log("Terminal colour depth = TrueColour");
+            break;
+        default:
+            assert("Unhandled colour depth");
+    }
     const auto dataDir = locateDataDirectory(argv0);
     m_term.setShutdownCheckFunction(
         []() -> bool { return mgo::shutdown_requested.load(std::memory_order_relaxed); });
