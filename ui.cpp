@@ -117,10 +117,14 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
     const auto dataDir = locateDataDirectory(argv0);
     m_term.setShutdownCheckFunction(
         []() -> bool { return mgo::shutdown_requested.load(std::memory_order_relaxed); });
-    m_term.printAt(1, 2, "Loading data...");
+    {
+        terminal::ColourGuard cg(&m_term);
+        m_term.setFgColour(239, 119, 252);
+        m_term.printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
-    m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");
+        m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");
 #endif
+    }
     m_term.cursorOff();
     m_term.render();
     log(std::format("Loading data... (word complexity {})", wordComplexity));
@@ -369,7 +373,7 @@ void Ui::displayResults(terminal::OutputMode mode)
     }
 
     if (!m_results.vec.empty()) {
-        terminal::Colour oldFgColour = m_term.getFgColour();
+        terminal::ColourGuard cg(&m_term);
         m_term.setFgColour(terminal::Colour::BrightYellow, mode);
         std::size_t currentRow = m_resultsTopRow + 2;
         if (m_results.scrollOffset != 0) {
@@ -396,7 +400,6 @@ void Ui::displayResults(terminal::OutputMode mode)
             // if we didn't break then we must be at the bottom
             m_results.scrollAtBottom = true;
         }
-        m_term.setFgColour(oldFgColour, mode);
     }
 }
 
