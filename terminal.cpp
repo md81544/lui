@@ -426,6 +426,7 @@ std::string Terminal::input(InputOptions& opts)
                                // Downside is anything after the input will be cleared.
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
+        opts.previousValue = opts.currentValue; // for restoration if caller cancels in post hook
         int key = getChar();
         if (ascii::isprint(key) && opts.keysAllowed > 0) {
             bool matched = false;
@@ -562,7 +563,6 @@ std::string Terminal::input(InputOptions& opts)
                 }
         }
         // Finally add/insert to value
-        opts.previousValue = opts.currentValue; // for restoration if caller cancels in post hook
         if (!done && key != keyPress::NO_KEY) {
             std::size_t localMaxLen = opts.maxLen;
             if (localMaxLen == 0) {

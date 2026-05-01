@@ -46,7 +46,7 @@ std::optional<int> Menu::getIdFromHitBox(std::size_t clickRow, std::size_t click
         if (i.row != clickRow - m_row) {
             continue;
         }
-        if (clickCol >= currentCol && clickCol  <= currentCol + i.displayWidth) {
+        if (clickCol >= currentCol && clickCol <= currentCol + i.displayWidth) {
             return i.id;
         }
         currentCol += (i.displayWidth + 1);

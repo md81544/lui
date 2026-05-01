@@ -1,7 +1,27 @@
+* Add support for checking terminal capabilities and using more than 16
+  colours if available
+  - Keep usual ANSI 16 colour usage
+  - Add setFg/setBg taking r,g,b parameters. These will just set default
+    fg/bg if higher-than-16 colours aren't available.
+
+* Cheat warning on, say, lookup (messageBox with "are you sure")
+
+* Auto-save on clue number entry
+
+* Shift-letter (or Ctrl-) in input should quit input and activate command
+
+* Mouse click in input should terminate input (or position cursor if within)
+
 * Should be able to load a clue from the "load" list by clicking on item
 
 * Dynamic update of jumble during constrained found entry doesn't update
   when Ctrl-U is pressed
+
+* When removing letters from "remaining", favour position, e.g.
+  if search string is "UNDUE" and found string is "..DU." then the 
+  "remaining" string should be "UNE" not "NUE"
+
+* When in input mode, dim the menu?
 
 * Ability to turn off focus checking (gets annoying when debugging)
 
