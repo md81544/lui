@@ -424,6 +424,7 @@ std::string Terminal::input(InputOptions& opts)
     }
     while (!done) {
         // Print the current value
+        cursorOff(imm);
         goTo(opts.row, opts.col, imm);
         setBgColour(opts.bgColour, imm);
         setFgColour(opts.fgColour, imm);
@@ -450,6 +451,7 @@ std::string Terminal::input(InputOptions& opts)
 
         clearToEndOfLine(imm); // See note in header; this works around tmux behaviour;
                                // Downside is anything after the input will be cleared.
+        cursorOn(imm);
         // Position cursor to insertion/overwrite point
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         opts.previousValue = opts.currentValue; // for restoration if caller cancels in post hook
