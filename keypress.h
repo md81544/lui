@@ -23,8 +23,8 @@ inline std::function<bool()> shutdownCheckFunction;
 
 struct MouseClick {
     int button;
-    int row;
-    int col;
+    std::size_t row;
+    std::size_t col;
 };
 
 inline keyPress::MouseClick lastMouseClick;

@@ -422,6 +422,7 @@ InputResult Terminal::input(InputOptions& opts)
             setCursorType(CursorType::BlockBlinking, imm);
         }
     }
+    InputResult rc;
     while (!done) {
         // Print the current value
         cursorOff(imm);
@@ -458,7 +459,18 @@ InputResult Terminal::input(InputOptions& opts)
         int key = getChar();
         if (key == keyPress::MOUSE) {
             if (keyPress::lastMouseClick.button == 0) {
-                key = keyPress::ENTER;
+                if (keyPress::lastMouseClick.row == opts.row
+                    && (keyPress::lastMouseClick.col >= opts.col
+                        && keyPress::lastMouseClick.col
+                            <= opts.col + opts.currentValue.size() - 1)) {
+                    opts.cursorPos = keyPress::lastMouseClick.col - opts.col;
+                } else {
+                    // user clicked off the input field
+                    rc.mouseClickCol = keyPress::lastMouseClick.col;
+                    rc.mouseClickRow = keyPress::lastMouseClick.row;
+                    rc.clickType = InputMouseClickType::ClickedOff;
+                    key = keyPress::ENTER;
+                }
             }
         }
         if (ascii::isprint(key) && opts.keysAllowed > 0) {
@@ -630,7 +642,8 @@ InputResult Terminal::input(InputOptions& opts)
         opts.afterEveryIterationHook();
     }
     cursorOff(imm);
-    return { opts.currentValue };
+    rc.result = opts.currentValue;
+    return rc;
 }
 
 std::string Terminal::getAnsiSequenceBold(bool on)

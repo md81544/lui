@@ -193,7 +193,6 @@ struct InputOptions {
 
 enum class InputMouseClickType {
     None,
-    ClickedIn,
     ClickedOff,
 };
 
@@ -202,11 +201,12 @@ struct InputResult {
     std::string result;
     // Possible mouse click, either within the field,
     // out of the field, or none.
-    InputMouseClickType click { InputMouseClickType::None };
-    // In ClickedIn, the column refers to the column of the input field
-    // If ClickedOut, it's the column of the whole terminal
-    std::size_t mouseClickCol {0};
-    std::size_t mouseClickRow {0};
+    InputMouseClickType clickType { InputMouseClickType::None };
+    // If ClickedOut, it's the column of the whole terminal.
+    // The caller can use that as a separate command if desired
+    // (e.g. the user clicked a menu item)
+    std::size_t mouseClickCol { 0 };
+    std::size_t mouseClickRow { 0 };
 };
 
 class Terminal final {
@@ -230,7 +230,7 @@ public:
     // Note, the following two set colours ONLY if the terminal supports more than
     // 16 colours. Otherwise they are no-ops. Therefore a safe way to call is to
     // set a 16-bit colour first as a fallback, and then call an RGB version.
-    // Additionally, the (potential) new high-colour won't be saved as the 
+    // Additionally, the (potential) new high-colour won't be saved as the
     // current colour. Resetting colours assumes 16-colour mode (see ColourGuard).
     void setFgColour(int r, int g, int b, OutputMode mode = OutputMode::render);
     void setBgColour(int r, int g, int b, OutputMode mode = OutputMode::render);
