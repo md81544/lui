@@ -693,8 +693,7 @@ void Ui::load()
     opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
         | terminal::keysAllowed::upper;
     opts.maxLen = 4;
-    terminal::InputResult inputResult = m_term.input(opts);
-    std::string clueNumber = inputResult.enteredString;
+    std::string clueNumber = input(opts);
     if (!clueNumber.empty()) {
         auto it = m_savedClues.find(clueNumber);
         if (it == m_savedClues.end()) {
@@ -708,9 +707,6 @@ void Ui::load()
         m_clue.comment = it->second.comment;
     }
     clearResults(terminal::OutputMode::immediate);
-    if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
-        m_commandQueue.push_back(decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
-    }
 }
 
 void Ui::save()
@@ -1017,8 +1013,7 @@ void Ui::enterFoundStringConstrained()
     } else {
         opts.maxLen = m_clue.searchString.size();
     }
-    terminal::InputResult inputResult = m_term.input(opts);
-    m_clue.foundString = inputResult.enteredString;
+    m_clue.foundString = input(opts);
     m_clue.dirty = true;
     log(std::format("m_clue.foundString (constrained) input: '{}'", m_clue.foundString));
     if (opts.EntryKey == keyPress::TAB) {
@@ -1028,9 +1023,6 @@ void Ui::enterFoundStringConstrained()
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to search entry
         m_commandQueue.push_back(Command::EnterSearchString);
-    }
-    if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
-        m_commandQueue.push_back(decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
     }
 }
 
@@ -1067,10 +1059,8 @@ void Ui::enterFoundStringUnconstrained()
         }
         return keyPress::NO_KEY;
     };
-    terminal::InputResult inputResult;
     while (true) {
-        inputResult = m_term.input(opts);
-        m_clue.foundString = inputResult.enteredString;
+        m_clue.foundString = input(opts);
         if (m_clue.foundString.starts_with('/') || m_clue.foundString.ends_with('/')) {
             opts.defaultValue = m_clue.foundString;
             setResults("Found string cannot start with or end with a separator ('/')");
@@ -1098,9 +1088,6 @@ void Ui::enterFoundStringUnconstrained()
         // chain to search entry
         m_commandQueue.push_back(Command::EnterSearchString);
     }
-    if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
-        m_commandQueue.push_back(decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
-    }
 }
 
 void Ui::enterSearchString()
@@ -1126,8 +1113,7 @@ void Ui::enterSearchString()
         }
         return key;
     };
-    terminal::InputResult inputResult = m_term.input(opts);
-    m_clue.searchString = inputResult.enteredString;
+    m_clue.searchString = input(opts);
     if (separatedStringSize(m_clue.foundString) != m_clue.searchString.size()) {
         m_clue.foundString = std::string(m_clue.searchString.size(), '.');
     }
@@ -1136,10 +1122,6 @@ void Ui::enterSearchString()
     if (opts.EntryKey == keyPress::TAB) {
         // chain to enter found string
         m_commandQueue.push_back(Command::EnterFoundString);
-    }
-    if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
-        m_commandQueue.push_back(
-            decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
     }
 }
 
@@ -1152,8 +1134,7 @@ void Ui::enterCommentString()
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
     opts.defaultValue = m_clue.comment;
-    terminal::InputResult inputResult = m_term.input(opts);
-    m_clue.comment = inputResult.enteredString;
+    m_clue.comment = input(opts);
     m_clue.dirty = true;
     log(std::format("m_clue.comment input: '{}'", m_clue.comment));
     if (opts.EntryKey == keyPress::TAB) {
@@ -1163,10 +1144,6 @@ void Ui::enterCommentString()
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to found entry
         m_commandQueue.push_back(Command::EnterFoundString);
-    }
-    if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
-        m_commandQueue.push_back(
-            decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
     }
 }
 
@@ -1182,16 +1159,12 @@ void Ui::enterClueNumber()
     opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
         | terminal::keysAllowed::upper;
     opts.maxLen = 4;
-    terminal::InputResult inputResult = m_term.input(opts);
-    m_clue.clueNumber = inputResult.enteredString;
+    m_clue.clueNumber = input(opts);
     m_clue.dirty = true;
     log(std::format("m_clue input: '{}'", m_clue.clueNumber));
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to comment entry
         m_commandQueue.push_back(Command::EnterComment);
-    }
-    if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
-        m_commandQueue.push_back(decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
     }
 }
 
@@ -1384,6 +1357,19 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
         }
     }
     return Command::NoOp;
+}
+
+std::string Ui::input(terminal::InputOptions& opts)
+{
+    terminal::InputResult inputResult = m_term.input(opts);
+    if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
+        m_commandQueue.push_back(
+            decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
+    }
+    if (inputResult.lostFocus) {
+        m_commandQueue.push_back(Command::LostFocus);
+    }
+    return inputResult.enteredString;
 }
 
 } // namespace ui

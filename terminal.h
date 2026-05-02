@@ -207,6 +207,8 @@ struct InputResult {
     // (e.g. the user clicked a menu item)
     std::size_t mouseClickCol { 0 };
     std::size_t mouseClickRow { 0 };
+    // If set to true, input was terminated by a loss of focus of the terminal:
+    bool lostFocus { false };
 };
 
 class Terminal final {

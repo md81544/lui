@@ -473,6 +473,10 @@ InputResult Terminal::input(InputOptions& opts)
                 }
             }
         }
+        if (key == keyPress::FOCUS_OUT) {
+            rc.lostFocus = true;
+            key = keyPress::ENTER;
+        }
         if (ascii::isprint(key) && opts.keysAllowed > 0) {
             bool matched = false;
             if (opts.keysAllowed & keysAllowed::alpha) {

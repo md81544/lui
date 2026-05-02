@@ -126,6 +126,7 @@ private:
     void lostFocus();
     Command decodeMouseClick(int button, std::size_t row, std::size_t col);
     Command decodeKeyPress(int keyPress, bool extendedFunction);
+    std::string input(terminal::InputOptions& opt);
 
     terminal::Terminal m_term;
     TerminalSize m_termSize;
