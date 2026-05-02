@@ -191,6 +191,24 @@ struct InputOptions {
     int EntryKey { keyPress::ENTER };
 };
 
+enum class InputMouseClickType {
+    None,
+    ClickedIn,
+    ClickedOff,
+};
+
+struct InputResult {
+    // Returned string
+    std::string result;
+    // Possible mouse click, either within the field,
+    // out of the field, or none.
+    InputMouseClickType click { InputMouseClickType::None };
+    // In ClickedIn, the column refers to the column of the input field
+    // If ClickedOut, it's the column of the whole terminal
+    std::size_t mouseClickCol {0};
+    std::size_t mouseClickRow {0};
+};
+
 class Terminal final {
 public:
     Terminal();
@@ -267,7 +285,7 @@ public:
     // issue where tmux displays *pasted* input (which might be
     // longer than a fixed-width input) before we even get a chance
     // to see each individual "key press" from the pasted string.
-    std::string input(InputOptions& opts);
+    InputResult input(InputOptions& opts);
 
     // Get ANSI sequences as strings for inclusion elsewhere, for
     // example if the caller wants to embed in a string.

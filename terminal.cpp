@@ -401,7 +401,7 @@ void Terminal::setShutdownCheckFunction(std::function<bool()> fn)
     keyPress::shutdownCheckFunction = fn;
 }
 
-std::string Terminal::input(InputOptions& opts)
+InputResult Terminal::input(InputOptions& opts)
 {
     // Note, not using readline library here. While readline (GNU especially)
     // has hooks to probably cover needs, it IS a separate dependency which
@@ -456,6 +456,11 @@ std::string Terminal::input(InputOptions& opts)
         goTo(opts.row, opts.col + opts.cursorPos, imm);
         opts.previousValue = opts.currentValue; // for restoration if caller cancels in post hook
         int key = getChar();
+        if (key == keyPress::MOUSE) {
+            if (keyPress::lastMouseClick.button == 0) {
+                key = keyPress::ENTER;
+            }
+        }
         if (ascii::isprint(key) && opts.keysAllowed > 0) {
             bool matched = false;
             if (opts.keysAllowed & keysAllowed::alpha) {
@@ -625,7 +630,7 @@ std::string Terminal::input(InputOptions& opts)
         opts.afterEveryIterationHook();
     }
     cursorOff(imm);
-    return opts.currentValue;
+    return { opts.currentValue };
 }
 
 std::string Terminal::getAnsiSequenceBold(bool on)

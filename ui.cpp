@@ -693,7 +693,7 @@ void Ui::load()
     opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
         | terminal::keysAllowed::upper;
     opts.maxLen = 4;
-    std::string clueNumber = m_term.input(opts);
+    std::string clueNumber = m_term.input(opts).result;
     if (!clueNumber.empty()) {
         auto it = m_savedClues.find(clueNumber);
         if (it == m_savedClues.end()) {
@@ -740,7 +740,7 @@ void Ui::filterResults()
     inputOpts.row = m_termSize.rows - 1;
     inputOpts.col = 1;
     inputOpts.overrideCursorType = terminal::CursorType::BlockBlinking;
-    std::string filter = m_term.input(inputOpts);
+    std::string filter = m_term.input(inputOpts).result;
     std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
     // dots shouldn't match spaces
     filter = std::regex_replace(filter, std::regex("\\."), "[a-z]");
@@ -1013,7 +1013,7 @@ void Ui::enterFoundStringConstrained()
     } else {
         opts.maxLen = m_clue.searchString.size();
     }
-    m_clue.foundString = m_term.input(opts);
+    m_clue.foundString = m_term.input(opts).result;
     m_clue.dirty = true;
     log(std::format("m_clue.foundString (constrained) input: '{}'", m_clue.foundString));
     if (opts.EntryKey == keyPress::TAB) {
@@ -1060,7 +1060,7 @@ void Ui::enterFoundStringUnconstrained()
         return keyPress::NO_KEY;
     };
     while (true) {
-        m_clue.foundString = m_term.input(opts);
+        m_clue.foundString = m_term.input(opts).result;
         if (m_clue.foundString.starts_with('/') || m_clue.foundString.ends_with('/')) {
             opts.defaultValue = m_clue.foundString;
             setResults("Found string cannot start with or end with a separator ('/')");
@@ -1113,7 +1113,7 @@ void Ui::enterSearchString()
         }
         return key;
     };
-    m_clue.searchString = m_term.input(opts);
+    m_clue.searchString = m_term.input(opts).result;
     if (separatedStringSize(m_clue.foundString) != m_clue.searchString.size()) {
         m_clue.foundString = std::string(m_clue.searchString.size(), '.');
     }
@@ -1134,7 +1134,7 @@ void Ui::enterCommentString()
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
     opts.defaultValue = m_clue.comment;
-    m_clue.comment = m_term.input(opts);
+    m_clue.comment = m_term.input(opts).result;
     m_clue.dirty = true;
     log(std::format("m_clue.comment input: '{}'", m_clue.comment));
     if (opts.EntryKey == keyPress::TAB) {
@@ -1159,7 +1159,7 @@ void Ui::enterClueNumber()
     opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
         | terminal::keysAllowed::upper;
     opts.maxLen = 4;
-    m_clue.clueNumber = m_term.input(opts);
+    m_clue.clueNumber = m_term.input(opts).result;
     m_clue.dirty = true;
     log(std::format("m_clue input: '{}'", m_clue.clueNumber));
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
