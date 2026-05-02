@@ -198,7 +198,7 @@ enum class InputMouseClickType {
 
 struct InputResult {
     // Returned string
-    std::string result;
+    std::string enteredString;
     // Possible mouse click, either within the field,
     // out of the field, or none.
     InputMouseClickType clickType { InputMouseClickType::None };

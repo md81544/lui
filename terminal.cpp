@@ -642,7 +642,7 @@ InputResult Terminal::input(InputOptions& opts)
         opts.afterEveryIterationHook();
     }
     cursorOff(imm);
-    rc.result = opts.currentValue;
+    rc.enteredString = opts.currentValue;
     return rc;
 }
 
