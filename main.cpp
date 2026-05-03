@@ -18,7 +18,18 @@ int main(int argc, char** argv)
     }
     if (clp.has("-h") || clp.has("--help")) {
         std::cout << "Usage: lui [-w1|-w2] (word complexity, defaults to 3=most words)\n";
+        std::cout << "           [-c0|-c16|-c256|-cTC] - colour depth (0=mono, TC=True Colour\n";
         return 2;
+    }
+    std::optional<ui::ColourDepth> cd;
+    if (clp.has("-c0") || clp.has("-c1") || clp.has("-c2")) {
+        cd = ui::ColourDepth::Mono;
+    } else if (clp.has("-c16")) {
+        cd = ui::ColourDepth::Ansi16;
+    } else if (clp.has("-c256")) {
+        cd = ui::ColourDepth::Ansi256;
+    } else if (clp.has("-cTC")) {
+        cd = ui::ColourDepth::TrueColour;
     }
 
 #ifndef NDEBUG
@@ -31,7 +42,7 @@ int main(int argc, char** argv)
     mgo::Log::info("Lui started");
 
     try {
-        ui::Ui ui(argv[0], wordComplexity);
+        ui::Ui ui(argv[0], wordComplexity, cd);
         return ui.run();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

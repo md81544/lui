@@ -91,13 +91,40 @@ std::size_t separatedStringSize(std::string_view foundString)
 
 namespace ui {
 
-Ui::Ui(std::string_view argv0, int wordComplexity)
+Ui::Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> cd)
 {
     if (!checkTerminalLargeEnough()) {
         throw(std::runtime_error("Terminal size is too small!"));
     }
     log("DEBUG LOG");
-    terminal::ColourDepth colourDepth = m_term.detectColourDepth();
+    // What does the terminal actually support?
+    terminal::ColourDepth actualColourDepth = m_term.detectColourDepth();
+    terminal::ColourDepth colourDepth = actualColourDepth;
+    if (cd.has_value()) {
+        switch (cd.value()) {
+            case ColourDepth::Mono:
+                colourDepth = terminal::ColourDepth::None;
+                break;
+            case ColourDepth::Ansi16:
+                if (actualColourDepth >= terminal::ColourDepth::Ansi16) {
+                    colourDepth = terminal::ColourDepth::Ansi16;
+                }
+                break;
+            case ColourDepth::Ansi256:
+                if (actualColourDepth >= terminal::ColourDepth::Ansi256) {
+                    colourDepth = terminal::ColourDepth::Ansi256;
+                }
+                break;
+            case ColourDepth::TrueColour:
+                if (actualColourDepth >= terminal::ColourDepth::TrueColour) {
+                    colourDepth = terminal::ColourDepth::TrueColour;
+                }
+                break;
+            default:
+                assert("Unknown ColourDepth");
+        }
+    }
+    m_term.setColourDepth(colourDepth);
     switch (colourDepth) {
         case terminal::ColourDepth::None:
             log("Terminal colour depth = none");
@@ -114,12 +141,30 @@ Ui::Ui(std::string_view argv0, int wordComplexity)
         default:
             assert("Unhandled colour depth");
     }
+    if (actualColourDepth != colourDepth) {
+        switch (actualColourDepth) {
+            case terminal::ColourDepth::None:
+                log("(Actual colour depth = none)");
+                break;
+            case terminal::ColourDepth::Ansi16:
+                log("(Actual colour depth = 16)");
+                break;
+            case terminal::ColourDepth::Ansi256:
+                log("(Actual colour depth = 256)");
+                break;
+            case terminal::ColourDepth::TrueColour:
+                log("(Actual colour depth = TrueColour)");
+                break;
+            default:
+                assert("Unhandled colour depth");
+        }
+    }
     const auto dataDir = locateDataDirectory(argv0);
     m_term.setShutdownCheckFunction(
         []() -> bool { return mgo::shutdown_requested.load(std::memory_order_relaxed); });
     {
         terminal::ColourGuard cg(&m_term);
-        m_term.setFgColour(239, 119, 252);
+        m_term.setFgColour(106, 113, 247);
         m_term.printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
         m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");

@@ -34,6 +34,23 @@ enum class ColourDepth {
     TrueColour
 };
 
+struct ColourRgb {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+};
+
+namespace ColourAnsi16 {
+
+constexpr ColourRgb Black = ColourRgb { 0, 0, 0 };
+constexpr ColourRgb Red = ColourRgb { 128, 0, 0 };
+constexpr ColourRgb Green = ColourRgb { 0, 128, 0 };
+constexpr ColourRgb Yellow = ColourRgb { 128, 128, 0 };
+constexpr ColourRgb Blue = ColourRgb { 0, 0, 128 };
+constexpr ColourRgb Magenta = ColourRgb { 128, 0, 128 };
+// TODO etc
+} // namespace ColourAnsi16
+
 enum class Colour : std::uint8_t {
     Default,
     Black,
@@ -299,6 +316,7 @@ public:
     std::string getAnsiSequenceBgColour(Colour colour);
 
     ColourDepth detectColourDepth();
+    void setColourDepth(ColourDepth colourDepth);
 
 private:
     // if UTF is supported, return utfVersion, otherwise return asciiVersion

@@ -46,9 +46,16 @@ enum class Command {
     GainedFocus,
 };
 
+enum class ColourDepth{
+    Mono,
+    Ansi16,
+    Ansi256,
+    TrueColour,
+};
+
 class Ui final {
 public:
-    explicit Ui(std::string_view argv0, int wordComplexity);
+    explicit Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> colourDepth);
     Ui(const Ui&) = delete;
     Ui& operator=(const Ui&) = delete;
     Ui(Ui&&) = delete;

@@ -108,14 +108,18 @@ void Terminal::goTo(std::size_t row, std::size_t col, OutputMode mode)
 
 void Terminal::setFgColour(Colour colour, OutputMode mode)
 {
-    m_currentFgColour = colour;
-    output(colourToAnsiFg(colour), mode);
+    if (m_colourDepth > ColourDepth::None) {
+        m_currentFgColour = colour;
+        output(colourToAnsiFg(colour), mode);
+    }
 }
 
 void Terminal::setBgColour(Colour colour, OutputMode mode)
 {
-    m_currentBgColour = colour;
-    output(colourToAnsiBg(colour), mode);
+    if (m_colourDepth > ColourDepth::None) {
+        m_currentBgColour = colour;
+        output(colourToAnsiBg(colour), mode);
+    }
 }
 
 void Terminal::setFgColour(int r, int g, int b, OutputMode mode)
@@ -741,6 +745,11 @@ ColourDepth Terminal::detectColourDepth()
     }
 
     return ColourDepth::Ansi16;
+}
+
+void Terminal::setColourDepth(ColourDepth colourDepth)
+{
+    m_colourDepth = colourDepth;
 }
 
 // Private member functions:

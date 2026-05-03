@@ -1,3 +1,15 @@
+* Full RGB colour integration
+  - will need ANSI 16 colours defining as rgb values
+  - fallback to 16 colour (or monochrome) as required
+  - command-line switch to force colour mode (e.g. -c16, -c256, or -c{0,1,2}
+    (the latter all meaning monochrome where simply all colour changes
+    are ignored)
+  - all colours defined as rgb structs with ANSI16 defined maybe as
+      constexpr Colour RED = Colour{ 128, 0, 0};
+
+* Now it's easy to click or tab off a field, search string input should be
+  "focused" by default on start/restart
+
 * Cheat warning on, say, lookup (messageBox with "are you sure")
 
 * Auto-save on clue number entry
