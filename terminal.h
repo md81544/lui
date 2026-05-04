@@ -38,38 +38,51 @@ struct ColourRgb {
     uint8_t r;
     uint8_t g;
     uint8_t b;
+    bool defaultColour { false };
 };
 
-namespace ColourAnsi16 {
+namespace Colour {
 
-constexpr ColourRgb Black = ColourRgb { 0, 0, 0 };
-constexpr ColourRgb Red = ColourRgb { 128, 0, 0 };
-constexpr ColourRgb Green = ColourRgb { 0, 128, 0 };
-constexpr ColourRgb Yellow = ColourRgb { 128, 128, 0 };
-constexpr ColourRgb Blue = ColourRgb { 0, 0, 128 };
-constexpr ColourRgb Magenta = ColourRgb { 128, 0, 128 };
-// TODO etc
-} // namespace ColourAnsi16
-
-enum class Colour : std::uint8_t {
-    Default,
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    Grey,
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
+// clang-format off
+static constexpr ColourRgb ansi16[16] = {
+    {  0,   0,   0}, // 0  black
+    {170,   0,   0}, // 1  red
+    {  0, 170,   0}, // 2  green
+    {170, 170,   0}, // 3  yellow (dark)
+    {  0,   0, 170}, // 4  blue
+    {170,   0, 170}, // 5  magenta
+    {  0, 170, 170}, // 6  cyan
+    {170, 170, 170}, // 7  white (light grey)
+    { 85,  85,  85}, // 8  bright black (dark grey)
+    {255,  85,  85}, // 9  bright red
+    { 85, 255,  85}, // 10 bright green
+    {255, 255,  85}, // 11 bright yellow
+    { 85,  85, 255}, // 12 bright blue
+    {255,  85, 255}, // 13 bright magenta
+    { 85, 255, 255}, // 14 bright cyan
+    {255, 255, 255}, // 15 bright white
 };
+
+constexpr ColourRgb Black         = ansi16[0];
+constexpr ColourRgb Red           = ansi16[1];
+constexpr ColourRgb Green         = ansi16[2];
+constexpr ColourRgb Yellow        = ansi16[3];
+constexpr ColourRgb Blue          = ansi16[4];
+constexpr ColourRgb Magenta       = ansi16[5];
+constexpr ColourRgb Cyan          = ansi16[6];
+constexpr ColourRgb White         = ansi16[7];
+constexpr ColourRgb Grey          = ansi16[8];
+constexpr ColourRgb BrightRed     = ansi16[9];
+constexpr ColourRgb BrightGreen   = ansi16[10];
+constexpr ColourRgb BrightYellow  = ansi16[11];
+constexpr ColourRgb BrightBlue    = ansi16[12];
+constexpr ColourRgb BrightMagenta = ansi16[13];
+constexpr ColourRgb BrightCyan    = ansi16[14];
+constexpr ColourRgb BrightWhite   = ansi16[15];
+constexpr ColourRgb Default       = {0, 0, 0, true};
+// clang-format on
+
+} // namespace Colour
 
 enum class CursorType {
     Default,
@@ -172,8 +185,8 @@ struct InputOptions {
     std::string defaultValue {};
     Mode mode { Mode::Insert };
     CursorType overrideCursorType { CursorType::Default };
-    Colour fgColour { Colour::Default };
-    Colour bgColour { Colour::Default };
+    ColourRgb fgColour { Colour::Default };
+    ColourRgb bgColour { Colour::Default };
     // Restriction is for convenience, the caller is free to use
     // more logic in the hook callback.
     uint8_t keysAllowed { keysAllowed::print };
@@ -244,30 +257,23 @@ public:
     void print(std::string_view text, OutputMode mode = OutputMode::render);
     // Note! ANSI row/cols are 1-based but we use 0-based here
     void goTo(std::size_t row, std::size_t col, OutputMode mode = OutputMode::render);
-    void setFgColour(Colour colour, OutputMode mode = OutputMode::render);
-    void setBgColour(Colour colour, OutputMode mode = OutputMode::render);
-    // Note, the following two set colours ONLY if the terminal supports more than
-    // 16 colours. Otherwise they are no-ops. Therefore a safe way to call is to
-    // set a 16-bit colour first as a fallback, and then call an RGB version.
-    // Additionally, the (potential) new high-colour won't be saved as the
-    // current colour. Resetting colours assumes 16-colour mode (see ColourGuard).
-    void setFgColour(int r, int g, int b, OutputMode mode = OutputMode::render);
-    void setBgColour(int r, int g, int b, OutputMode mode = OutputMode::render);
-
-    Colour getFgColour() const;
-    Colour getBgColour() const;
+    
+    void setFgColour(ColourRgb rgb, OutputMode mode = OutputMode::render);
+    void setBgColour(ColourRgb rgb, OutputMode mode = OutputMode::render);
+    ColourRgb getFgColour() const;
+    ColourRgb getBgColour() const;
+    
     void cursorUp(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorDown(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorRight(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorLeft(uint8_t n, OutputMode mode = OutputMode::render);
+
     void styleBold(bool on, OutputMode mode = OutputMode::render);
     void styleItalic(bool on, OutputMode mode = OutputMode::render);
     void styleUnderline(bool on, OutputMode mode = OutputMode::render);
     void noStyle(OutputMode mode = OutputMode::render); // turn off bold, italic, and underline
+    
     void setCursorType(CursorType type, OutputMode = OutputMode::render);
-    void clearToEndOfLine(OutputMode mode = OutputMode::render);
-    void clearToStartOfLine(OutputMode mode = OutputMode::render);
-    void clearLine(OutputMode mode = OutputMode::render);
     void saveCursorPosition(OutputMode mode = OutputMode::render);
     /// Note! restoreCursorPosition will also reset style (e.g. bold).
     /// This is because on many terminals, saving the cursor position
@@ -277,13 +283,17 @@ public:
     void restoreCursorPosition(OutputMode mode = OutputMode::render);
     void cursorOn(OutputMode mode = OutputMode::render);
     void cursorOff(OutputMode mode = OutputMode::render);
+    
+    void clearToEndOfLine(OutputMode mode = OutputMode::render);
+    void clearToStartOfLine(OutputMode mode = OutputMode::render);
+    void clearLine(OutputMode mode = OutputMode::render);
     int getChar(); // Blocking call
     void bell(OutputMode mode = OutputMode::render);
     // Helper function that automatically highlights any character in the
     // given string which is preceded by an underscore
     void printMenuString(
-        Colour normal,
-        Colour highlight,
+        ColourRgb normal,
+        ColourRgb highlight,
         std::string_view text,
         OutputMode mode = OutputMode::render);
     // Note the size of the terminal can change if the user
@@ -312,8 +322,6 @@ public:
     std::string getAnsiSequenceItalic(bool on);
     std::string getAnsiSequenceUnderline(bool);
     std::string getAnsiSequenceNoStyle();
-    std::string getAnsiSequenceFgColour(Colour colour);
-    std::string getAnsiSequenceBgColour(Colour colour);
 
     ColourDepth detectColourDepth();
     void setColourDepth(ColourDepth colourDepth);
@@ -321,17 +329,17 @@ public:
 private:
     // if UTF is supported, return utfVersion, otherwise return asciiVersion
     std::string_view utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion);
+    std::string colourToAnsiFg(ColourRgb rgb);
+    std::string colourToAnsiBg(ColourRgb rgb);
     // Output either to render string or direct depending on mode parameter.
     // Note m_zHeight is used to determine z position IF mode is render
     void output(std::string_view text, OutputMode mode = OutputMode::render);
-    std::string colourToAnsiFg(Colour colour);
-    std::string colourToAnsiBg(Colour colour);
     ZHeight m_zHeight;
     std::multimap<uint8_t, std::string> m_renderMap;
     std::multimap<uint8_t, std::string> m_savedRenderMap;
     bool m_utf8Supported { false };
-    Colour m_currentFgColour { Colour::Default };
-    Colour m_currentBgColour { Colour::Default };
+    ColourRgb m_currentFgRgbColour { Colour::Default };
+    ColourRgb m_currentBgRgbColour { Colour::Default };
     ColourDepth m_colourDepth;
 };
 
@@ -355,8 +363,8 @@ private:
     ColourGuard(const ColourGuard&&) = delete;
     const ColourGuard operator=(const ColourGuard&) = delete;
     const ColourGuard operator=(const ColourGuard&&) = delete;
-    Colour m_fg;
-    Colour m_bg;
+    ColourRgb m_fg;
+    ColourRgb m_bg;
 };
 
 } // namespace terminal

@@ -38,6 +38,65 @@ bool hasUtf8Support()
     return false;
 }
 
+// Note on the following colour conversions: all colours should be
+// specified using RGB values, but for convenience there are definitions
+// for the ANSI 16 colours, e.g. Colour::Magenta (which is {170, 0, 170} ).
+// If the terminal doesn't support RGB colour (i.e. 256, 16, or mono) then
+// these functions are used (by setFgColour() and setBgColour()) to convert
+// accordingly. (Mono mode just ignores all attempts to change colour so
+// doesn't need a conversion function)
+
+// Perceptual luminance weights for sRGB
+constexpr double WEIGHT_R = 0.299;
+constexpr double WEIGHT_G = 0.587;
+constexpr double WEIGHT_B = 0.114;
+
+// Returns an index into terminal::Colour::ansi16
+std::size_t rgbToAnsi16(uint8_t r, uint8_t g, uint8_t b)
+{
+    std::size_t best_index = 0;
+    double best_dist = std::numeric_limits<double>::max();
+
+    for (int i = 0; i < 16; ++i) {
+        double dr = r - terminal::Colour::ansi16[i].r;
+        double dg = g - terminal::Colour::ansi16[i].g;
+        double db = b - terminal::Colour::ansi16[i].b;
+        double dist = WEIGHT_R * dr * dr + WEIGHT_G * dg * dg + WEIGHT_B * db * db;
+        if (dist < best_dist) {
+            best_dist = dist;
+            best_index = i;
+        }
+    }
+    return best_index; // 0-15
+}
+
+unsigned rgbToAnsi256(uint8_t r, uint8_t g, uint8_t b)
+{
+    // Quantise to nearest 256-palette entry (RGB cube, channels 0-5)
+    int ri = r * 5 / 255;
+    int gi = g * 5 / 255;
+    int bi = b * 5 / 255;
+    return 16 + 36 * ri + 6 * gi + bi;
+}
+
+std::string colourIdxToAnsi16Fg(std::size_t colourIdx)
+{
+    if (colourIdx < 8) {
+        return std::format("\x1b[{}m", 30 + colourIdx);
+    } else {
+        return std::format("\x1b[{}m", 90 + (colourIdx - 8));
+    }
+}
+
+std::string colourIdxToAnsi16Bg(std::size_t colourIdx)
+{
+    if (colourIdx < 8) {
+        return std::format("\x1b[{}m", 40 + colourIdx);
+    } else {
+        return std::format("\x1b[{}m", 100 + (colourIdx - 8));
+    }
+}
+
 } // anonymous namespace
 
 namespace terminal {
@@ -106,54 +165,32 @@ void Terminal::goTo(std::size_t row, std::size_t col, OutputMode mode)
     output(text, mode);
 }
 
-void Terminal::setFgColour(Colour colour, OutputMode mode)
+void Terminal::setFgColour(ColourRgb rgb, OutputMode mode)
 {
-    if (m_colourDepth > ColourDepth::None) {
-        m_currentFgColour = colour;
-        output(colourToAnsiFg(colour), mode);
+    if (rgb.defaultColour) {
+        output("\x1b[39m", mode); // works regardless of mode
+        return;
     }
+    output(colourToAnsiFg(rgb), mode);
 }
 
-void Terminal::setBgColour(Colour colour, OutputMode mode)
+void Terminal::setBgColour(ColourRgb rgb, OutputMode mode)
 {
-    if (m_colourDepth > ColourDepth::None) {
-        m_currentBgColour = colour;
-        output(colourToAnsiBg(colour), mode);
+    if (rgb.defaultColour) {
+        output("\x1b[49m", mode); // works regardless of mode
+        return;
     }
+    output(colourToAnsiBg(rgb), mode);
 }
 
-void Terminal::setFgColour(int r, int g, int b, OutputMode mode)
+ColourRgb Terminal::getFgColour() const
 {
-    if (m_colourDepth == ColourDepth::TrueColour) {
-        output(std::format("\x1b[38;2;{};{};{}m", r, g, b), mode);
-    }
-    if (m_colourDepth == ColourDepth::Ansi256) {
-        // Quantise to nearest 256-palette entry (RGB cube, channels 0-5)
-        int ri = r * 5 / 255, gi = g * 5 / 255, bi = b * 5 / 255;
-        output(std::format("\x1b[38;5;{}m", 16 + 36 * ri + 6 * gi + bi), mode);
-    }
+    return m_currentFgRgbColour;
 }
 
-void Terminal::setBgColour(int r, int g, int b, OutputMode mode)
+ColourRgb Terminal::getBgColour() const
 {
-    if (m_colourDepth == ColourDepth::TrueColour) {
-        output(std::format("\x1b[48;2;{};{};{}m", r, g, b), mode);
-    }
-    if (m_colourDepth == ColourDepth::Ansi256) {
-        // Quantise to nearest 256-palette entry (RGB cube, channels 0-5)
-        int ri = r * 5 / 255, gi = g * 5 / 255, bi = b * 5 / 255;
-        output(std::format("\x1b[48;5;{}m", 16 + 36 * ri + 6 * gi + bi), mode);
-    }
-}
-
-Colour Terminal::getFgColour() const
-{
-    return m_currentFgColour;
-}
-
-Colour Terminal::getBgColour() const
-{
-    return m_currentFgColour;
+    return m_currentFgRgbColour;
 }
 
 void Terminal::cursorUp(uint8_t n, OutputMode mode)
@@ -276,8 +313,8 @@ void Terminal::bell(OutputMode mode)
 }
 
 void Terminal::printMenuString(
-    Colour normal,
-    Colour highlight,
+    ColourRgb normal,
+    ColourRgb highlight,
     std::string_view text,
     OutputMode mode)
 {
@@ -413,8 +450,8 @@ InputResult Terminal::input(InputOptions& opts)
     // determining, especially if installed by homebrew). This should suffice.
     constexpr OutputMode imm = OutputMode::immediate;
     opts.currentValue = opts.defaultValue;
-    Colour oldFg = getFgColour();
-    Colour oldBg = getBgColour();
+    ColourRgb oldFg = getFgColour();
+    ColourRgb oldBg = getBgColour();
     cursorOn(imm);
     bool done = false;
     if (opts.overrideCursorType != CursorType::Default) {
@@ -686,16 +723,6 @@ std::string Terminal::getAnsiSequenceNoStyle()
     return "\033[0m";
 }
 
-std::string Terminal::getAnsiSequenceFgColour(Colour colour)
-{
-    return colourToAnsiFg(colour);
-}
-
-std::string Terminal::getAnsiSequenceBgColour(Colour colour)
-{
-    return colourToAnsiBg(colour);
-}
-
 ColourDepth Terminal::detectColourDepth()
 {
     const auto env = [](const char* name) -> std::string_view {
@@ -754,130 +781,6 @@ void Terminal::setColourDepth(ColourDepth colourDepth)
 
 // Private member functions:
 
-std::string Terminal::colourToAnsiFg(Colour colour)
-{
-    std::string rc { "\033[" };
-    switch (colour) {
-        case terminal::Colour::Black:
-            rc.append("30m");
-            break;
-        case terminal::Colour::Red:
-            rc.append("31m");
-            break;
-        case terminal::Colour::Green:
-            rc.append("32m");
-            break;
-        case terminal::Colour::Yellow:
-            rc.append("33m");
-            break;
-        case terminal::Colour::Blue:
-            rc.append("34m");
-            break;
-        case terminal::Colour::Magenta:
-            rc.append("35m");
-            break;
-        case terminal::Colour::Cyan:
-            rc.append("36m");
-            break;
-        case terminal::Colour::White:
-            rc.append("37m");
-            break;
-        case terminal::Colour::Grey:
-            rc.append("90m");
-            break;
-        case terminal::Colour::BrightRed:
-            rc.append("91m");
-            break;
-        case terminal::Colour::BrightGreen:
-            rc.append("92m");
-            break;
-        case terminal::Colour::BrightYellow:
-            rc.append("93m");
-            break;
-        case terminal::Colour::BrightBlue:
-            rc.append("94m");
-            break;
-        case terminal::Colour::BrightMagenta:
-            rc.append("95m");
-            break;
-        case terminal::Colour::BrightCyan:
-            rc.append("96m");
-            break;
-        case terminal::Colour::BrightWhite:
-            rc.append("97m");
-            break;
-        case terminal::Colour::Default:
-            rc.append("39m");
-            break;
-        default:
-            assert(false);
-            rc.clear();
-    }
-    return rc;
-}
-
-std::string Terminal::colourToAnsiBg(Colour colour)
-{
-    std::string rc { "\033[" };
-    switch (colour) {
-        case terminal::Colour::Black:
-            rc.append("40m");
-            break;
-        case terminal::Colour::Red:
-            rc.append("41m");
-            break;
-        case terminal::Colour::Green:
-            rc.append("42m");
-            break;
-        case terminal::Colour::Yellow:
-            rc.append("43m");
-            break;
-        case terminal::Colour::Blue:
-            rc.append("44m");
-            break;
-        case terminal::Colour::Magenta:
-            rc.append("45m");
-            break;
-        case terminal::Colour::Cyan:
-            rc.append("46m");
-            break;
-        case terminal::Colour::White:
-            rc.append("47m");
-            break;
-        case terminal::Colour::Grey:
-            rc.append("100m");
-            break;
-        case terminal::Colour::BrightRed:
-            rc.append("101m");
-            break;
-        case terminal::Colour::BrightGreen:
-            rc.append("102m");
-            break;
-        case terminal::Colour::BrightYellow:
-            rc.append("103m");
-            break;
-        case terminal::Colour::BrightBlue:
-            rc.append("104m");
-            break;
-        case terminal::Colour::BrightMagenta:
-            rc.append("105m");
-            break;
-        case terminal::Colour::BrightCyan:
-            rc.append("106m");
-            break;
-        case terminal::Colour::BrightWhite:
-            rc.append("107m");
-            break;
-        case terminal::Colour::Default:
-            rc.append("49m");
-            break;
-        default:
-            assert(false);
-            rc.clear();
-    }
-    return rc;
-}
-
 std::string_view Terminal::utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion)
 {
     if (m_utf8Supported) {
@@ -885,6 +788,57 @@ std::string_view Terminal::utfOrAscii(std::string_view utfVersion, std::string_v
     }
     return asciiVersion;
 }
+
+std::string Terminal::colourToAnsiFg(ColourRgb rgb)
+{
+    switch (m_colourDepth) {
+        case ColourDepth::None:
+            // Nothing to do
+            return {};
+        case ColourDepth::Ansi16:
+            {
+                std::size_t idx = rgbToAnsi16(rgb.r, rgb.g, rgb.b);
+                return colourIdxToAnsi16Fg(idx);
+            }
+            break;
+        case ColourDepth::Ansi256:
+            {
+                unsigned colourCode = rgbToAnsi256(rgb.r, rgb.g, rgb.b);
+                return std::format("\x1b[38;5;{}m", colourCode);
+            }
+            break;
+        case ColourDepth::TrueColour:
+            return std::format("\x1b[38;2;{};{};{}m", rgb.r, rgb.g, rgb.b);
+            break;
+        default:
+            assert("Unhandled colour depth");
+    }
+}
+
+std::string Terminal::colourToAnsiBg(ColourRgb rgb) {
+    switch (m_colourDepth) {
+        case ColourDepth::None:
+            // Nothing to do
+            return {};
+        case ColourDepth::Ansi16:
+            {
+                std::size_t idx = rgbToAnsi16(rgb.r, rgb.g, rgb.b);
+                return colourIdxToAnsi16Bg(idx);
+            }
+            break;
+        case ColourDepth::Ansi256:
+            {
+                unsigned colourCode = rgbToAnsi256(rgb.r, rgb.g, rgb.b);
+                return std::format("\x1b[48;5;{}m", colourCode);
+            }
+            break;
+        case ColourDepth::TrueColour:
+            return std::format("\x1b[48;2;{};{};{}m", rgb.r, rgb.g, rgb.b);
+            break;
+        default:
+            assert("Unhandled colour depth");
+    }
+ }
 
 void Terminal::output(std::string_view text, OutputMode mode)
 {

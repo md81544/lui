@@ -164,7 +164,7 @@ Ui::Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> cd
         []() -> bool { return mgo::shutdown_requested.load(std::memory_order_relaxed); });
     {
         terminal::ColourGuard cg(&m_term);
-        m_term.setFgColour(106, 113, 247);
+        m_term.setFgColour({106, 113, 247});
         m_term.printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
         m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");
