@@ -58,10 +58,10 @@ std::size_t rgbToAnsi16(uint8_t r, uint8_t g, uint8_t b)
     double best_dist = std::numeric_limits<double>::max();
 
     for (int i = 0; i < 16; ++i) {
-        double dr = r - terminal::Colour::ansi16[i].r;
-        double dg = g - terminal::Colour::ansi16[i].g;
-        double db = b - terminal::Colour::ansi16[i].b;
-        double dist = WEIGHT_R * dr * dr + WEIGHT_G * dg * dg + WEIGHT_B * db * db;
+        const double dr = r - terminal::Colour::ansi16[i].r;
+        const double dg = g - terminal::Colour::ansi16[i].g;
+        const double db = b - terminal::Colour::ansi16[i].b;
+        const double dist = WEIGHT_R * dr * dr + WEIGHT_G * dg * dg + WEIGHT_B * db * db;
         if (dist < best_dist) {
             best_dist = dist;
             best_index = i;
@@ -73,9 +73,9 @@ std::size_t rgbToAnsi16(uint8_t r, uint8_t g, uint8_t b)
 unsigned rgbToAnsi256(uint8_t r, uint8_t g, uint8_t b)
 {
     // Quantise to nearest 256-palette entry (RGB cube, channels 0-5)
-    int ri = r * 5 / 255;
-    int gi = g * 5 / 255;
-    int bi = b * 5 / 255;
+    const int ri = r * 5 / 255;
+    const int gi = g * 5 / 255;
+    const int bi = b * 5 / 255;
     return 16 + 36 * ri + 6 * gi + bi;
 }
 
