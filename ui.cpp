@@ -508,6 +508,8 @@ void Ui::hr(std::size_t row, terminal::OutputMode mode)
             hr.append("-"); // plain
         }
     }
+    terminal::ColourGuard guard(&m_term);
+    m_term.setFgColour({0, 96, 0});
     m_term.print(hr, mode);
 }
 
