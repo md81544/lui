@@ -797,13 +797,13 @@ std::string Terminal::colourToAnsiFg(ColourRgb rgb)
             return {};
         case ColourDepth::Ansi16:
             {
-                std::size_t idx = rgbToAnsi16(rgb.r, rgb.g, rgb.b);
+                const std::size_t idx = rgbToAnsi16(rgb.r, rgb.g, rgb.b);
                 return colourIdxToAnsi16Fg(idx);
             }
             break;
         case ColourDepth::Ansi256:
             {
-                unsigned colourCode = rgbToAnsi256(rgb.r, rgb.g, rgb.b);
+                const unsigned colourCode = rgbToAnsi256(rgb.r, rgb.g, rgb.b);
                 return std::format("\x1b[38;5;{}m", colourCode);
             }
             break;
@@ -822,13 +822,13 @@ std::string Terminal::colourToAnsiBg(ColourRgb rgb) {
             return {};
         case ColourDepth::Ansi16:
             {
-                std::size_t idx = rgbToAnsi16(rgb.r, rgb.g, rgb.b);
+                const std::size_t idx = rgbToAnsi16(rgb.r, rgb.g, rgb.b);
                 return colourIdxToAnsi16Bg(idx);
             }
             break;
         case ColourDepth::Ansi256:
             {
-                unsigned colourCode = rgbToAnsi256(rgb.r, rgb.g, rgb.b);
+                const unsigned colourCode = rgbToAnsi256(rgb.r, rgb.g, rgb.b);
                 return std::format("\x1b[48;5;{}m", colourCode);
             }
             break;
