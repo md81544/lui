@@ -37,8 +37,6 @@
   - "Add phrase" would need to check whether the current directory is
     git-controlled
     
-* Auto disappearing messageBox
-
 * Clickable options on messageBox... buttons?
 
 * Add regex check to ensure clue number is in the correct format
@@ -48,8 +46,6 @@
 
 * (maybe) Multiple-character extended commands, e.g. :r! to restart without
   "are you sure?" message if m_clue is dirty
-
-* Plain tab on its own should start search string entry
 
 * Add reverse video in Terminal: on = "\e[7m", off = "\e[27m"
 

@@ -1321,6 +1321,8 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
                 return Command::Save;
             }
             return Command::EnterSearchString;
+        case keyPress::TAB:
+            return Command::EnterSearchString;
         case 'r':
             if (extendedFunction) {
                 return Command::Restart;
