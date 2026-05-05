@@ -1000,16 +1000,17 @@ void Ui::enterFoundStringConstrained()
                     break;
                 }
                 // Disallow entry of separator immediately next to an existing separator
-                if ((opts.cursorPos < opts.currentValue.size() - 3
-                     && opts.currentValue.at(opts.cursorPos + 1) == '/')
-                    || opts.currentValue.at(opts.cursorPos) == '/'
-                    || opts.currentValue.at(opts.cursorPos - 1) == '/') {
-                    {
-                        rc = keyPress::NO_KEY;
-                        break;
-                    }
+                if (opts.currentValue.at(opts.cursorPos) == '/'
+                    || (opts.cursorPos > 0 && opts.currentValue.at(opts.cursorPos - 1) == '/')) {
+                    rc = keyPress::NO_KEY;
+                    break;
                 }
                 ++opts.maxLen;
+                opts.currentValue.push_back(' ');
+                // Shift any existing characters up by one (drops last character)
+                for (std::size_t n = opts.maxLen - 1; n > opts.cursorPos; --n) {
+                    opts.currentValue[n] = opts.currentValue[n - 1];
+                }
                 rc = key;
                 break;
             }

@@ -12,9 +12,6 @@
 
 * Shift-letter (or Ctrl-) in input should quit input and activate command
 
-* Inserting a word separator in constrained found input should shift all
-  following letters along (and drop anything past the end)
-
 * Should be able to load a clue from the "load" list by clicking on item
 
 * When removing letters from "remaining", favour position, e.g.
