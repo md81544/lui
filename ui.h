@@ -46,7 +46,7 @@ enum class Command {
     GainedFocus,
 };
 
-enum class ColourDepth{
+enum class ColourDepth {
     Mono,
     Ansi16,
     Ansi256,
@@ -60,7 +60,7 @@ public:
     Ui& operator=(const Ui&) = delete;
     Ui(Ui&&) = delete;
     Ui& operator=(const Ui&&) = delete;
-    ~Ui() { };
+    ~Ui() {};
     int run(); // main application run loop
 private:
     struct TerminalSize {
@@ -103,6 +103,7 @@ private:
     void displayResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayMenu(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayCommandPrompt(terminal::OutputMode mode = terminal::OutputMode::render);
+    void redraw(bool drawCommandPrompt = false); // Note render mode only
     void clearCommandPrompt(terminal::OutputMode mode = terminal::OutputMode::render);
     void hr(std::size_t row, terminal::OutputMode mode = terminal::OutputMode::render);
     void jumble(

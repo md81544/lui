@@ -224,19 +224,10 @@ int Ui::run()
     bool finished { false };
     u_int8_t commandSeqCount = 0;
     while (!finished && !mgo::shutdown_requested.load(std::memory_order_relaxed)) {
-        checkForTerminalResize();
-        displayHeader();
-        displayResults();
-        displayMenu();
         if (commandSeqCount > 0) {
             --commandSeqCount;
         }
-        if (commandSeqCount > 0) {
-            displayCommandPrompt();
-        } else {
-            clearCommandPrompt();
-        }
-        m_term.render();
+        redraw(commandSeqCount > 0);
         int keyPress;
         Command cmd;
 
@@ -479,6 +470,20 @@ void Ui::displayCommandPrompt(terminal::OutputMode mode)
     m_term.printAt(m_termSize.rows - 1, 0, ":", mode);
     m_term.setCursorType(terminal::CursorType::BlockBlinking, mode);
     m_term.cursorOn(mode);
+}
+
+void Ui::redraw(bool drawCommandPrompt)
+{
+    checkForTerminalResize();
+    displayHeader();
+    displayResults();
+    displayMenu();
+    if (drawCommandPrompt) {
+        displayCommandPrompt();
+    } else {
+        clearCommandPrompt();
+    }
+    m_term.render();
 }
 
 void Ui::clearCommandPrompt(terminal::OutputMode mode)
@@ -1435,6 +1440,7 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
 
 std::string Ui::input(terminal::InputOptions& opts)
 {
+    redraw(false); // to clear any message boxes
     terminal::InputResult inputResult = m_term.input(opts);
     if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
         m_commandQueue.push_back(
