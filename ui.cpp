@@ -164,7 +164,7 @@ Ui::Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> cd
         []() -> bool { return mgo::shutdown_requested.load(std::memory_order_relaxed); });
     {
         terminal::ColourGuard cg(&m_term);
-        m_term.setFgColour({106, 113, 247});
+        m_term.setFgColour({ 106, 113, 247 });
         m_term.printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
         m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");
@@ -377,12 +377,17 @@ void Ui::appendResults(std::string_view item, ResultsType type)
 
 void Ui::displayHeader(terminal::OutputMode mode)
 {
+    constexpr terminal::ColourRgb ENTRY_COLOUR = { 160, 255, 100 };
     // Can use immediate mode to clear the header before an input (which is immediate)
     m_term.goTo(1, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ", mode);
     if (!m_clue.searchString.empty()) {
-        m_term.printAt(1, 10, m_clue.searchString, mode);
+        {
+            terminal::ColourGuard cg(&m_term);
+            m_term.setFgColour(ENTRY_COLOUR);
+            m_term.printAt(1, 10, m_clue.searchString, mode);
+        }
         m_term.styleItalic(true, mode);
         m_term.print(std::format("  ({} letters)", m_clue.searchString.size()), mode);
         m_term.styleItalic(false, mode);
@@ -392,18 +397,30 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ", mode);
     m_term.clearToEndOfLine(mode);
-    m_term.printAt(2, 10, m_clue.foundString, mode);
+    {
+        terminal::ColourGuard cg(&m_term);
+        m_term.setFgColour(ENTRY_COLOUR);
+        m_term.printAt(2, 10, m_clue.foundString, mode);
+    }
     m_term.clearToEndOfLine(mode);
     m_term.goTo(3, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "_Comment: ", mode);
     m_term.clearToEndOfLine(mode);
-    m_term.printAt(3, 10, m_clue.comment, mode);
+    {
+        terminal::ColourGuard cg(&m_term);
+        m_term.setFgColour(ENTRY_COLOUR);
+        m_term.printAt(3, 10, m_clue.comment, mode);
+    }
     m_term.clearToEndOfLine(mode);
     m_term.goTo(4, 1, mode);
     m_term.printMenuString(
         terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ", mode);
-    m_term.printAt(4, 10, m_clue.clueNumber, mode);
+    {
+        terminal::ColourGuard cg(&m_term);
+        m_term.setFgColour(ENTRY_COLOUR);
+        m_term.printAt(4, 10, m_clue.clueNumber, mode);
+    }
     m_term.clearToEndOfLine(mode);
 }
 
@@ -509,7 +526,7 @@ void Ui::hr(std::size_t row, terminal::OutputMode mode)
         }
     }
     terminal::ColourGuard guard(&m_term);
-    m_term.setFgColour({0, 96, 0});
+    m_term.setFgColour({ 0, 96, 0 });
     m_term.print(hr, mode);
 }
 

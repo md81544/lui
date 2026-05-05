@@ -1,3 +1,5 @@
+* :w should do save()
+
 * Now it's easy to click or tab off a field, search string input should be
   "focused" by default on start/restart
 
