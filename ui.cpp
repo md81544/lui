@@ -250,7 +250,7 @@ int Ui::run()
         switch (cmd) {
             case Command::NoOp:
                 break;
-            case Command::AwaitCommand: // Used if user presses '::
+            case Command::AwaitCommand: // Used if user presses ':'
                 commandSeqCount = 2;
                 break;
             case Command::Jumble:
@@ -1272,6 +1272,16 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
         case 'q':
             if (extendedFunction) {
                 return Command::Quit;
+            }
+            break;
+        case 'w':
+            if (extendedFunction) {
+                return Command::Save;
+            }
+            break;
+        case 'e':
+            if (extendedFunction) {
+                return Command::Load;
             }
             break;
         case keyPress::CTRL_D:
