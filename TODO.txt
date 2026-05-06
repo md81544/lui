@@ -12,8 +12,6 @@
 
 * Shift-letter (or Ctrl-) in input should quit input and activate command
 
-* Should be able to load a clue from the "load" list by clicking on item
-
 * When removing letters from "remaining", favour position, e.g.
   if search string is "UNDUE" and found string is "..DU." then the 
   "remaining" string should be "UNE" not "NUE"
