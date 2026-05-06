@@ -16,7 +16,7 @@
 
 namespace ui {
 
-enum class Command {
+enum class CommandType {
     NoOp,
     AwaitCommand, // Used if user presses ':'
     Jumble,
@@ -46,6 +46,15 @@ enum class Command {
     GainedFocus,
 };
 
+struct Command {
+    explicit Command(CommandType ct)
+        : commandType(ct)
+    {
+    }
+    CommandType commandType;
+    std::string data;
+};
+
 enum class ColourDepth {
     Mono,
     Ansi16,
@@ -60,7 +69,7 @@ public:
     Ui& operator=(const Ui&) = delete;
     Ui(Ui&&) = delete;
     Ui& operator=(const Ui&&) = delete;
-    ~Ui() {};
+    ~Ui() { };
     int run(); // main application run loop
 private:
     struct TerminalSize {
@@ -115,7 +124,7 @@ private:
     void thesaurus();
     void define();
     void done();
-    void load();
+    void load(std::string resultsLine = {});
     void save();
     void filterResults();
     void scrollDownResults(); // one line

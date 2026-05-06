@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ascii.h"
+
 #include <chrono>
 #include <ctime>
 #include <ranges>
@@ -42,6 +44,14 @@ inline std::string stripAnsi(const std::string& input)
 {
     static const std::regex rgx(R"(\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]))");
     return std::regex_replace(input, rgx, "");
+}
+
+// NB, alters the string passed in
+inline void trim(std::string& s)
+{
+    auto not_space = [](unsigned char c) { return !ascii::isspace(c); };
+    s.erase(std::ranges::find_if(s | std::views::reverse, not_space).base(), s.end());
+    s.erase(s.begin(), std::ranges::find_if(s, not_space));
 }
 
 } // namespace utils

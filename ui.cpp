@@ -229,7 +229,7 @@ int Ui::run()
         }
         redraw(commandSeqCount > 0);
         int keyPress;
-        Command cmd;
+        Command cmd(CommandType::NoOp);
 
         if (!m_commandQueue.empty()) {
             cmd = *m_commandQueue.begin();
@@ -238,90 +238,92 @@ int Ui::run()
             keyPress = m_term.getChar();
             cmd = decodeKeyPress(keyPress, commandSeqCount > 0);
         }
-        switch (cmd) {
-            case Command::NoOp:
+        switch (cmd.commandType) {
+            case CommandType::NoOp:
                 break;
-            case Command::AwaitCommand: // Used if user presses ':'
+            case CommandType::AwaitCommand: // Used if user presses ':'
                 commandSeqCount = 2;
                 break;
-            case Command::Jumble:
+            case CommandType::Jumble:
                 jumble();
                 break;
-            case Command::Reverse:
+            case CommandType::Reverse:
                 reverse();
                 break;
-            case Command::Regular:
+            case CommandType::Regular:
                 regular();
                 break;
-            case Command::Thesaurus:
+            case CommandType::Thesaurus:
                 thesaurus();
                 break;
-            case Command::Lookup:
+            case CommandType::Lookup:
                 lookup();
                 break;
-            case Command::Define:
+            case CommandType::Define:
                 define();
                 break;
-            case Command::Filter:
+            case CommandType::Filter:
                 filterResults();
                 break;
-            case Command::Done:
+            case CommandType::Done:
                 done();
                 break;
-            case Command::Save:
+            case CommandType::Save:
                 save();
                 break;
-            case Command::Load:
-                load();
+            case CommandType::Load:
+                load(cmd.data);
                 break;
-            case Command::Restart:
+            case CommandType::Restart:
                 restart();
                 break;
-            case Command::HardRestart:
+            case CommandType::HardRestart:
                 restart(true);
                 break;
-            case Command::Quit:
+            case CommandType::Quit:
                 finished = true;
                 break;
-            case Command::EnterSearchString:
+            case CommandType::EnterSearchString:
                 enterSearchString();
                 break;
-            case Command::EnterFoundString:
+            case CommandType::EnterFoundString:
                 enterFoundString();
                 break;
-            case Command::EnterComment:
+            case CommandType::EnterComment:
                 enterCommentString();
                 break;
-            case Command::EnterClueNumber:
+            case CommandType::EnterClueNumber:
                 enterClueNumber();
                 break;
-            case Command::ResultsScrollDown:
+            case CommandType::ResultsScrollDown:
                 scrollDownResults();
                 break;
-            case Command::ResultsScrollUp:
+            case CommandType::ResultsScrollUp:
                 scrollUpResults();
                 break;
-            case Command::ResultsPageDown:
+            case CommandType::ResultsPageDown:
                 pageDownResults();
                 break;
-            case Command::ResultsPageUp:
+            case CommandType::ResultsPageUp:
                 pageUpResults();
                 break;
-            case Command::ResultsSelection:
+            case CommandType::ResultsSelection:
                 if (m_results.selectedItem.has_value()) {
-                    log(std::format(
-                        "Results item {} ('{}') selected",
-                        m_results.selectedItem.value(),
-                        m_results.vec.at(m_results.selectedItem.value())));
+                    if (m_results.selectedItem.value() < m_results.vec.size()) {
+                        log(std::format(
+                            "Results item {} ('{}') selected",
+                            m_results.selectedItem.value(),
+                            m_results.vec.at(m_results.selectedItem.value())));
+                    }
                 }
                 break;
-            case Command::LostFocus:
+            case CommandType::LostFocus:
                 lostFocus();
                 break;
-            case Command::GainedFocus:
+            case CommandType::GainedFocus:
                 // Does nothing
                 break;
-            case Command::ShowDebugLog:
+            case CommandType::ShowDebugLog:
                 ShowDebugLog();
                 break;
         }
@@ -729,40 +731,47 @@ void Ui::done()
     restart(true);
 }
 
-void Ui::load()
+void Ui::load(std::string resultsLine)
 {
     if (m_savedClues.empty()) {
         setResults("No saved clues.");
         return;
     }
-    clearResults(terminal::OutputMode::immediate);
-    appendResults("Saved clues:");
-    appendResults("");
-    std::vector<std::string> vec;
-    for (const auto& [clueNo, clue] : m_savedClues) {
-        std::string entry = std::format("{:>4} : ", clueNo);
-        entry.append(std::format("'{}', '{}'", clue.searchString, clue.foundString));
-        if (!clue.comment.empty()) {
-            entry.append(std::format(", {}", clue.comment));
+    std::string clueNumber;
+    if (resultsLine.empty()) {
+        clearResults(terminal::OutputMode::immediate);
+        appendResults("Saved clues:");
+        appendResults("");
+        std::vector<std::string> vec;
+        for (const auto& [clueNo, clue] : m_savedClues) {
+            std::string entry = std::format("{:>4} : ", clueNo);
+            entry.append(std::format("'{}', '{}'", clue.searchString, clue.foundString));
+            if (!clue.comment.empty()) {
+                entry.append(std::format(", {}", clue.comment));
+            }
+            vec.emplace_back(entry);
         }
-        vec.emplace_back(entry);
+        std::sort(vec.begin(), vec.end());
+        for (const auto& s : vec) {
+            appendResults(s);
+        }
+        m_results.type = ResultsType::Load;
+        displayResults(terminal::OutputMode::immediate);
+        terminal::InputOptions opts;
+        opts.row = 4;
+        opts.col = 10;
+        opts.bgColour = terminal::Colour::Grey;
+        opts.fgColour = terminal::Colour::BrightWhite;
+        opts.mode = terminal::Mode::Insert;
+        // Capital alphas & numbers only:
+        opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
+            | terminal::keysAllowed::upper;
+        opts.maxLen = 4;
+        clueNumber = input(opts);
+    } else {
+        clueNumber = resultsLine.substr(0, 4);
+        utils::trim(clueNumber);
     }
-    std::sort(vec.begin(), vec.end());
-    for (const auto& s : vec) {
-        appendResults(s);
-    }
-    displayResults(terminal::OutputMode::immediate);
-    terminal::InputOptions opts;
-    opts.row = 4;
-    opts.col = 10;
-    opts.bgColour = terminal::Colour::Grey;
-    opts.fgColour = terminal::Colour::BrightWhite;
-    opts.mode = terminal::Mode::Insert;
-    // Capital alphas & numbers only:
-    opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
-        | terminal::keysAllowed::upper;
-    opts.maxLen = 4;
-    std::string clueNumber = input(opts);
     if (!clueNumber.empty()) {
         auto it = m_savedClues.find(clueNumber);
         if (it == m_savedClues.end()) {
@@ -1088,11 +1097,11 @@ void Ui::enterFoundStringConstrained()
     log(std::format("m_clue.foundString (constrained) input: '{}'", m_clue.foundString));
     if (opts.EntryKey == keyPress::TAB) {
         // chain to comment entry
-        m_commandQueue.push_back(Command::EnterComment);
+        m_commandQueue.emplace_back(CommandType::EnterComment);
     }
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to search entry
-        m_commandQueue.push_back(Command::EnterSearchString);
+        m_commandQueue.emplace_back(CommandType::EnterSearchString);
     }
 }
 
@@ -1152,11 +1161,11 @@ void Ui::enterFoundStringUnconstrained()
     log(std::format("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString));
     if (opts.EntryKey == keyPress::TAB) {
         // chain to comment entry
-        m_commandQueue.push_back(Command::EnterComment);
+        m_commandQueue.emplace_back(CommandType::EnterComment);
     }
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to search entry
-        m_commandQueue.push_back(Command::EnterSearchString);
+        m_commandQueue.emplace_back(CommandType::EnterSearchString);
     }
 }
 
@@ -1191,7 +1200,7 @@ void Ui::enterSearchString()
     log(std::format("m_clue.searchString input: '{}'", m_clue.searchString));
     if (opts.EntryKey == keyPress::TAB) {
         // chain to enter found string
-        m_commandQueue.push_back(Command::EnterFoundString);
+        m_commandQueue.emplace_back(CommandType::EnterFoundString);
     }
 }
 
@@ -1209,11 +1218,11 @@ void Ui::enterCommentString()
     log(std::format("m_clue.comment input: '{}'", m_clue.comment));
     if (opts.EntryKey == keyPress::TAB) {
         // chain to clue number entry
-        m_commandQueue.push_back(Command::EnterClueNumber);
+        m_commandQueue.emplace_back(CommandType::EnterClueNumber);
     }
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to found entry
-        m_commandQueue.push_back(Command::EnterFoundString);
+        m_commandQueue.emplace_back(CommandType::EnterFoundString);
     }
 }
 
@@ -1234,7 +1243,7 @@ void Ui::enterClueNumber()
     log(std::format("m_clue input: '{}'", m_clue.clueNumber));
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to comment entry
-        m_commandQueue.push_back(Command::EnterComment);
+        m_commandQueue.emplace_back(CommandType::EnterComment);
     }
 }
 
@@ -1267,91 +1276,91 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
 {
     switch (keyPress) {
         case keyPress::NO_KEY: // key was consumed by input handler
-            return Command::NoOp;
+            return Command(CommandType::NoOp);
         case ':':
-            return Command::AwaitCommand;
+            return Command(CommandType::AwaitCommand);
         case keyPress::CTRL_R:
             // clear eveything down
-            return Command::Restart;
+            return Command(CommandType::Restart);
         case 'R':
-            return Command::HardRestart;
+            return Command(CommandType::HardRestart);
         case 'q':
             if (extendedFunction) {
-                return Command::Quit;
+                return Command(CommandType::Quit);
             }
             break;
         case 'w':
             if (extendedFunction) {
-                return Command::Save;
+                return Command(CommandType::Save);
             }
             break;
         case 'e':
             if (extendedFunction) {
-                return Command::Load;
+                return Command(CommandType::Load);
             }
             break;
         case keyPress::CTRL_D:
         case 'D':
-            return Command::Done;
+            return Command(CommandType::Done);
         case keyPress::CTRL_C:
         case keyPress::CTRL_Q:
         case 'Q':
-            return Command::Quit;
+            return Command(CommandType::Quit);
         case 'j':
-            return Command::Jumble;
+            return Command(CommandType::Jumble);
         case 't':
-            return Command::Thesaurus;
+            return Command(CommandType::Thesaurus);
         case 'l':
             if (extendedFunction) {
-                return Command::Load;
+                return Command(CommandType::Load);
             }
-            return Command::Lookup;
+            return Command(CommandType::Lookup);
         case 'i':
-            return Command::Filter;
+            return Command(CommandType::Filter);
         case 'd':
-            return Command::Define;
+            return Command(CommandType::Define);
         case 'f':
-            return Command::EnterFoundString;
+            return Command(CommandType::EnterFoundString);
         case 'c':
-            return Command::EnterComment;
+            return Command(CommandType::EnterComment);
         case 'n':
-            return Command::EnterClueNumber;
+            return Command(CommandType::EnterClueNumber);
         case 's':
             if (extendedFunction) {
-                return Command::Save;
+                return Command(CommandType::Save);
             }
-            return Command::EnterSearchString;
+            return Command(CommandType::EnterSearchString);
         case keyPress::TAB:
-            return Command::EnterSearchString;
+            return Command(CommandType::EnterSearchString);
         case 'r':
             if (extendedFunction) {
-                return Command::Restart;
+                return Command(CommandType::Restart);
             }
-            return Command::Regular;
+            return Command(CommandType::Regular);
         case 'v':
-            return Command::Reverse;
+            return Command(CommandType::Reverse);
         case keyPress::DOWN:
-            return Command::ResultsScrollDown;
+            return Command(CommandType::ResultsScrollDown);
         case keyPress::UP:
-            return Command::ResultsScrollUp;
+            return Command(CommandType::ResultsScrollUp);
         case keyPress::PGDN:
         case keyPress::CTRL_F:
         case keyPress::SPACE:
-            return Command::ResultsPageDown;
+            return Command(CommandType::ResultsPageDown);
         case keyPress::PGUP:
         case keyPress::CTRL_B: // Note Ctrl-B may be TMux's "prefix" key!
-            return Command::ResultsPageUp;
+            return Command(CommandType::ResultsPageUp);
         case keyPress::F12:
-            return Command::ShowDebugLog;
+            return Command(CommandType::ShowDebugLog);
         case keyPress::CTRL_S:
         case 'S':
-            return Command::Save;
+            return Command(CommandType::Save);
         case keyPress::CTRL_L:
         case 'L':
-            return Command::Load;
+            return Command(CommandType::Load);
         case keyPress::ESC:
             // currently does nothing
-            return Command::NoOp;
+            return Command(CommandType::NoOp);
         case keyPress::MOUSE:
             return decodeMouseClick(
                 keyPress::lastMouseClick.button,
@@ -1359,14 +1368,14 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
                 keyPress::lastMouseClick.col);
         case keyPress::FOCUS_IN:
             log("Gained focus");
-            return Command::GainedFocus;
+            return Command(CommandType::GainedFocus);
         case keyPress::FOCUS_OUT:
             log("Lost focus");
-            return Command::LostFocus;
+            return Command(CommandType::LostFocus);
         default:
             m_term.bell();
     }
-    return Command::NoOp;
+    return Command(CommandType::NoOp);
 }
 
 Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
@@ -1377,13 +1386,13 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
     if (button == 0) {
         switch (row) {
             case 1:
-                return Command::EnterSearchString;
+                return Command(CommandType::EnterSearchString);
             case 2:
-                return Command::EnterFoundString;
+                return Command(CommandType::EnterFoundString);
             case 3:
-                return Command::EnterComment;
+                return Command(CommandType::EnterComment);
             case 4:
-                return Command::EnterClueNumber;
+                return Command(CommandType::EnterClueNumber);
         }
         if (row > m_termSize.rows - m_menuRowSize) {
             // a click in the menu area
@@ -1391,29 +1400,29 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
             if (menuItem.has_value()) {
                 switch (static_cast<MenuItem>(menuItem.value())) {
                     case MenuItem::Jumble:
-                        return Command::Jumble;
+                        return Command(CommandType::Jumble);
                     case MenuItem::Reverse:
-                        return Command::Reverse;
+                        return Command(CommandType::Reverse);
                     case MenuItem::Regular:
-                        return Command::Regular;
+                        return Command(CommandType::Regular);
                     case MenuItem::Thesaurus:
-                        return Command::Thesaurus;
+                        return Command(CommandType::Thesaurus);
                     case MenuItem::Lookup:
-                        return Command::Lookup;
+                        return Command(CommandType::Lookup);
                     case MenuItem::Define:
-                        return Command::Define;
+                        return Command(CommandType::Define);
                     case MenuItem::Filter:
-                        return Command::Filter;
+                        return Command(CommandType::Filter);
                     case MenuItem::Done:
-                        return Command::Done;
+                        return Command(CommandType::Done);
                     case MenuItem::Save:
-                        return Command::Save;
+                        return Command(CommandType::Save);
                     case MenuItem::Load:
-                        return Command::Load;
+                        return Command(CommandType::Load);
                     case MenuItem::Restart:
-                        return Command::Restart;
+                        return Command(CommandType::Restart);
                     case MenuItem::Quit:
-                        return Command::Quit;
+                        return Command(CommandType::Quit);
                 }
             }
         }
@@ -1425,20 +1434,26 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
         // but support for this is patchy - it depends on both the terminal emulator
         // and the mouse/trackpad sending the events. Not needed yet, if at all.
         if (button == 65) { // scroll down
-            return Command::ResultsScrollDown;
+            return Command(CommandType::ResultsScrollDown);
         }
         if (button == 64) { // scroll up
-            return Command::ResultsScrollUp;
+            return Command(CommandType::ResultsScrollUp);
         }
-        if (button == 0 && m_results.type == ResultsType::Words) {
+        if (button == 0
+            && (m_results.type == ResultsType::Words || m_results.type == ResultsType::Load)) {
             std::size_t selection = row - m_resultsTopRow - 2 + m_results.scrollOffset;
             if (m_results.vec.size() > selection) {
                 m_results.selectedItem = selection;
-                return Command::ResultsSelection;
+                Command cmd(CommandType::ResultsSelection);
+                if (m_results.type == ResultsType::Load) {
+                    cmd.commandType = CommandType::Load;
+                }
+                cmd.data = m_results.vec.at(selection);
+                return cmd;
             }
         }
     }
-    return Command::NoOp;
+    return Command(CommandType::NoOp);
 }
 
 std::string Ui::input(terminal::InputOptions& opts)
@@ -1450,7 +1465,7 @@ std::string Ui::input(terminal::InputOptions& opts)
             decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
     }
     if (inputResult.lostFocus) {
-        m_commandQueue.push_back(Command::LostFocus);
+        m_commandQueue.emplace_back(CommandType::LostFocus);
     }
     return inputResult.enteredString;
 }

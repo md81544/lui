@@ -1,3 +1,5 @@
+* Auto-save on clue number entry
+
 * Log should restart each run, perhaps with a backup of the previous?
 
 * Consider how best to deal with a terminal that has a light colour scheme
@@ -7,8 +9,6 @@
   "focused" by default on start/restart
 
 * Cheat warning on, say, lookup (messageBox with "are you sure")
-
-* Auto-save on clue number entry
 
 * Shift-letter (or Ctrl-) in input should quit input and activate command
 
