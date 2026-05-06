@@ -740,8 +740,6 @@ void Ui::load(std::string resultsLine)
     std::string clueNumber;
     if (resultsLine.empty()) {
         clearResults(terminal::OutputMode::immediate);
-        appendResults("Saved clues:");
-        appendResults("");
         std::vector<std::string> vec;
         for (const auto& [clueNo, clue] : m_savedClues) {
             std::string entry = std::format("{:>4} : ", clueNo);
