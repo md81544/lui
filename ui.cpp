@@ -172,7 +172,7 @@ Ui::Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> cd
     }
     m_term.cursorOff();
     m_term.render();
-    log(std::format("Loading data... (word complexity {})", wordComplexity));
+    log("Loading data... (word complexity {})", wordComplexity);
     m_ws = std::make_unique<wordSearcher::WordSearcher>(
         dataDir / std::format("words_{}.txt", wordComplexity),
         dataDir / "thesaurus.txt",
@@ -203,7 +203,7 @@ void Ui::checkForTerminalResize()
     }
     auto [rows, cols] = m_term.getTerminalSize();
     if (m_termSize.rows != rows || m_termSize.cols != cols) {
-        log(std::format("Terminal size is currently {} rows by {} cols", rows, cols));
+        log("Terminal size is currently {} rows by {} cols", rows, cols);
         m_termSize.rows = rows;
         m_termSize.cols = cols;
     }
@@ -310,10 +310,9 @@ int Ui::run()
             case CommandType::ResultsSelection:
                 if (m_results.selectedItem.has_value()) {
                     if (m_results.selectedItem.value() < m_results.vec.size()) {
-                        log(std::format(
-                            "Results item {} ('{}') selected",
+                        log("Results item {} ('{}') selected",
                             m_results.selectedItem.value(),
-                            m_results.vec.at(m_results.selectedItem.value())));
+                            m_results.vec.at(m_results.selectedItem.value()));
                     }
                 }
                 break;
@@ -832,7 +831,7 @@ void Ui::filterResults()
         regexSuffix = ".*$";
     }
     filter = std::format("{}{}{}", regexPrefix, filter, regexSuffix);
-    log(std::format("Filter regex: '{}'", filter));
+    log("Filter regex: '{}'", filter);
     const std::regex regex(filter);
     for (const auto& w : m_results.vec) {
         if (std::regex_match(w, regex)) {
@@ -891,12 +890,12 @@ void Ui::log(std::string_view logEntry [[maybe_unused]])
 std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
 {
     const std::filesystem::path bin = std::filesystem::canonical(argv0);
-    log(std::format("argv[0] = {}", bin.string()));
+    log("argv[0] = {}", bin.string());
     std::filesystem::path cwd = bin.parent_path();
     for (int n = 0; n < 3; ++n) {
-        log(std::format("Searching for data files in {}", cwd.string()));
+        log("Searching for data files in {}", cwd.string());
         if (std::filesystem::exists(cwd / "words_1.txt")) {
-            log(std::format("Data files found in {}", cwd.string()));
+            log("Data files found in {}", cwd.string());
             return cwd;
         }
         cwd = cwd.parent_path();
@@ -1092,7 +1091,7 @@ void Ui::enterFoundStringConstrained()
     }
     m_clue.foundString = input(opts);
     m_clue.dirty = true;
-    log(std::format("m_clue.foundString (constrained) input: '{}'", m_clue.foundString));
+    log("m_clue.foundString (constrained) input: '{}'", m_clue.foundString);
     if (opts.EntryKey == keyPress::TAB) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
@@ -1156,7 +1155,7 @@ void Ui::enterFoundStringUnconstrained()
         break;
     }
     m_clue.dirty = true;
-    log(std::format("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString));
+    log("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString);
     if (opts.EntryKey == keyPress::TAB) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
@@ -1195,7 +1194,7 @@ void Ui::enterSearchString()
         m_clue.foundString = std::string(m_clue.searchString.size(), '.');
     }
     m_clue.dirty = true;
-    log(std::format("m_clue.searchString input: '{}'", m_clue.searchString));
+    log("m_clue.searchString input: '{}'", m_clue.searchString);
     if (opts.EntryKey == keyPress::TAB) {
         // chain to enter found string
         m_commandQueue.emplace_back(CommandType::EnterFoundString);
@@ -1213,7 +1212,7 @@ void Ui::enterCommentString()
     opts.defaultValue = m_clue.comment;
     m_clue.comment = input(opts);
     m_clue.dirty = true;
-    log(std::format("m_clue.comment input: '{}'", m_clue.comment));
+    log("m_clue.comment input: '{}'", m_clue.comment);
     if (opts.EntryKey == keyPress::TAB) {
         // chain to clue number entry
         m_commandQueue.emplace_back(CommandType::EnterClueNumber);
@@ -1238,7 +1237,7 @@ void Ui::enterClueNumber()
     opts.maxLen = 4;
     m_clue.clueNumber = input(opts);
     m_clue.dirty = true;
-    log(std::format("m_clue input: '{}'", m_clue.clueNumber));
+    log("m_clue input: '{}'", m_clue.clueNumber);
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
@@ -1379,7 +1378,7 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
 Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
 {
     if (button != 64 && button != 65) { // don't log scroll events, too many
-        log(std::format("Mouse event: Button: {}, Row: {}, Col: {}", button, row, col));
+        log("Mouse event: Button: {}, Row: {}, Col: {}", button, row, col);
     }
     if (button == 0) {
         switch (row) {

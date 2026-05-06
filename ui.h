@@ -8,6 +8,7 @@
 #include "terminal.h"
 #include "word_searcher.h"
 #include <cstddef>
+#include <format>
 #include <list>
 #include <memory>
 #include <optional>
@@ -132,6 +133,11 @@ private:
     void pageDownResults();
     void pageUpResults();
     void log(std::string_view logEntry);
+    // The following allows usage of log() as if it were std::print:
+    template <typename... Args> void log(std::format_string<Args...> fmt, Args&&... args)
+    {
+        log(std::format(fmt, std::forward<Args>(args)...));
+    }
     std::filesystem::path locateDataDirectory(std::string_view argv0);
     void enterFoundString();
     void enterFoundStringConstrained();
