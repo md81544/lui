@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstring>
 #include <ctime>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -45,6 +46,17 @@ public:
             throw std::logic_error { "mgo::Log::init() called more than once" };
         }
 
+        std::filesystem::path logFile(filename.data());
+        std::string backup(filename);
+        backup += ".previous";
+        try {
+            std::filesystem::remove(backup);
+        } catch (...) {
+        }
+        try {
+            std::filesystem::rename(logFile, backup);
+        } catch (...) {
+        }
         instance.m_ofs.open(filename.data(), std::ios::app);
         if (!instance.m_ofs) {
             throw std::runtime_error { std::format(
