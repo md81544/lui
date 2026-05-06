@@ -1236,8 +1236,8 @@ void Ui::enterClueNumber()
         | terminal::keysAllowed::upper;
     opts.maxLen = 4;
     m_clue.clueNumber = input(opts);
-    m_clue.dirty = true;
     log("m_clue input: '{}'", m_clue.clueNumber);
+    m_commandQueue.emplace_back(CommandType::Save);
     if (opts.EntryKey == keyPress::SHIFT_TAB) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
@@ -1441,11 +1441,10 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
             std::size_t selection = row - m_resultsTopRow - 2 + m_results.scrollOffset;
             if (m_results.vec.size() > selection) {
                 m_results.selectedItem = selection;
-                Command cmd(CommandType::ResultsSelection);
+                Command cmd(CommandType::ResultsSelection, m_results.vec.at(selection));
                 if (m_results.type == ResultsType::Load) {
                     cmd.commandType = CommandType::Load;
                 }
-                cmd.data = m_results.vec.at(selection);
                 return cmd;
             }
         }

@@ -52,6 +52,11 @@ struct Command {
         : commandType(ct)
     {
     }
+    explicit Command(CommandType ct, const std::string& d)
+        : commandType(ct)
+        , data(d)
+    {
+    }
     CommandType commandType;
     std::string data;
 };
