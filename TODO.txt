@@ -10,10 +10,6 @@
 
 * Shift-letter (or Ctrl-) in input should quit input and activate command
 
-* When removing letters from "remaining", favour position, e.g.
-  if search string is "UNDUE" and found string is "..DU." then the 
-  "remaining" string should be "UNE" not "NUE"
-
 * When in input mode, dim the menu?
 
 * If all letters in constrained found input have been entered, an automatic 

@@ -929,7 +929,7 @@ void Ui::enterFoundStringConstrained()
     opts.preInsertHook = [&](int key) -> int {
         int rc = key;
         std::string lettersRemaining = m_clue.searchString;
-        while (true) { // Note this breaks after the first loop
+        for (int n = 0; n == 0; ++n) {
             // For report status:
             for (const auto& c : opts.currentValue) {
                 auto it = lettersRemaining.find(c);
@@ -1060,7 +1060,6 @@ void Ui::enterFoundStringConstrained()
                     break;
                 }
             }
-            break;
         }
         if (lettersRemaining.empty()) {
             opts.statusData = "";
