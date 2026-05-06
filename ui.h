@@ -133,7 +133,9 @@ private:
     void pageDownResults();
     void pageUpResults();
     void log(std::string_view logEntry);
-    // The following allows usage of log() as if it were std::print:
+    // The following allows usage of log() as if it were std::print.
+    // std::format_string usage here means the format string is checked
+    // at compile time.
     template <typename... Args> void log(std::format_string<Args...> fmt, Args&&... args)
     {
         log(std::format(fmt, std::forward<Args>(args)...));
