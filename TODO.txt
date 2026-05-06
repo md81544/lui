@@ -1,5 +1,3 @@
-* Log should restart each run, perhaps with a backup of the previous?
-
 * Consider how best to deal with a terminal that has a light colour scheme
   - maybe just use -c0 in that case
 
