@@ -7,6 +7,11 @@
 * Cheat warning on, say, lookup (messageBox with "are you sure")
 
 * Shift-letter (or Ctrl-) in input should quit input and activate command
+- Add a generic pre-hook function (to be called from pre-hooks) which can
+  initially just check for ':' perhaps? Wouldn't be called from free-format entry
+  like the "comment" entry.
+- Maybe any non-[a-z] character entered should terminate input and generate
+  a new command?
 
 * When in input mode, dim the menu?
 
@@ -53,10 +58,6 @@
 * (related) consider returning something more structured from WordSearcher::define()
   to allow for the caller to add, say, colour to the output (e.g. definitions, words,
   and undefined to have separate colours)
-
-* Add a generic pre-hook function (to be called from pre-hooks) which can
-  initially just check for ':' perhaps? Wouldn't be called from free-format entry
-  like the "comment" entry.
 
 * Colon entry in input box should cancel entry and initiate command mode
   - maybe not... what about free-form input?

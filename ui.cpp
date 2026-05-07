@@ -370,10 +370,11 @@ void Ui::appendResults(std::string_view item, ResultsType type)
 void Ui::displayHeader(terminal::OutputMode mode)
 {
     constexpr terminal::ColourRgb ENTRY_COLOUR = { 160, 255, 100 };
+    constexpr terminal::ColourRgb BRIGHT = { 200, 255, 200 };
     // Can use immediate mode to clear the header before an input (which is immediate)
     m_term.goTo(1, 1, mode);
     m_term.printMenuString(
-        terminal::Colour::Default, terminal::Colour::BrightWhite, "_Search : ", mode);
+        terminal::Colour::Default, BRIGHT, "_Search : ", mode);
     if (!m_clue.searchString.empty()) {
         {
             terminal::ColourGuard cg(&m_term);
@@ -387,7 +388,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.clearToEndOfLine(mode);
     m_term.goTo(2, 1, mode);
     m_term.printMenuString(
-        terminal::Colour::Default, terminal::Colour::BrightWhite, "_Found  : ", mode);
+        terminal::Colour::Default, BRIGHT, "_Found  : ", mode);
     m_term.clearToEndOfLine(mode);
     {
         terminal::ColourGuard cg(&m_term);
@@ -397,7 +398,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.clearToEndOfLine(mode);
     m_term.goTo(3, 1, mode);
     m_term.printMenuString(
-        terminal::Colour::Default, terminal::Colour::BrightWhite, "_Comment: ", mode);
+        terminal::Colour::Default, BRIGHT, "_Comment: ", mode);
     m_term.clearToEndOfLine(mode);
     {
         terminal::ColourGuard cg(&m_term);
@@ -407,7 +408,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.clearToEndOfLine(mode);
     m_term.goTo(4, 1, mode);
     m_term.printMenuString(
-        terminal::Colour::Default, terminal::Colour::BrightWhite, "Clue _No: ", mode);
+        terminal::Colour::Default, BRIGHT, "Clue _No: ", mode);
     {
         terminal::ColourGuard cg(&m_term);
         m_term.setFgColour(ENTRY_COLOUR);

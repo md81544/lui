@@ -34,8 +34,7 @@ void Menu::printMenu(std::size_t row, std::size_t col, terminal::OutputMode mode
             currentRow = i.row;
             m_term.goTo(row + currentRow, col, mode);
         }
-        m_term.printMenuString(
-            terminal::Colour::Default, terminal::Colour::BrightWhite, i.text + " ", mode);
+        m_term.printMenuString(terminal::Colour::Default, { 200, 255, 200 }, i.text + " ", mode);
     }
 }
 
