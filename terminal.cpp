@@ -324,11 +324,17 @@ void Terminal::printMenuString(
     for (const char c : text) {
         if (c == '_') {
             highlighting = true;
+            if (m_colourDepth == ColourDepth::None) {
+                styleUnderline(true);
+            }
             setFgColour(highlight, mode);
         } else {
             print(std::string { c }, mode);
             if (highlighting) {
                 highlighting = false;
+                if (m_colourDepth == ColourDepth::None) {
+                    styleUnderline(false);
+                }
                 setFgColour(normal, mode);
             }
         }
@@ -815,7 +821,8 @@ std::string Terminal::colourToAnsiFg(ColourRgb rgb)
     }
 }
 
-std::string Terminal::colourToAnsiBg(ColourRgb rgb) {
+std::string Terminal::colourToAnsiBg(ColourRgb rgb)
+{
     switch (m_colourDepth) {
         case ColourDepth::None:
             // Nothing to do
@@ -838,7 +845,7 @@ std::string Terminal::colourToAnsiBg(ColourRgb rgb) {
         default:
             assert("Unhandled colour depth");
     }
- }
+}
 
 void Terminal::output(std::string_view text, OutputMode mode)
 {
