@@ -1,19 +1,23 @@
-* Consider how best to deal with a terminal that has a light colour scheme
-  - maybe just use -c0 in that case
+* Maybe improve definitions display? Currently just dumps a vector.
+  - (related) allow horizontal scrolling of results (or at least the definitions portion)
+    - or a click on a definition displays a message box
+  - (related) consider returning something more structured from WordSearcher::define()
+    to allow for the caller to add, say, colour to the output (e.g. definitions, words,
+    and undefined to have separate colours)
+  - (related) multiple colour support in results pane?
+    - may be just as simple as including colour codes?
 
 * Now it's easy to click or tab off a field, search string input should be
-  "focused" by default on start/restart
+  focused by default on start/restart. Perhaps.
 
 * Cheat warning on, say, lookup (messageBox with "are you sure")
 
 * Shift-letter (or Ctrl-) in input should quit input and activate command
-- Add a generic pre-hook function (to be called from pre-hooks) which can
-  initially just check for ':' perhaps? Wouldn't be called from free-format entry
-  like the "comment" entry.
-- Maybe any non-[a-z] character entered should terminate input and generate
-  a new command?
-
-* When in input mode, dim the menu?
+  - Add a generic pre-hook function (to be called from pre-hooks) which can
+    initially just check for ':' perhaps? Wouldn't be called from free-format entry
+    like the "comment" entry.
+  - Maybe any non-[a-z] character entered should terminate input and generate
+    a new command?
 
 * If all letters in constrained found input have been entered, an automatic 
   enter should be generated
@@ -32,35 +36,12 @@
   - "Add phrase" would need to check whether the current directory is
     git-controlled
     
-* Clickable options on messageBox... buttons?
-
-* Add regex check to ensure clue number is in the correct format
-  - regex should be "^\d{1,3}[AD]$" (and enforce capitals in input)
+* Clickable options on messageBox... pseudo buttons?
 
 * Scratchpad command - just allows free entry?
 
-* (maybe) Multiple-character extended commands, e.g. :r! to restart without
-  "are you sure?" message if m_clue is dirty
-
 * Add reverse video in Terminal: on = "\e[7m", off = "\e[27m"
 
-* multiple colour support in results pane?
-  - may be just as simple as including colour codes?
-
 * Add unit tests for WordSearcher
-
-* Make "_Regular" "Re_gular" and make "^Restart" "_Restart".
-
-* Undo filter? Although this can be done by just re-querying
-
-* Maybe improve definitions display? Currently just dumps a vector.
-* (related) allow horizontal scrolling of results (or at least the definitions portion)
-* (related) consider returning something more structured from WordSearcher::define()
-  to allow for the caller to add, say, colour to the output (e.g. definitions, words,
-  and undefined to have separate colours)
-
-* Colon entry in input box should cancel entry and initiate command mode
-  - maybe not... what about free-form input?
-  - although could work as an option flag, usable in non-comment input
 
 * Think about adding a help screen (F1 or :h)
