@@ -87,6 +87,25 @@ std::size_t separatedStringSize(std::string_view foundString)
     return std::count_if(foundString.begin(), foundString.end(), [](char c) { return c != '/'; });
 }
 
+std::string letterCount(std::string_view searchString, [[maybe_unused]] std::string_view foundString){
+    // Returns a string in the format "5 letters" say. If foundString contains
+    // a word separator (or multiple), then the output is, for example, "3,2 letters"
+    if(!foundString.contains('/')){
+        return std::format("{} letters", searchString.size());
+    }
+    std::vector<std::string> vec;
+    for (auto subrange : foundString | std::views::split('/')) {
+        vec.emplace_back(subrange.begin(), subrange.end());
+    }
+    std::string rc;
+    for(const auto&s : vec) {
+        if(!rc.empty()) rc.push_back(',');
+        rc.append(std::to_string(s.size()));
+    }
+    rc.append(" letters");
+    return rc;
+}
+
 } // anonymous namespace
 
 namespace ui {
@@ -381,7 +400,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
             m_term.printAt(1, 10, m_clue.searchString, mode);
         }
         m_term.styleItalic(true, mode);
-        m_term.print(std::format("  ({} letters)", m_clue.searchString.size()), mode);
+        m_term.print(std::format("  ({})", letterCount(m_clue.searchString, m_clue.foundString)), mode);
         m_term.styleItalic(false, mode);
     }
     m_term.clearToEndOfLine(mode);
