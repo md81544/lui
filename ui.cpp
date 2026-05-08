@@ -93,14 +93,11 @@ std::string letterCount(std::string_view searchString, [[maybe_unused]] std::str
     if(!foundString.contains('/')){
         return std::format("{} letters", searchString.size());
     }
-    std::vector<std::string> vec;
-    for (auto subrange : foundString | std::views::split('/')) {
-        vec.emplace_back(subrange.begin(), subrange.end());
-    }
+
     std::string rc;
-    for(const auto&s : vec) {
+    for (auto subrange : foundString | std::views::split('/')) {
         if(!rc.empty()) rc.push_back(',');
-        rc.append(std::to_string(s.size()));
+        rc.append(std::to_string(subrange.end() - subrange.begin()));
     }
     rc.append(" letters");
     return rc;
