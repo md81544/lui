@@ -1,3 +1,7 @@
+* Update search string "letters" count if found string contains separator(s)
+  e.g. "CABGIT (6 letters)" would become "CABGIT (3,3 letters)" if found string
+  is set to "B../C.T"
+ 
 * Maybe improve definitions display? Currently just dumps a vector.
   - (related) allow horizontal scrolling of results (or at least the definitions portion)
     - or a click on a definition displays a message box

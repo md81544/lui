@@ -580,6 +580,8 @@ InputResult Terminal::input(InputOptions& opts)
             case keyPress::ENTER:
             case keyPress::TAB:
             case keyPress::SHIFT_TAB:
+            case keyPress::UP:
+            case keyPress::DOWN:
                 opts.EntryKey = keyOrig;
                 done = true;
                 break;

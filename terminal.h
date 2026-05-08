@@ -214,7 +214,7 @@ struct InputOptions {
     InputReportStatus reportStatus { InputReportStatus::None };
     std::string statusData; // The caller can manipulate this in hooks and it will
                             // be displayed after the input if reportStatus == Status
-    // Tab / shift tab also acts as an "enter" key. The user can
+    // Tab / shift tab / Up / Down also act as an "enter" key. The user can
     // check this value after input to determine whether to move
     // to a different field (e.g. if EntryKey == SHIFT_TAB, immediately
     // start input in a previous field). Up to the caller.

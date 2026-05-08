@@ -373,8 +373,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     constexpr terminal::ColourRgb BRIGHT = { 200, 255, 200 };
     // Can use immediate mode to clear the header before an input (which is immediate)
     m_term.goTo(1, 1, mode);
-    m_term.printMenuString(
-        terminal::Colour::Default, BRIGHT, "_Search : ", mode);
+    m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Search : ", mode);
     if (!m_clue.searchString.empty()) {
         {
             terminal::ColourGuard cg(&m_term);
@@ -387,8 +386,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     }
     m_term.clearToEndOfLine(mode);
     m_term.goTo(2, 1, mode);
-    m_term.printMenuString(
-        terminal::Colour::Default, BRIGHT, "_Found  : ", mode);
+    m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Found  : ", mode);
     m_term.clearToEndOfLine(mode);
     {
         terminal::ColourGuard cg(&m_term);
@@ -397,8 +395,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     }
     m_term.clearToEndOfLine(mode);
     m_term.goTo(3, 1, mode);
-    m_term.printMenuString(
-        terminal::Colour::Default, BRIGHT, "_Comment: ", mode);
+    m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Comment: ", mode);
     m_term.clearToEndOfLine(mode);
     {
         terminal::ColourGuard cg(&m_term);
@@ -407,8 +404,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     }
     m_term.clearToEndOfLine(mode);
     m_term.goTo(4, 1, mode);
-    m_term.printMenuString(
-        terminal::Colour::Default, BRIGHT, "Clue _No: ", mode);
+    m_term.printMenuString(terminal::Colour::Default, BRIGHT, "Clue _No: ", mode);
     {
         terminal::ColourGuard cg(&m_term);
         m_term.setFgColour(ENTRY_COLOUR);
@@ -1092,11 +1088,11 @@ void Ui::enterFoundStringConstrained()
     m_clue.foundString = input(opts);
     m_clue.dirty = true;
     log("m_clue.foundString (constrained) input: '{}'", m_clue.foundString);
-    if (opts.EntryKey == keyPress::TAB) {
+    if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
     }
-    if (opts.EntryKey == keyPress::SHIFT_TAB) {
+    if (opts.EntryKey == keyPress::SHIFT_TAB || opts.EntryKey == keyPress::UP) {
         // chain to search entry
         m_commandQueue.emplace_back(CommandType::EnterSearchString);
     }
@@ -1130,7 +1126,7 @@ void Ui::enterFoundStringUnconstrained()
             || key == keyPress::DELETE || key == keyPress::CTRL_A || key == keyPress::CTRL_E
             || key == keyPress::END || key == keyPress::HOME || key == keyPress::CTRL_U
             || key == keyPress::ENTER || key == keyPress::ESC || key == keyPress::TAB
-            || key == keyPress::SHIFT_TAB) {
+            || key == keyPress::SHIFT_TAB || key == keyPress::UP || key == keyPress::DOWN) {
             return key;
         }
         return keyPress::NO_KEY;
@@ -1156,11 +1152,11 @@ void Ui::enterFoundStringUnconstrained()
     }
     m_clue.dirty = true;
     log("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString);
-    if (opts.EntryKey == keyPress::TAB) {
+    if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
     }
-    if (opts.EntryKey == keyPress::SHIFT_TAB) {
+    if (opts.EntryKey == keyPress::SHIFT_TAB || opts.EntryKey == keyPress::UP) {
         // chain to search entry
         m_commandQueue.emplace_back(CommandType::EnterSearchString);
     }
@@ -1195,7 +1191,7 @@ void Ui::enterSearchString()
     }
     m_clue.dirty = true;
     log("m_clue.searchString input: '{}'", m_clue.searchString);
-    if (opts.EntryKey == keyPress::TAB) {
+    if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
         // chain to enter found string
         m_commandQueue.emplace_back(CommandType::EnterFoundString);
     }
@@ -1213,11 +1209,11 @@ void Ui::enterCommentString()
     m_clue.comment = input(opts);
     m_clue.dirty = true;
     log("m_clue.comment input: '{}'", m_clue.comment);
-    if (opts.EntryKey == keyPress::TAB) {
+    if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
         // chain to clue number entry
         m_commandQueue.emplace_back(CommandType::EnterClueNumber);
     }
-    if (opts.EntryKey == keyPress::SHIFT_TAB) {
+    if (opts.EntryKey == keyPress::SHIFT_TAB || opts.EntryKey == keyPress::UP) {
         // chain to found entry
         m_commandQueue.emplace_back(CommandType::EnterFoundString);
     }
@@ -1236,9 +1232,11 @@ void Ui::enterClueNumber()
         | terminal::keysAllowed::upper;
     opts.maxLen = 4;
     m_clue.clueNumber = input(opts);
-    log("m_clue input: '{}'", m_clue.clueNumber);
-    m_commandQueue.emplace_back(CommandType::Save);
-    if (opts.EntryKey == keyPress::SHIFT_TAB) {
+    if (!m_clue.clueNumber.empty()) {
+        log("m_clue input: '{}'", m_clue.clueNumber);
+        m_commandQueue.emplace_back(CommandType::Save);
+    }
+    if (opts.EntryKey == keyPress::SHIFT_TAB || opts.EntryKey == keyPress::UP) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
     }
