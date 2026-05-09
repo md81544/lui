@@ -1,3 +1,8 @@
+* Don't redraw if mouse scrolling and already at top/bottom of results
+
+* Keyboard shortcuts for Y/N or OK/Cancel in messageBox... maybe ENTER signifies Y/OK
+  and anything else cancels?
+
 * Maybe improve definitions display? Currently just dumps a vector.
   - (related) allow horizontal scrolling of results (or at least the definitions portion)
     - or a click on a definition displays a message box
