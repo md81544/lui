@@ -154,7 +154,7 @@ private:
     void enterClueNumber();
     void ShowDebugLog();
     void lostFocus();
-    Command decodeMouseClick(int button, std::size_t row, std::size_t col);
+    Command decodeMouseEvent(int button, std::size_t row, std::size_t col);
     Command decodeKeyPress(int keyPress, bool extendedFunction);
     std::string input(terminal::InputOptions& opt);
 

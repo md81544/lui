@@ -1382,7 +1382,7 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             // currently does nothing
             return Command(CommandType::NoOp);
         case keyPress::MOUSE:
-            return decodeMouseClick(
+            return decodeMouseEvent(
                 keyPress::lastMouseClick.button,
                 keyPress::lastMouseClick.row,
                 keyPress::lastMouseClick.col);
@@ -1398,7 +1398,7 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
     return Command(CommandType::NoOp);
 }
 
-Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
+Command Ui::decodeMouseEvent(int button, std::size_t row, std::size_t col)
 {
     if (button != 64 && button != 65) { // don't log scroll events, too many
         log("Mouse event: Button: {}, Row: {}, Col: {}", button, row, col);
@@ -1487,7 +1487,7 @@ std::string Ui::input(terminal::InputOptions& opts)
     terminal::InputResult inputResult = m_term.input(opts);
     if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
         m_commandQueue.push_back(
-            decodeMouseClick(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
+            decodeMouseEvent(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
     }
     if (inputResult.lostFocus) {
         m_commandQueue.emplace_back(CommandType::LostFocus);
