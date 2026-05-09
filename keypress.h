@@ -204,9 +204,10 @@ inline std::optional<int> getKeyPress(bool blocking = true)
     if (!blocking && c == 0) {
         return std::nullopt;
     }
+    constexpr int TIMEOUT_MS = 50;
     if (c == 27) {
         // Use a short timeout to distinguish bare ESC from a sequence
-        if (stdinReady(50)) {
+        if (stdinReady(TIMEOUT_MS)) {
             int c2 = readByte();
             if (c2 == '[') {
                 // CSI sequence — read parameter/intermediate bytes
@@ -214,7 +215,7 @@ inline std::optional<int> getKeyPress(bool blocking = true)
                 char seq[16];
                 int len = 0;
                 while (len < (int)sizeof(seq) - 1) {
-                    if (!stdinReady(50)) {
+                    if (!stdinReady(TIMEOUT_MS)) {
                         break;
                     }
                     int ch = readByte();
@@ -304,7 +305,7 @@ inline std::optional<int> getKeyPress(bool blocking = true)
 
             } else if (c2 == 'O') {
                 // SS3 sequence — used for F1-F4 in many terminals
-                if (!stdinReady(50)) {
+                if (!stdinReady(TIMEOUT_MS)) {
                     return std::nullopt;
                 }
                 int c3 = readByte();
