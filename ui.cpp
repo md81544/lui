@@ -250,101 +250,102 @@ int Ui::run()
         redraw(commandSeqCount > 0);
         int keyPress;
         Command cmd(CommandType::NoOp);
-
-        if (!m_commandQueue.empty()) {
-            cmd = *m_commandQueue.begin();
-            m_commandQueue.pop_front();
-        } else {
-            keyPress = m_term.getChar();
-            cmd = decodeKeyPress(keyPress, commandSeqCount > 0);
-        }
-        switch (cmd.commandType) {
-            case CommandType::NoOp:
-                break;
-            case CommandType::AwaitCommand: // Used if user presses ':'
-                commandSeqCount = 2;
-                break;
-            case CommandType::Jumble:
-                jumble();
-                break;
-            case CommandType::Reverse:
-                reverse();
-                break;
-            case CommandType::Regular:
-                regular();
-                break;
-            case CommandType::Thesaurus:
-                thesaurus();
-                break;
-            case CommandType::Lookup:
-                lookup();
-                break;
-            case CommandType::Define:
-                define();
-                break;
-            case CommandType::Filter:
-                filterResults();
-                break;
-            case CommandType::Done:
-                done();
-                break;
-            case CommandType::Save:
-                save();
-                break;
-            case CommandType::Load:
-                load(cmd.data);
-                break;
-            case CommandType::Restart:
-                restart();
-                break;
-            case CommandType::HardRestart:
-                restart(true);
-                break;
-            case CommandType::Quit:
-                finished = true;
-                break;
-            case CommandType::EnterSearchString:
-                enterSearchString();
-                break;
-            case CommandType::EnterFoundString:
-                enterFoundString();
-                break;
-            case CommandType::EnterComment:
-                enterCommentString();
-                break;
-            case CommandType::EnterClueNumber:
-                enterClueNumber();
-                break;
-            case CommandType::ResultsScrollDown:
-                scrollDownResults();
-                break;
-            case CommandType::ResultsScrollUp:
-                scrollUpResults();
-                break;
-            case CommandType::ResultsPageDown:
-                pageDownResults();
-                break;
-            case CommandType::ResultsPageUp:
-                pageUpResults();
-                break;
-            case CommandType::ResultsSelection:
-                if (m_results.selectedItem.has_value()) {
-                    if (m_results.selectedItem.value() < m_results.vec.size()) {
-                        log("Results item {} ('{}') selected",
-                            m_results.selectedItem.value(),
-                            m_results.vec.at(m_results.selectedItem.value()));
+        while (cmd.commandType == CommandType::NoOp) {
+            if (!m_commandQueue.empty()) {
+                cmd = *m_commandQueue.begin();
+                m_commandQueue.pop_front();
+            } else {
+                keyPress = m_term.getChar();
+                cmd = decodeKeyPress(keyPress, commandSeqCount > 0);
+            }
+            switch (cmd.commandType) {
+                case CommandType::NoOp:
+                    break;
+                case CommandType::AwaitCommand: // Used if user presses ':'
+                    commandSeqCount = 2;
+                    break;
+                case CommandType::Jumble:
+                    jumble();
+                    break;
+                case CommandType::Reverse:
+                    reverse();
+                    break;
+                case CommandType::Regular:
+                    regular();
+                    break;
+                case CommandType::Thesaurus:
+                    thesaurus();
+                    break;
+                case CommandType::Lookup:
+                    lookup();
+                    break;
+                case CommandType::Define:
+                    define();
+                    break;
+                case CommandType::Filter:
+                    filterResults();
+                    break;
+                case CommandType::Done:
+                    done();
+                    break;
+                case CommandType::Save:
+                    save();
+                    break;
+                case CommandType::Load:
+                    load(cmd.data);
+                    break;
+                case CommandType::Restart:
+                    restart();
+                    break;
+                case CommandType::HardRestart:
+                    restart(true);
+                    break;
+                case CommandType::Quit:
+                    finished = true;
+                    break;
+                case CommandType::EnterSearchString:
+                    enterSearchString();
+                    break;
+                case CommandType::EnterFoundString:
+                    enterFoundString();
+                    break;
+                case CommandType::EnterComment:
+                    enterCommentString();
+                    break;
+                case CommandType::EnterClueNumber:
+                    enterClueNumber();
+                    break;
+                case CommandType::ResultsScrollDown:
+                    scrollDownResults();
+                    break;
+                case CommandType::ResultsScrollUp:
+                    scrollUpResults();
+                    break;
+                case CommandType::ResultsPageDown:
+                    pageDownResults();
+                    break;
+                case CommandType::ResultsPageUp:
+                    pageUpResults();
+                    break;
+                case CommandType::ResultsSelection:
+                    if (m_results.selectedItem.has_value()) {
+                        if (m_results.selectedItem.value() < m_results.vec.size()) {
+                            log("Results item {} ('{}') selected",
+                                m_results.selectedItem.value(),
+                                m_results.vec.at(m_results.selectedItem.value()));
+                        }
                     }
-                }
-                break;
-            case CommandType::LostFocus:
-                lostFocus();
-                break;
-            case CommandType::GainedFocus:
-                // Does nothing
-                break;
-            case CommandType::ShowDebugLog:
-                ShowDebugLog();
-                break;
+                    break;
+                case CommandType::LostFocus:
+                    lostFocus();
+                    break;
+                case CommandType::GainedFocus:
+                    // Does nothing
+                    break;
+                case CommandType::ShowDebugLog:
+                    ShowDebugLog();
+                    break;
+            }
         }
     }
     return 0;
@@ -1453,9 +1454,15 @@ Command Ui::decodeMouseClick(int button, std::size_t row, std::size_t col)
         // but support for this is patchy - it depends on both the terminal emulator
         // and the mouse/trackpad sending the events. Not needed yet, if at all.
         if (button == 65) { // scroll down
+            if (m_results.scrollAtBottom) {
+                return Command(CommandType::NoOp);
+            }
             return Command(CommandType::ResultsScrollDown);
         }
         if (button == 64) { // scroll up
+            if (m_results.scrollOffset == 0) {
+                return Command(CommandType::NoOp);
+            }
             return Command(CommandType::ResultsScrollUp);
         }
         if (button == 0
