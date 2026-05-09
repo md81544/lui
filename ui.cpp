@@ -979,7 +979,7 @@ void Ui::enterFoundStringConstrained()
                 rc = key;
                 break;
             }
-            if (key == keyPress::BACKSPACE && opts.cursorPos >= 0) {
+            if (key == keyPress::BACKSPACE) {
                 if (opts.cursorPos > 0 && opts.cursorPos < opts.currentValue.size() - 1) {
                     --opts.cursorPos;
                 } else if (

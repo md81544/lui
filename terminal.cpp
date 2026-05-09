@@ -820,6 +820,7 @@ std::string Terminal::colourToAnsiFg(ColourRgb rgb)
             break;
         default:
             assert("Unhandled colour depth");
+            return {};
     }
 }
 
@@ -846,6 +847,7 @@ std::string Terminal::colourToAnsiBg(ColourRgb rgb)
             break;
         default:
             assert("Unhandled colour depth");
+            return {};
     }
 }
 
