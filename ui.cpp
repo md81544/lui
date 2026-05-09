@@ -1359,9 +1359,12 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             return Command(CommandType::ResultsScrollDown);
         case keyPress::UP:
             return Command(CommandType::ResultsScrollUp);
+        case keyPress::SPACE:
         case keyPress::PGDN:
         case keyPress::CTRL_F:
-        case keyPress::SPACE:
+            if (keyPress == keyPress::SPACE && m_results.type == ResultsType::Jumble) {
+                return Command(CommandType::Jumble);
+            }
             return Command(CommandType::ResultsPageDown);
         case keyPress::PGUP:
         case keyPress::CTRL_B: // Note Ctrl-B may be TMux's "prefix" key!
