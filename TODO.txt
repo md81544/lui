@@ -1,6 +1,8 @@
 * Sort letters remaining according to position in search string
 
 * Don't redraw if mouse scrolling and already at top/bottom of results
+* (related) improve performance when scrolling in large result sets (maybe
+  just redraw the results pane?)
 
 * Keyboard shortcuts for Y/N or OK/Cancel in messageBox... maybe ENTER signifies Y/OK
   and anything else cancels?
