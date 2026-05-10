@@ -386,6 +386,8 @@ int Terminal::messageBox(MessageBoxOptions& opts)
         opts.waitForKey = false;
         mgo::Log::error("waitForKey == true doesn't make sense in non-immediate mode");
     }
+    ColourGuard dg(this);
+    setFgColour(Colour::Default, opts.mode);
     styleBold(true, opts.mode);
     std::size_t localRow { opts.row };
     std::size_t maxLen = 0;
