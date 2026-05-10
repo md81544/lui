@@ -1,3 +1,5 @@
+* Sort letters remaining according to position in search string
+
 * Don't redraw if mouse scrolling and already at top/bottom of results
 
 * Keyboard shortcuts for Y/N or OK/Cancel in messageBox... maybe ENTER signifies Y/OK

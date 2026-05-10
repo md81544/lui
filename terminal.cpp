@@ -109,13 +109,19 @@ Terminal::Terminal()
     if (hasUtf8Support()) {
         m_utf8Supported = true;
     }
+    // Switch to raw mode
+    tcgetattr(STDIN_FILENO, &m_termAttrs);
+    termios raw = m_termAttrs;
+    cfmakeraw(&raw);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+
     m_colourDepth = detectColourDepth();
     m_renderMap.clear();
-    std::cout << "\033[?1000h\033[?1006h"; // SGR mode (if supported) for mouse reporting
 #ifdef NDEBUG
     std::cout << "\033[?1004h"; // enable focus reporting
 #endif
     std::cout << "\033[?1049h"; // switch to alternate screen
+    std::cout << "\033[?1000h\033[?1006h"; // SGR mode (if supported) for mouse reporting
     std::cout << "\033[2J"; // clear screen
     std::cout << "\033[H"; // cursor to home (1,1)
     std::cout << std::flush;
@@ -126,13 +132,16 @@ Terminal::~Terminal()
     mgo::Log::debug("Resetting terminal in ~Terminal()");
     std::cout << "\033[?25h"; // cursor unhide in case it was off
     setCursorType(CursorType::Default, OutputMode::immediate); // reset any cursor change
+    std::cout << "\033[?1000l\033[?1006l"; // exit SGR mode
     std::cout << "\033[?1049l"; // switch back to normal screen
 #ifdef NDEBUG
     std::cout << "\033[?1004l"; // disable focus reporting
 #endif
-    std::cout << "\033[?1000l\033[?1006l"; // exit SGR mode
     std::cout << std::flush;
     keyPress::drainInputQueue(); // clear any remaining input
+
+    // Switch back to "cooked" mode
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &m_termAttrs);
 }
 
 void Terminal::render()
@@ -516,13 +525,13 @@ InputResult Terminal::input(InputOptions& opts)
                     rc.mouseClickCol = keyPress::lastMouseEvent.col;
                     rc.mouseClickRow = keyPress::lastMouseEvent.row;
                     rc.clickType = InputMouseClickType::ClickedOff;
-                    key = keyPress::ENTER;
+                    key = keyPress::CR;
                 }
             }
         }
         if (key == keyPress::FOCUS_OUT) {
             rc.lostFocus = true;
-            key = keyPress::ENTER;
+            key = keyPress::CR;
         }
         if (ascii::isprint(key) && opts.keysAllowed > 0) {
             bool matched = false;
@@ -577,7 +586,8 @@ InputResult Terminal::input(InputOptions& opts)
         switch (keyOrig) {
             case keyPress::NO_KEY:
                 break;
-            case keyPress::ENTER:
+            case keyPress::LF:
+            case keyPress::CR:
             case keyPress::TAB:
             case keyPress::SHIFT_TAB:
             case keyPress::UP:

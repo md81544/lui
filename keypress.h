@@ -134,7 +134,8 @@ constexpr int CTRL_Z = 26; // suspend (SIGTSTP)
 // These are alternate names for some of the above
 constexpr int TAB = 9;
 constexpr int NO_KEY = 0;
-constexpr int ENTER = 10;
+constexpr int LF = 10;
+constexpr int CR = 13;
 constexpr int ESC = 27;
 
 constexpr int SPACE = 32;

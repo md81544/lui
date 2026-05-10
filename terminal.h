@@ -218,7 +218,7 @@ struct InputOptions {
     // check this value after input to determine whether to move
     // to a different field (e.g. if EntryKey == SHIFT_TAB, immediately
     // start input in a previous field). Up to the caller.
-    int EntryKey { keyPress::ENTER };
+    int EntryKey { keyPress::CR };
 };
 
 enum class InputMouseClickType {
@@ -341,6 +341,7 @@ private:
     ColourRgb m_currentFgRgbColour { Colour::Default };
     ColourRgb m_currentBgRgbColour { Colour::Default };
     ColourDepth m_colourDepth;
+    termios m_termAttrs;
 };
 
 class ColourGuard {
