@@ -175,6 +175,7 @@ private:
     [[nodiscard]] std::size_t getResultsPaneRowSize();
 
     menu::Menu m_menu { m_term };
+    bool m_suppressRedraw{ false };
 };
 
 } // namespace ui

@@ -247,7 +247,9 @@ int Ui::run()
         if (commandSeqCount > 0) {
             --commandSeqCount;
         }
-        redraw(commandSeqCount > 0);
+        if (!m_suppressRedraw) {
+            redraw(commandSeqCount > 0);
+        }
         int keyPress;
         Command cmd(CommandType::NoOp);
         while (cmd.commandType == CommandType::NoOp) {
@@ -258,6 +260,9 @@ int Ui::run()
                 keyPress = m_term.getChar();
                 cmd = decodeKeyPress(keyPress, commandSeqCount > 0);
             }
+            // If a command handles its own redraw for performance
+            // (e.g. scrolling results) then it can set m_suppressRedraw to true
+            m_suppressRedraw = false;
             switch (cmd.commandType) {
                 case CommandType::NoOp:
                     break;
@@ -316,9 +321,11 @@ int Ui::run()
                     enterClueNumber();
                     break;
                 case CommandType::ResultsScrollDown:
+                    m_suppressRedraw = true;
                     scrollDownResults();
                     break;
                 case CommandType::ResultsScrollUp:
+                    m_suppressRedraw = true;
                     scrollUpResults();
                     break;
                 case CommandType::ResultsPageDown:
@@ -438,11 +445,14 @@ void Ui::displayHeader(terminal::OutputMode mode)
 void Ui::displayResults(terminal::OutputMode mode)
 {
     std::size_t lastRowInSection = m_resultsTopRow + getResultsPaneRowSize() - 1;
-    hr(m_resultsTopRow, mode);
+    if (!m_suppressRedraw) {
+        hr(m_resultsTopRow, mode);
 
-    m_term.printAt(m_resultsTopRow, 1, "Results", mode);
-    if (m_results.filtered) {
-        m_term.printAt(m_resultsTopRow, 9, "(filtered)", mode);
+        m_term.setFgColour(terminal::Colour::Default, terminal::OutputMode::immediate);
+        m_term.printAt(m_resultsTopRow, 1, "Results", mode);
+        if (m_results.filtered) {
+            m_term.printAt(m_resultsTopRow, 9, "(filtered)", mode);
+        }
     }
 
     if (!m_results.vec.empty()) {
@@ -450,7 +460,9 @@ void Ui::displayResults(terminal::OutputMode mode)
         m_term.setFgColour(terminal::Colour::BrightYellow, mode);
         std::size_t currentRow = m_resultsTopRow + 2;
         if (m_results.scrollOffset != 0) {
-            m_term.printAt(currentRow - 1, 1, "...");
+            m_term.printAt(currentRow - 1, 1, "...", mode);
+        } else {
+            m_term.printAt(currentRow - 1, 1, "   ", mode);
         }
         for (std::size_t p = m_results.scrollOffset; p < m_results.vec.size(); ++p) {
             if (m_results.vec[p].size() > m_termSize.cols - 2) {
@@ -459,6 +471,7 @@ void Ui::displayResults(terminal::OutputMode mode)
             } else {
                 m_term.printAt(currentRow, 1, m_results.vec[p], mode);
             }
+            m_term.clearToEndOfLine(mode);
             ++currentRow;
             if (currentRow == lastRowInSection) {
                 if (p < m_results.vec.size() - 1) {
@@ -466,6 +479,7 @@ void Ui::displayResults(terminal::OutputMode mode)
                     m_term.printAt(currentRow, 1, "...", mode);
                     m_results.scrollAtBottom = false;
                 } else {
+                    m_term.printAt(currentRow, 1, "   ", mode);
                     m_results.scrollAtBottom = true;
                 }
                 break;
@@ -551,7 +565,7 @@ void Ui::hr(std::size_t row, terminal::OutputMode mode)
         }
     }
     terminal::ColourGuard guard(&m_term);
-    m_term.setFgColour({ 0, 96, 0 });
+    m_term.setFgColour({ 0, 96, 0 }, mode);
     m_term.print(hr, mode);
 }
 
@@ -866,6 +880,7 @@ void Ui::scrollDownResults()
     if (!m_results.scrollAtBottom) {
         ++m_results.scrollOffset;
     }
+    displayResults(terminal::OutputMode::immediate);
 }
 
 void Ui::scrollUpResults()
@@ -873,6 +888,7 @@ void Ui::scrollUpResults()
     if (m_results.scrollOffset > 0) {
         --m_results.scrollOffset;
     }
+    displayResults(terminal::OutputMode::immediate);
 }
 
 void Ui::pageDownResults()
