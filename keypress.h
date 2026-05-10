@@ -21,13 +21,13 @@ namespace keyPress {
 // returns true if shutdown is requested via signal.
 inline std::function<bool()> shutdownCheckFunction;
 
-struct MouseClick {
+struct MouseEvent {
     int button;
     std::size_t row;
     std::size_t col;
 };
 
-inline keyPress::MouseClick lastMouseClick;
+inline keyPress::MouseEvent lastMouseEvent;
 
 } // namespace keyPress
 
@@ -88,9 +88,9 @@ void decodeMouseClick(std::string_view seq)
         vec.emplace_back(subrange.begin(), subrange.end());
     }
     if (vec.size() >= 3) {
-        keyPress::lastMouseClick.button = std::stoi(vec[0]);
-        keyPress::lastMouseClick.col = std::stoi(vec[1]) - 1;
-        keyPress::lastMouseClick.row = std::stoi(vec[2]) - 1;
+        keyPress::lastMouseEvent.button = std::stoi(vec[0]);
+        keyPress::lastMouseEvent.col = std::stoi(vec[1]) - 1;
+        keyPress::lastMouseEvent.row = std::stoi(vec[2]) - 1;
     }
 }
 
@@ -201,7 +201,7 @@ inline std::optional<int> getKeyPress(bool blocking = true)
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &term_attrs);
     c = readByte();
-    if (!blocking && c == 0) {
+    if (!blocking && c == -1) {
         return std::nullopt;
     }
     constexpr int TIMEOUT_MS = 50;

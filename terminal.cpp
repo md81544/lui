@@ -505,16 +505,16 @@ InputResult Terminal::input(InputOptions& opts)
         opts.previousValue = opts.currentValue; // for restoration if caller cancels in post hook
         int key = getChar();
         if (key == keyPress::MOUSE) {
-            if (keyPress::lastMouseClick.button == 0) {
-                if (keyPress::lastMouseClick.row == opts.row
-                    && (keyPress::lastMouseClick.col >= opts.col
-                        && keyPress::lastMouseClick.col
+            if (keyPress::lastMouseEvent.button == 0) {
+                if (keyPress::lastMouseEvent.row == opts.row
+                    && (keyPress::lastMouseEvent.col >= opts.col
+                        && keyPress::lastMouseEvent.col
                             <= opts.col + opts.currentValue.size() - 1)) {
-                    opts.cursorPos = keyPress::lastMouseClick.col - opts.col;
+                    opts.cursorPos = keyPress::lastMouseEvent.col - opts.col;
                 } else {
                     // user clicked off the input field
-                    rc.mouseClickCol = keyPress::lastMouseClick.col;
-                    rc.mouseClickRow = keyPress::lastMouseClick.row;
+                    rc.mouseClickCol = keyPress::lastMouseEvent.col;
+                    rc.mouseClickRow = keyPress::lastMouseEvent.row;
                     rc.clickType = InputMouseClickType::ClickedOff;
                     key = keyPress::ENTER;
                 }

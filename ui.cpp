@@ -1383,9 +1383,9 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             return Command(CommandType::NoOp);
         case keyPress::MOUSE:
             return decodeMouseEvent(
-                keyPress::lastMouseClick.button,
-                keyPress::lastMouseClick.row,
-                keyPress::lastMouseClick.col);
+                keyPress::lastMouseEvent.button,
+                keyPress::lastMouseEvent.row,
+                keyPress::lastMouseEvent.col);
         case keyPress::FOCUS_IN:
             log("Gained focus");
             return Command(CommandType::GainedFocus);
