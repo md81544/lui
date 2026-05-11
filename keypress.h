@@ -190,7 +190,7 @@ inline void drainInputQueue()
 // nullopt if no keypress is in the input queue
 inline std::optional<int> getKeyPress(bool blocking = true)
 {
-    TerminalGuard terminalGuard; // RAII to save/reset term attrs
+    TerminalGuard _; // RAII to save/reset term attrs
     char c;
     termios term_attrs;
     tcgetattr(STDIN_FILENO, &term_attrs);

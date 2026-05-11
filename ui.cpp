@@ -183,7 +183,7 @@ Ui::Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> cd
     m_term.setShutdownCheckFunction(
         []() -> bool { return mgo::shutdown_requested.load(std::memory_order_relaxed); });
     {
-        terminal::ColourGuard cg(&m_term);
+        terminal::ColourGuard _(&m_term);
         m_term.setFgColour({ 106, 113, 247 });
         m_term.printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
@@ -404,7 +404,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Search : ", mode);
     if (!m_clue.searchString.empty()) {
         {
-            terminal::ColourGuard cg(&m_term);
+            terminal::ColourGuard _(&m_term);
             m_term.setFgColour(ENTRY_COLOUR);
             m_term.printAt(1, 10, m_clue.searchString, mode);
         }
@@ -418,7 +418,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Found  : ", mode);
     m_term.clearToEndOfLine(mode);
     {
-        terminal::ColourGuard cg(&m_term);
+        terminal::ColourGuard _(&m_term);
         m_term.setFgColour(ENTRY_COLOUR);
         m_term.printAt(2, 10, m_clue.foundString, mode);
     }
@@ -427,7 +427,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Comment: ", mode);
     m_term.clearToEndOfLine(mode);
     {
-        terminal::ColourGuard cg(&m_term);
+        terminal::ColourGuard _(&m_term);
         m_term.setFgColour(ENTRY_COLOUR);
         m_term.printAt(3, 10, m_clue.comment, mode);
     }
@@ -435,7 +435,7 @@ void Ui::displayHeader(terminal::OutputMode mode)
     m_term.goTo(4, 1, mode);
     m_term.printMenuString(terminal::Colour::Default, BRIGHT, "Clue _No: ", mode);
     {
-        terminal::ColourGuard cg(&m_term);
+        terminal::ColourGuard _(&m_term);
         m_term.setFgColour(ENTRY_COLOUR);
         m_term.printAt(4, 10, m_clue.clueNumber, mode);
     }
@@ -456,7 +456,7 @@ void Ui::displayResults(terminal::OutputMode mode)
     }
 
     if (!m_results.vec.empty()) {
-        terminal::ColourGuard cg(&m_term);
+        terminal::ColourGuard _(&m_term);
         m_term.setFgColour(terminal::Colour::BrightYellow, mode);
         std::size_t currentRow = m_resultsTopRow + 2;
         if (m_results.scrollOffset != 0) {

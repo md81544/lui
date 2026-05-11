@@ -327,7 +327,7 @@ void Terminal::printMenuString(
     std::string_view text,
     OutputMode mode)
 {
-    ColourGuard cg(this);
+    ColourGuard _(this);
     bool highlighting { false };
     setFgColour(normal, mode);
     for (const char c : text) {
@@ -381,12 +381,12 @@ int Terminal::messageBox(MessageBoxOptions& opts)
 {
     // Provided we're not in render mode, messageBox will have the highest
     // z position to ensure it's rendered last, to appear "on top".
-    ZHeightGuard zHeightGuard(m_zHeight, std::numeric_limits<uint8_t>::max());
+    ZHeightGuard _(m_zHeight, std::numeric_limits<uint8_t>::max());
     if (opts.waitForKey && opts.mode != OutputMode::immediate) {
         opts.waitForKey = false;
         mgo::Log::error("waitForKey == true doesn't make sense in non-immediate mode");
     }
-    ColourGuard dg(this);
+    ColourGuard cg(this);
     setFgColour(Colour::Default, opts.mode);
     styleBold(true, opts.mode);
     std::size_t localRow { opts.row };
