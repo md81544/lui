@@ -1312,6 +1312,10 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
         case keyPress::NO_KEY: // key was consumed by input handler
             return Command(CommandType::NoOp);
         case ':':
+        case keyPress::ESC:
+            if (extendedFunction) {
+                return Command(CommandType::HardRestart);
+            }
             return Command(CommandType::AwaitCommand);
         case keyPress::CTRL_R:
             // clear eveything down
@@ -1395,9 +1399,6 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
         case keyPress::CTRL_L:
         case 'L':
             return Command(CommandType::Load);
-        case keyPress::ESC:
-            // currently does nothing
-            return Command(CommandType::NoOp);
         case keyPress::MOUSE:
             return decodeMouseEvent(
                 keyPress::lastMouseEvent.button,
