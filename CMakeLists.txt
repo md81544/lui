@@ -25,8 +25,17 @@ target_compile_options(${APP_NAME} PRIVATE
     -Wextra
     -Werror
     -Wpedantic
-    $<$<CONFIG:Debug>:-g -O0>
+    $<$<CONFIG:Debug>:
+        -g -O0
+        -fsanitize=address,undefined,integer
+        -fno-sanitize=unsigned-shift-base
+        -fno-sanitize-recover=all
+        -fsanitize-ignorelist=${CMAKE_SOURCE_DIR}/sanitize_ignorelist.txt>
     $<$<CONFIG:Release>:-O3>
+)
+
+target_link_options(${APP_NAME} PRIVATE
+    $<$<CONFIG:Debug>:-fsanitize=address,undefined,integer>
 )
 
 target_link_libraries(${APP_NAME} PRIVATE

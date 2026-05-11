@@ -1,0 +1,5 @@
+[ubsan]
+src:*/c++/v1/*
+src:*/usr/include/*
+fun:std::*
+fun:__*
