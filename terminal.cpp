@@ -382,9 +382,24 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     // Provided we're not in render mode, messageBox will have the highest
     // z position to ensure it's rendered last, to appear "on top".
     ZHeightGuard _(m_zHeight, std::numeric_limits<uint8_t>::max());
+
     if (opts.waitForKey && opts.mode != OutputMode::immediate) {
         opts.waitForKey = false;
         mgo::Log::error("waitForKey == true doesn't make sense in non-immediate mode");
+        assert(false);
+    }
+    if (opts.type != MessageBoxType::Plain && opts.mode != OutputMode::immediate) {
+        opts.type = MessageBoxType::Plain;
+        mgo::Log::error("MessageBoxType != Plain doesn't make sense in non-immediate mode");
+        assert(false);
+    }
+    std::vector<std::string> buttons;
+    if (opts.type == MessageBoxType::OkCancel) {
+        buttons = { "Cancel", "OK" };
+    } else if (opts.type == MessageBoxType::Ok) {
+        buttons = { "OK" };
+    } else if (opts.type == MessageBoxType::YesNo) {
+        buttons = { "No", "Yes" };
     }
     ColourGuard cg(this);
     setFgColour(Colour::Default, opts.mode);
@@ -400,6 +415,16 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     }
     if (maxLen < opts.prompt.size() + 2) {
         maxLen = opts.prompt.size() + 2;
+    }
+    std::size_t buttonSize = 0;
+    for (const auto& b : buttons) {
+        if (buttonSize > 0) {
+            buttonSize += 2; // spacing
+        }
+        buttonSize += b.size();
+    }
+    if (maxLen < buttonSize + 2) {
+        maxLen = buttonSize + 2;
     }
     std::size_t col = opts.col;
     if (opts.alignRight) {

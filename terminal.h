@@ -148,6 +148,12 @@ public:
 private:
     ZHeight& m_zh;
 };
+enum class MessageBoxType {
+    Plain,
+    Ok,
+    OkCancel,
+    YesNo,
+};
 
 struct MessageBoxOptions {
     std::size_t row { 0 }; // Top row of box
@@ -158,6 +164,7 @@ struct MessageBoxOptions {
     bool waitForKey { false };
     std::string prompt; // Prompt to display on bottom row if waiting for key
     OutputMode mode { OutputMode::immediate };
+    MessageBoxType type { MessageBoxType::Plain };
 };
 
 // Bitmasks for keys allowed flag for Input Options:
@@ -257,12 +264,12 @@ public:
     void print(std::string_view text, OutputMode mode = OutputMode::render);
     // Note! ANSI row/cols are 1-based but we use 0-based here
     void goTo(std::size_t row, std::size_t col, OutputMode mode = OutputMode::render);
-    
+
     void setFgColour(ColourRgb rgb, OutputMode mode = OutputMode::render);
     void setBgColour(ColourRgb rgb, OutputMode mode = OutputMode::render);
     ColourRgb getFgColour() const;
     ColourRgb getBgColour() const;
-    
+
     void cursorUp(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorDown(uint8_t n, OutputMode mode = OutputMode::render);
     void cursorRight(uint8_t n, OutputMode mode = OutputMode::render);
@@ -272,7 +279,7 @@ public:
     void styleItalic(bool on, OutputMode mode = OutputMode::render);
     void styleUnderline(bool on, OutputMode mode = OutputMode::render);
     void noStyle(OutputMode mode = OutputMode::render); // turn off bold, italic, and underline
-    
+
     void setCursorType(CursorType type, OutputMode = OutputMode::render);
     void saveCursorPosition(OutputMode mode = OutputMode::render);
     /// Note! restoreCursorPosition will also reset style (e.g. bold).
@@ -283,7 +290,7 @@ public:
     void restoreCursorPosition(OutputMode mode = OutputMode::render);
     void cursorOn(OutputMode mode = OutputMode::render);
     void cursorOff(OutputMode mode = OutputMode::render);
-    
+
     void clearToEndOfLine(OutputMode mode = OutputMode::render);
     void clearToStartOfLine(OutputMode mode = OutputMode::render);
     void clearLine(OutputMode mode = OutputMode::render);
