@@ -1162,9 +1162,8 @@ void Ui::enterFoundStringUnconstrained()
         if (key == keyPress::BACKSPACE || key == keyPress::LEFT || key == keyPress::RIGHT
             || key == keyPress::DELETE || key == keyPress::CTRL_A || key == keyPress::CTRL_E
             || key == keyPress::END || key == keyPress::HOME || key == keyPress::CTRL_U
-            || key == keyPress::LF || key == keyPress::CR || key == keyPress::ESC
-            || key == keyPress::TAB || key == keyPress::SHIFT_TAB || key == keyPress::UP
-            || key == keyPress::DOWN) {
+            || key == keyPress::ENTER || key == keyPress::ESC || key == keyPress::TAB
+            || key == keyPress::SHIFT_TAB || key == keyPress::UP || key == keyPress::DOWN) {
             return key;
         }
         return keyPress::NO_KEY;

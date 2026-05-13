@@ -121,14 +121,14 @@ std::optional<int> convertMessageBoxClick(
                     if (opts.type == terminal::MessageBoxType::OkCancel) {
                         return keyPress::ESC;
                     } else if (opts.type == terminal::MessageBoxType::Ok){
-                        return keyPress::LF;
+                        return keyPress::ENTER;
                     } else if (opts.type == terminal::MessageBoxType::YesNo) {
                         return 'n';
                     }
                     break;
                 case 1:
                     if (opts.type == terminal::MessageBoxType::OkCancel) {
-                        return keyPress::LF;
+                        return keyPress::ENTER;
                     } else if (opts.type == terminal::MessageBoxType::YesNo) {
                         return 'y';
                     }
@@ -641,13 +641,13 @@ InputResult Terminal::input(InputOptions& opts)
                     rc.mouseClickCol = keyPress::lastMouseEvent.col;
                     rc.mouseClickRow = keyPress::lastMouseEvent.row;
                     rc.clickType = InputMouseClickType::ClickedOff;
-                    key = keyPress::CR;
+                    key = keyPress::ENTER;
                 }
             }
         }
         if (key == keyPress::FOCUS_OUT) {
             rc.lostFocus = true;
-            key = keyPress::CR;
+            key = keyPress::ENTER;
         }
         if (ascii::isprint(key) && opts.keysAllowed > 0) {
             bool matched = false;
@@ -702,8 +702,7 @@ InputResult Terminal::input(InputOptions& opts)
         switch (keyOrig) {
             case keyPress::NO_KEY:
                 break;
-            case keyPress::LF:
-            case keyPress::CR:
+            case keyPress::ENTER:
             case keyPress::TAB:
             case keyPress::SHIFT_TAB:
             case keyPress::UP:

@@ -225,7 +225,7 @@ struct InputOptions {
     // check this value after input to determine whether to move
     // to a different field (e.g. if EntryKey == SHIFT_TAB, immediately
     // start input in a previous field). Up to the caller.
-    int EntryKey { keyPress::CR };
+    int EntryKey { keyPress::ENTER };
 };
 
 enum class InputMouseClickType {
