@@ -116,11 +116,11 @@ std::optional<int> convertMessageBoxClick(
     for (const auto& b : buttons) {
         if (clickCol - buttonStart <= b.size()) {
             switch (counter) {
-                // First button is always Cancel or 'n' 
+                // First button is always Cancel or 'n'
                 case 0:
                     if (opts.type == terminal::MessageBoxType::OkCancel) {
                         return keyPress::ESC;
-                    } else if (opts.type == terminal::MessageBoxType::Ok){
+                    } else if (opts.type == terminal::MessageBoxType::Ok) {
                         return keyPress::ENTER;
                     } else if (opts.type == terminal::MessageBoxType::YesNo) {
                         return 'n';
@@ -537,8 +537,10 @@ int Terminal::messageBox(MessageBoxOptions& opts)
         cursorRight(2, opts.mode);
         output(opts.prompt, opts.mode);
         cursorRight(1, opts.mode);
-        setCursorType(CursorType::BlockBlinking, opts.mode);
-        cursorOn(opts.mode);
+        if (opts.waitForKey) {
+            setCursorType(CursorType::BlockBlinking, opts.mode);
+            cursorOn(opts.mode);
+        }
         int key { 0 };
         while (true) {
             key = getChar();

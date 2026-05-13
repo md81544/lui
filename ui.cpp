@@ -624,6 +624,18 @@ void Ui::jumble(std::string foundString, terminal::OutputMode mode)
 
 void Ui::lookup()
 {
+    {
+        terminal::MessageBoxOptions opts;
+        opts.row = 8;
+        opts.col = 3;
+        opts.type = terminal::MessageBoxType::YesNo;
+        opts.message = "Cheat warning!\nAre you sure?";
+        int key = m_term.messageBox(opts);
+        if (key != 'y' && key != 'Y') {
+            return;
+        }
+        redraw();
+    }
     terminal::MessageBoxOptions opts;
     opts.row = 8;
     opts.col = 3;
