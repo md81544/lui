@@ -200,7 +200,12 @@ inline std::optional<int> getKeyPress(bool blocking = true)
         term_attrs.c_cc[VTIME] = 0;
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &term_attrs);
-    c = readByte();
+    int tmp = readByte();
+    if (tmp >= -128 && tmp < 128) {
+        c = tmp;
+    } else {
+        return keyPress::NO_KEY;
+    }
     if (!blocking && c == -1) {
         return std::nullopt;
     }
