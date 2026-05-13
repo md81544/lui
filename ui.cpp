@@ -535,9 +535,8 @@ void Ui::restart(bool force)
         terminal::MessageBoxOptions opts;
         opts.row = m_resultsTopRow + 2;
         opts.col = 2;
-        opts.message = "Clue has changed!\n";
-        opts.prompt = "Continue? (Y/N)";
-        opts.waitForKey = true;
+        opts.message = "Clue has changed!\nContinue?";
+        opts.type = terminal::MessageBoxType::YesNo;
         int key = m_term.messageBox(opts);
         if (key != 'y' && key != 'Y') {
             return;

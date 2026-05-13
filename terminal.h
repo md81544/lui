@@ -280,6 +280,8 @@ public:
     void styleUnderline(bool on, OutputMode mode = OutputMode::render);
     void noStyle(OutputMode mode = OutputMode::render); // turn off bold, italic, and underline
 
+    void reverseFgBg(bool on, OutputMode mode = OutputMode::render);
+
     void setCursorType(CursorType type, OutputMode = OutputMode::render);
     void saveCursorPosition(OutputMode mode = OutputMode::render);
     /// Note! restoreCursorPosition will also reset style (e.g. bold).
@@ -329,6 +331,7 @@ public:
     std::string getAnsiSequenceItalic(bool on);
     std::string getAnsiSequenceUnderline(bool);
     std::string getAnsiSequenceNoStyle();
+    std::string getAnsiSequenceReverseFgBg(bool on);
 
     ColourDepth detectColourDepth();
     void setColourDepth(ColourDepth colourDepth);

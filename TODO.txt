@@ -1,3 +1,6 @@
+* Config file? Use basic YAML-like format (i.e. "key: value" only, # for comments)
+  (modify mgo config)
+
 * Sort letters remaining according to position in search string
 
 * Keyboard shortcuts for Y/N or OK/Cancel in messageBox... maybe ENTER signifies Y/OK
@@ -41,8 +44,6 @@
   - "Add phrase" would need to check whether the current directory is
     git-controlled
     
-* Clickable options on messageBox... pseudo buttons?
-
 * Scratchpad command - just allows free entry?
 
 * Add reverse video in Terminal: on = "\e[7m", off = "\e[27m"

@@ -8,6 +8,7 @@
 #include <format>
 #include <iostream>
 #include <limits>
+#include <optional>
 #include <ranges>
 #include <stdexcept>
 #include <string>
@@ -95,6 +96,51 @@ std::string colourIdxToAnsi16Bg(std::size_t colourIdx)
     } else {
         return std::format("\x1b[{}m", 100 + (colourIdx - 8));
     }
+}
+
+// Returns a mouse click in a messageBox as an optional keypress
+std::optional<int> convertMessageBoxClick(
+    const terminal::MessageBoxOptions& opts,
+    const std::vector<std::string>& buttons,
+    std::size_t buttonRow,
+    std::size_t buttonStart,
+    std::size_t clickRow,
+    std::size_t clickCol)
+{
+    assert(opts.type != terminal::MessageBoxType::Plain);
+
+    if (buttons.empty() || buttonRow != clickRow || clickCol < buttonStart) {
+        return std::nullopt;
+    }
+    std::size_t counter { 0 };
+    for (const auto& b : buttons) {
+        if (clickCol - buttonStart <= b.size()) {
+            switch (counter) {
+                // First button is always Cancel or 'n' 
+                case 0:
+                    if (opts.type == terminal::MessageBoxType::OkCancel) {
+                        return keyPress::ESC;
+                    } else if (opts.type == terminal::MessageBoxType::Ok){
+                        return keyPress::LF;
+                    } else if (opts.type == terminal::MessageBoxType::YesNo) {
+                        return 'n';
+                    }
+                    break;
+                case 1:
+                    if (opts.type == terminal::MessageBoxType::OkCancel) {
+                        return keyPress::LF;
+                    } else if (opts.type == terminal::MessageBoxType::YesNo) {
+                        return 'y';
+                    }
+                    break;
+                default:
+                    assert(false);
+            }
+        }
+        buttonStart += b.size() + 1;
+        ++counter;
+    }
+    return std::nullopt;
 }
 
 } // anonymous namespace
@@ -240,6 +286,11 @@ void Terminal::styleUnderline(bool on, OutputMode mode)
 void Terminal::noStyle(OutputMode mode)
 {
     output("\033[0m", mode);
+}
+
+void Terminal::reverseFgBg(bool on, OutputMode mode)
+{
+    output(getAnsiSequenceReverseFgBg(on), mode);
 }
 
 void Terminal::setCursorType(CursorType type, OutputMode mode)
@@ -395,11 +446,11 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     }
     std::vector<std::string> buttons;
     if (opts.type == MessageBoxType::OkCancel) {
-        buttons = { "Cancel", "OK" };
+        buttons = { " Cancel ", " OK " };
     } else if (opts.type == MessageBoxType::Ok) {
-        buttons = { "OK" };
+        buttons = { " OK " };
     } else if (opts.type == MessageBoxType::YesNo) {
-        buttons = { "No", "Yes" };
+        buttons = { " No ", " Yes " };
     }
     ColourGuard cg(this);
     setFgColour(Colour::Default, opts.mode);
@@ -417,11 +468,14 @@ int Terminal::messageBox(MessageBoxOptions& opts)
         maxLen = opts.prompt.size() + 2;
     }
     std::size_t buttonSize = 0;
+    std::string buttonString;
     for (const auto& b : buttons) {
         if (buttonSize > 0) {
-            buttonSize += 2; // spacing
+            buttonSize += 1; // spacing
+            buttonString.append(" ");
         }
         buttonSize += b.size();
+        buttonString.append(b);
     }
     if (maxLen < buttonSize + 2) {
         maxLen = buttonSize + 2;
@@ -451,6 +505,26 @@ int Terminal::messageBox(MessageBoxOptions& opts)
             = std::format("{} {:{}} {}", utfOrAscii("│", "|"), "", maxLen, utfOrAscii("│", "|"));
         output(s, opts.mode);
     }
+    if (!buttons.empty()) {
+        ++localRow;
+        goTo(localRow, col, opts.mode);
+        std::string blank
+            = std::format("{} {:{}} {}", utfOrAscii("│", "|"), "", maxLen, utfOrAscii("│", "|"));
+        output(blank, opts.mode);
+        ++localRow;
+        goTo(localRow, col, opts.mode);
+        std::string s(utfOrAscii("│", "|"));
+        s.push_back(' ');
+        s.append(std::string(maxLen - buttonString.size(), ' '));
+        for (const auto& b : buttons) {
+            s.append(getAnsiSequenceReverseFgBg(true));
+            s.append(b);
+            s.append(getAnsiSequenceReverseFgBg(false));
+            s.push_back(' ');
+        }
+        s.append(std::string(utfOrAscii("│", "|")));
+        output(s, opts.mode);
+    }
     goTo(++localRow, col, opts.mode);
     output(utfOrAscii("└─", "+-"), opts.mode);
     for (std::size_t n = 0; n < maxLen; ++n) {
@@ -458,7 +532,7 @@ int Terminal::messageBox(MessageBoxOptions& opts)
     }
     output(utfOrAscii("─┘", "-+"), opts.mode);
     styleBold(false, opts.mode);
-    if (opts.waitForKey) {
+    if (opts.waitForKey || opts.type != MessageBoxType::Plain) {
         restoreCursorPosition(opts.mode);
         cursorRight(2, opts.mode);
         output(opts.prompt, opts.mode);
@@ -468,8 +542,23 @@ int Terminal::messageBox(MessageBoxOptions& opts)
         int key { 0 };
         while (true) {
             key = getChar();
-            if (ascii::isascii(key) && key != 0 && key != keyPress::MOUSE) {
-                break;
+            if (key == keyPress::MOUSE) {
+                // Where was the click?
+                auto buttonKey = convertMessageBoxClick(
+                    opts,
+                    buttons,
+                    localRow - 1,
+                    col + (maxLen - buttonString.size()),
+                    keyPress::lastMouseEvent.row,
+                    keyPress::lastMouseEvent.col);
+                if (buttonKey.has_value()) {
+                    key = buttonKey.value();
+                    break;
+                }
+            } else {
+                if (ascii::isascii(key) && key != 0) {
+                    break;
+                }
             }
         }
         cursorOff(opts.mode);
@@ -766,6 +855,15 @@ std::string Terminal::getAnsiSequenceUnderline(bool on)
 std::string Terminal::getAnsiSequenceNoStyle()
 {
     return "\033[0m";
+}
+
+std::string Terminal::getAnsiSequenceReverseFgBg(bool on)
+{
+    if (on) {
+        return "\033[7m";
+    } else {
+        return "\033[27m";
+    }
 }
 
 ColourDepth Terminal::detectColourDepth()
