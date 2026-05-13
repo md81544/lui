@@ -33,15 +33,8 @@
     of different typed events, e.g. keypress, mouse, resize etc. (e.g. client
     code does a "readEvents" and responds to the ones it wants to, the rest
     are dropped on the next iteration)
-
-* "More" menu? With numbered commands? Could just display a message box
-  with numbered items, e.g. "1: Debug log/2: Add phrase" etc
-  - "Add phrase" would need to check whether the current directory is
-    git-controlled
     
 * Scratchpad command - just allows free entry?
-
-* Add reverse video in Terminal: on = "\e[7m", off = "\e[27m"
 
 * Add unit tests for WordSearcher
 
