@@ -624,7 +624,9 @@ void Ui::jumble(std::string foundString, terminal::OutputMode mode)
 
 void Ui::lookup()
 {
-    {
+    if (m_clue.searchString.empty()) {
+        return;
+    } else {
         terminal::MessageBoxOptions opts;
         opts.row = 8;
         opts.col = 3;
