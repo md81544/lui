@@ -12,9 +12,6 @@
   - (related) multiple colour support in results pane?
     - may be just as simple as including colour codes?
 
-* Now it's easy to click or tab off a field, search string input should be
-  focused by default on start/restart. Perhaps.
-
 * Shift-letter (or Ctrl-) in input should quit input and activate command
   - Add a generic pre-hook function (to be called from pre-hooks) which can
     initially just check for ':' perhaps? Wouldn't be called from free-format entry

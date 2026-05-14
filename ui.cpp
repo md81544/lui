@@ -243,6 +243,8 @@ int Ui::run()
 {
     bool finished { false };
     u_int8_t commandSeqCount = 0;
+    // Start with search string input:
+    m_commandQueue.emplace_back(CommandType::EnterSearchString);
     while (!finished && !mgo::shutdown_requested.load(std::memory_order_relaxed)) {
         if (commandSeqCount > 0) {
             --commandSeqCount;
@@ -550,6 +552,7 @@ void Ui::restart(bool force)
     m_clue.dirty = false;
     clearResults();
     clearCommandPrompt();
+    m_commandQueue.emplace_back(CommandType::EnterSearchString);
 }
 
 void Ui::hr(std::size_t row, terminal::OutputMode mode)
@@ -1240,8 +1243,10 @@ void Ui::enterSearchString()
     if (separatedStringSize(m_clue.foundString) != m_clue.searchString.size()) {
         m_clue.foundString = std::string(m_clue.searchString.size(), '.');
     }
-    m_clue.dirty = true;
-    log("m_clue.searchString input: '{}'", m_clue.searchString);
+    if (!m_clue.searchString.empty()) {
+        m_clue.dirty = true;
+        log("m_clue.searchString input: '{}'", m_clue.searchString);
+    }
     if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
         // chain to enter found string
         m_commandQueue.emplace_back(CommandType::EnterFoundString);
