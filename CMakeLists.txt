@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_COMPILER clang++)
 
 add_executable(${APP_NAME}
+    configreader.cpp
     main.cpp
     menu.cpp
     terminal.cpp

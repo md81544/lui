@@ -1,6 +1,10 @@
 * Config file? Use basic YAML-like format (i.e. "key: value" only, # for comments)
   (modify mgo config)
 
+* In extended mode entry (":") enter (or escape) should just cancel
+
+* Make lost focus notifier work if in input
+
 * Improve definitions display
   - (related) allow horizontal scrolling of results (or at least the definitions portion)
     - or a click on a definition displays a message box, or simply replaces results with
