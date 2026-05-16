@@ -1,5 +1,10 @@
 * Config file? Use basic YAML-like format (i.e. "key: value" only, # for comments)
   (modify mgo config)
+  - turn off focus notification in config, not just in debug mode
+
+* "Grey out" Load menu item unless there are saved clues
+
+* Dirty visual indicator?
 
 * In extended mode entry (":") enter (or escape) should just cancel
 
@@ -31,6 +36,6 @@
     code does a "readEvents" and responds to the ones it wants to, the rest
     are dropped on the next iteration)
     
-* Add unit tests for WordSearcher
+* Add unit tests for everything
 
 * Think about adding a help screen (F1 or :h)

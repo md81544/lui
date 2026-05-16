@@ -627,7 +627,7 @@ void Ui::jumble(std::string foundString, terminal::OutputMode mode)
 
 void Ui::lookup()
 {
-    if (m_clue.searchString.empty()) {
+    if (m_clue.searchString.empty() && m_clue.foundString.empty()) {
         return;
     } else {
         terminal::MessageBoxOptions opts;
@@ -1428,7 +1428,9 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             log("Lost focus");
             return Command(CommandType::LostFocus);
         default:
-            m_term.bell();
+            if (!extendedFunction) {
+                m_term.bell();
+            }
     }
     return Command(CommandType::NoOp);
 }
