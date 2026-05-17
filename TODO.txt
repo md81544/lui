@@ -1,10 +1,10 @@
-* Config file? Use basic YAML-like format (i.e. "key: value" only, # for comments)
-  (modify mgo config)
-  - turn off focus notification in config, not just in debug mode
+* turn off focus notification in config, not just in debug mode
 
 * "Grey out" Load menu item unless there are saved clues
 
 * Dirty visual indicator?
+
+* Terminal mode guard
 
 * In extended mode entry (":") enter (or escape) should just cancel
 

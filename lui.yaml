@@ -1,0 +1,16 @@
+# Note that full YAML is not supported.
+# Only key : values and SINGLE-depth blocks
+# which obviously support more key : value pairs.
+
+# Maximum colour depth
+colourDepth: trueColour
+wordComplexityLevel: 3
+
+# Settings under debug or release
+# only apply to debug or release
+# builds
+debug:
+  focusWarning: true
+
+release:
+  focusWarning: true
