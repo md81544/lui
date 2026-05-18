@@ -11,7 +11,7 @@ colourDepth: trueColour
 wordComplexityLevel: 3
 
 debug:
-  focusReporting: false
+  focusReporting: true
 
 release:
   focusReporting: true

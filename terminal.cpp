@@ -558,7 +558,10 @@ int Terminal::messageBox(MessageBoxOptions& opts)
                     break;
                 }
             } else {
-                if ((ascii::isascii(key) && key != 0) || key == keyPress::FOCUS_IN) {
+                if (key == keyPress::FOCUS_OUT || key == keyPress::FOCUS_IN) {
+                    break;
+                }
+                if (ascii::isascii(key) && key != 0) {
                     break;
                 }
             }

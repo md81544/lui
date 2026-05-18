@@ -551,7 +551,7 @@ void Ui::restart(bool force)
         opts.col = 2;
         opts.message = "Clue has changed!\nContinue?";
         opts.type = terminal::MessageBoxType::YesNo;
-        int key = m_term->messageBox(opts);
+        int key = messageBox(opts);
         if (key != 'y' && key != 'Y') {
             return;
         }
@@ -647,7 +647,7 @@ void Ui::lookup()
         opts.col = 3;
         opts.type = terminal::MessageBoxType::YesNo;
         opts.message = "Cheat warning!\nAre you sure?";
-        int key = m_term->messageBox(opts);
+        int key = messageBox(opts);
         if (key != 'y' && key != 'Y') {
             return;
         }
@@ -657,7 +657,7 @@ void Ui::lookup()
     opts.row = 8;
     opts.col = 3;
     opts.message = "Searching...";
-    m_term->messageBox(opts);
+    messageBox(opts);
     clearResults();
     std::string lowerCase { m_clue.foundString };
     std::transform(
@@ -853,12 +853,12 @@ void Ui::save()
     opts.mode = terminal::OutputMode::render;
     if (m_clue.clueNumber.empty()) {
         opts.message = "Please enter a clue number first";
-        m_term->messageBox(opts);
+        messageBox(opts);
         return;
     }
     m_savedClues[m_clue.clueNumber] = m_clue;
     opts.message = std::format("Clue saved as '{}'.", m_clue.clueNumber);
-    m_term->messageBox(opts);
+    messageBox(opts);
     m_clue.dirty = false;
 }
 
@@ -871,7 +871,7 @@ void Ui::filterResults()
     msgboxOpts.row = m_resultsTopRow + 2;
     msgboxOpts.col = 2;
     msgboxOpts.message = "Enter filter string.\nWill drop non-matches.";
-    m_term->messageBox(msgboxOpts);
+    messageBox(msgboxOpts);
     terminal::InputOptions inputOpts;
     inputOpts.row = m_termSize.rows - 1;
     inputOpts.col = 1;
@@ -1328,6 +1328,20 @@ void Ui::lostFocus()
     m_term->messageBox(opts);
     // The "focus gained" message will terminate (and
     // be swallowed by) the messageBox when focus is regained
+}
+
+int Ui::messageBox(terminal::MessageBoxOptions& opts)
+{
+    int key = m_term->messageBox(opts);
+    if (key == keyPress::FOCUS_OUT) {
+        m_commandQueue.emplace_back(CommandType::LostFocus);
+        return keyPress::NO_KEY;
+    } else if (key == keyPress::FOCUS_IN) {
+        m_commandQueue.emplace_back(CommandType::GainedFocus);
+        return keyPress::NO_KEY;
+    } else {
+        return key;
+    }
 }
 
 std::size_t Ui::getResultsPaneRowSize()
