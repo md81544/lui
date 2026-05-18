@@ -1,4 +1,6 @@
-* turn off focus notification in config, not just in debug mode
+* Regression: focus warning messageBox doesn't disappear after commit 5680b8252f30e661d45bf397da969b421156ecf9
+
+* Turning off focus warning doesn't disable focus warning box
 
 * "Grey out" Load menu item unless there are saved clues
 
