@@ -2,15 +2,16 @@
 # Only key : values and SINGLE-depth blocks
 # which obviously support more key : value pairs.
 
-# Maximum colour depth
+# Maximum colour depth.
+# Options: mono, ansi16, ansi256, or trueColour
 colourDepth: trueColour
+
+# Word Complexity
+# Options: 1 (least), 2, or 3 (most complex)
 wordComplexityLevel: 3
 
-# Settings under debug or release
-# only apply to debug or release
-# builds
 debug:
-  focusWarning: true
+  focusWarning: false
 
 release:
   focusWarning: true

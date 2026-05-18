@@ -1,7 +1,9 @@
 #include "ui.h"
 #include "ascii.h"
+#include "configreader.h"
 #include "keypress.h"
 #include "log.h"
+#include "menu.h"
 #include "signal_handler.h"
 #include "terminal.h"
 #include "utils.h"
@@ -111,43 +113,49 @@ letterCount(std::string_view searchString, [[maybe_unused]] std::string_view fou
 
 namespace ui {
 
-Ui::Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> cd)
+Ui::Ui(std::string_view argv0)
 {
+    const std::filesystem::path dataDir = locateDataDirectory(argv0);
+    m_cfg = std::make_unique<mgo::ConfigReader>((dataDir / "lui.yaml").c_str());
+    bool enableFocusReporting { true };
+#ifdef NDEBUG
+    enableFocusReporting = m_cfg->readBool("release/focusReporting", true);
+#else
+    enableFocusReporting = m_cfg->readBool("debug/focusReporting", true);
+#endif
+
+    m_term = std::make_unique<terminal::Terminal>(enableFocusReporting);
     if (!checkTerminalLargeEnough()) {
         throw(std::runtime_error("Terminal size is too small!"));
     }
+    m_menu = std::make_unique<menu::Menu>(*m_term);
     log("DEBUG LOG");
     // What does the terminal actually support?
-    terminal::ColourDepth actualColourDepth = m_term.detectColourDepth();
+    terminal::ColourDepth actualColourDepth = m_term->detectColourDepth();
     terminal::ColourDepth colourDepth = actualColourDepth;
-    if (cd.has_value()) {
-        switch (cd.value()) {
-            case ColourDepth::Mono:
-                colourDepth = terminal::ColourDepth::None;
-                break;
-            case ColourDepth::Ansi16:
-                if (actualColourDepth >= terminal::ColourDepth::Ansi16) {
-                    colourDepth = terminal::ColourDepth::Ansi16;
-                }
-                break;
-            case ColourDepth::Ansi256:
-                if (actualColourDepth >= terminal::ColourDepth::Ansi256) {
-                    colourDepth = terminal::ColourDepth::Ansi256;
-                }
-                break;
-            case ColourDepth::TrueColour:
-                if (actualColourDepth >= terminal::ColourDepth::TrueColour) {
-                    colourDepth = terminal::ColourDepth::TrueColour;
-                }
-                break;
-            default:
-                assert("Unknown ColourDepth");
+    std::string cd = m_cfg->readString("colourDepth", "trueColour");
+    if (cd == "mono") {
+        colourDepth = terminal::ColourDepth::None;
+    } else if (cd == "ansi16") {
+        if (actualColourDepth >= terminal::ColourDepth::Ansi16) {
+            colourDepth = terminal::ColourDepth::Ansi16;
         }
+    } else if (cd == "ansi256") {
+        if (actualColourDepth >= terminal::ColourDepth::Ansi256) {
+            colourDepth = terminal::ColourDepth::Ansi256;
+        }
+    } else if (cd == "trueColour") {
+        if (actualColourDepth >= terminal::ColourDepth::TrueColour) {
+            colourDepth = terminal::ColourDepth::TrueColour;
+        }
+    } else {
+        log("Unknown colourDepth specified in config.");
+        colourDepth = terminal::ColourDepth::None;
     }
-    m_term.setColourDepth(colourDepth);
+    m_term->setColourDepth(colourDepth);
     switch (colourDepth) {
         case terminal::ColourDepth::None:
-            log("Terminal colour depth = none");
+            log("Terminal colour depth = none (mono)");
             break;
         case terminal::ColourDepth::Ansi16:
             log("Terminal colour depth = 16");
@@ -179,19 +187,19 @@ Ui::Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> cd
                 assert("Unhandled colour depth");
         }
     }
-    const auto dataDir = locateDataDirectory(argv0);
-    m_term.setShutdownCheckFunction(
+    m_term->setShutdownCheckFunction(
         []() -> bool { return mgo::shutdown_requested.load(std::memory_order_relaxed); });
     {
-        terminal::ColourGuard _(&m_term);
-        m_term.setFgColour({ 106, 113, 247 });
-        m_term.printAt(1, 2, "Loading data...");
+        terminal::ColourGuard _(m_term.get());
+        m_term->setFgColour({ 106, 113, 247 });
+        m_term->printAt(1, 2, "Loading data...");
 #ifndef NDEBUG
-        m_term.printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");
+        m_term->printAt(3, 2, "*** DEBUG BUILD *** (will be slower)");
 #endif
     }
-    m_term.cursorOff();
-    m_term.render();
+    m_term->cursorOff();
+    m_term->render();
+    int wordComplexity = static_cast<int>(m_cfg->readDouble("wordComplexityLevel", 3.0));
     log("Loading data... (word complexity {})", wordComplexity);
     m_ws = std::make_unique<wordSearcher::WordSearcher>(
         dataDir / std::format("words_{}.txt", wordComplexity),
@@ -201,19 +209,19 @@ Ui::Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> cd
     log("Finished loading data");
 
     // Set up the menu
-    m_menu.addItem(static_cast<int>(MenuItem::Jumble), "_Jumble");
-    m_menu.addItem(static_cast<int>(MenuItem::Reverse), "re_Verse");
-    m_menu.addItem(static_cast<int>(MenuItem::Regular), "_Regular");
-    m_menu.addItem(static_cast<int>(MenuItem::Thesaurus), "_Thesaurus");
-    m_menu.addItem(static_cast<int>(MenuItem::Lookup), "_Lookup");
-    m_menu.addItem(static_cast<int>(MenuItem::Define), "_Define");
-    m_menu.addNewLine();
-    m_menu.addItem(static_cast<int>(MenuItem::Filter), "f_Ilter");
-    m_menu.addItem(static_cast<int>(MenuItem::Done), "_^_Done");
-    m_menu.addItem(static_cast<int>(MenuItem::Save), "_^_Save");
-    m_menu.addItem(static_cast<int>(MenuItem::Load), "_^_Load");
-    m_menu.addItem(static_cast<int>(MenuItem::Restart), "_^_Restart");
-    m_menu.addItem(static_cast<int>(MenuItem::Quit), "_^_Quit");
+    m_menu->addItem(static_cast<int>(MenuItem::Jumble), "_Jumble");
+    m_menu->addItem(static_cast<int>(MenuItem::Reverse), "re_Verse");
+    m_menu->addItem(static_cast<int>(MenuItem::Regular), "_Regular");
+    m_menu->addItem(static_cast<int>(MenuItem::Thesaurus), "_Thesaurus");
+    m_menu->addItem(static_cast<int>(MenuItem::Lookup), "_Lookup");
+    m_menu->addItem(static_cast<int>(MenuItem::Define), "_Define");
+    m_menu->addNewLine();
+    m_menu->addItem(static_cast<int>(MenuItem::Filter), "f_Ilter");
+    m_menu->addItem(static_cast<int>(MenuItem::Done), "_^_Done");
+    m_menu->addItem(static_cast<int>(MenuItem::Save), "_^_Save");
+    m_menu->addItem(static_cast<int>(MenuItem::Load), "_^_Load");
+    m_menu->addItem(static_cast<int>(MenuItem::Restart), "_^_Restart");
+    m_menu->addItem(static_cast<int>(MenuItem::Quit), "_^_Quit");
 }
 
 void Ui::checkForTerminalResize()
@@ -221,7 +229,7 @@ void Ui::checkForTerminalResize()
     if (!checkTerminalLargeEnough()) {
         throw(std::runtime_error("Terminal size is too small!"));
     }
-    auto [rows, cols] = m_term.getTerminalSize();
+    auto [rows, cols] = m_term->getTerminalSize();
     if (m_termSize.rows != rows || m_termSize.cols != cols) {
         log("Terminal size is currently {} rows by {} cols", rows, cols);
         m_termSize.rows = rows;
@@ -231,7 +239,7 @@ void Ui::checkForTerminalResize()
 
 bool Ui::checkTerminalLargeEnough()
 {
-    auto [rows, cols] = m_term.getTerminalSize();
+    auto [rows, cols] = m_term->getTerminalSize();
     // Fairly arbitrary minimum terminal size
     if (rows < m_menuRowSize + m_headerRowSize + 5 || cols < 20) {
         return false;
@@ -259,7 +267,7 @@ int Ui::run()
                 cmd = *m_commandQueue.begin();
                 m_commandQueue.pop_front();
             } else {
-                keyPress = m_term.getChar();
+                keyPress = m_term->getChar();
                 cmd = decodeKeyPress(keyPress, commandSeqCount > 0);
             }
             // If a command handles its own redraw for performance
@@ -369,8 +377,8 @@ void Ui::clearResults(terminal::OutputMode mode)
     if (mode == terminal::OutputMode::immediate) {
         // If it's immediate we want to clear the results pane:
         for (size_t r = m_resultsTopRow + 1; r < m_resultsTopRow + getResultsPaneRowSize(); ++r) {
-            m_term.goTo(r, 0, terminal::OutputMode::immediate);
-            m_term.clearLine(terminal::OutputMode::immediate);
+            m_term->goTo(r, 0, terminal::OutputMode::immediate);
+            m_term->clearLine(terminal::OutputMode::immediate);
         }
     }
 }
@@ -402,46 +410,46 @@ void Ui::displayHeader(terminal::OutputMode mode)
     constexpr terminal::ColourRgb ENTRY_COLOUR = { 160, 255, 100 };
     constexpr terminal::ColourRgb BRIGHT = { 200, 255, 200 };
     // Can use immediate mode to clear the header before an input (which is immediate)
-    m_term.goTo(1, 1, mode);
-    m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Search : ", mode);
+    m_term->goTo(1, 1, mode);
+    m_term->printMenuString(terminal::Colour::Default, BRIGHT, "_Search : ", mode);
     if (!m_clue.searchString.empty()) {
         {
-            terminal::ColourGuard _(&m_term);
-            m_term.setFgColour(ENTRY_COLOUR);
-            m_term.printAt(1, 10, m_clue.searchString, mode);
+            terminal::ColourGuard _(m_term.get());
+            m_term->setFgColour(ENTRY_COLOUR);
+            m_term->printAt(1, 10, m_clue.searchString, mode);
         }
-        m_term.styleItalic(true, mode);
-        m_term.print(
+        m_term->styleItalic(true, mode);
+        m_term->print(
             std::format("  ({})", letterCount(m_clue.searchString, m_clue.foundString)), mode);
-        m_term.styleItalic(false, mode);
+        m_term->styleItalic(false, mode);
     }
-    m_term.clearToEndOfLine(mode);
-    m_term.goTo(2, 1, mode);
-    m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Found  : ", mode);
-    m_term.clearToEndOfLine(mode);
+    m_term->clearToEndOfLine(mode);
+    m_term->goTo(2, 1, mode);
+    m_term->printMenuString(terminal::Colour::Default, BRIGHT, "_Found  : ", mode);
+    m_term->clearToEndOfLine(mode);
     {
-        terminal::ColourGuard _(&m_term);
-        m_term.setFgColour(ENTRY_COLOUR);
-        m_term.printAt(2, 10, m_clue.foundString, mode);
+        terminal::ColourGuard _(m_term.get());
+        m_term->setFgColour(ENTRY_COLOUR);
+        m_term->printAt(2, 10, m_clue.foundString, mode);
     }
-    m_term.clearToEndOfLine(mode);
-    m_term.goTo(3, 1, mode);
-    m_term.printMenuString(terminal::Colour::Default, BRIGHT, "_Comment: ", mode);
-    m_term.clearToEndOfLine(mode);
+    m_term->clearToEndOfLine(mode);
+    m_term->goTo(3, 1, mode);
+    m_term->printMenuString(terminal::Colour::Default, BRIGHT, "_Comment: ", mode);
+    m_term->clearToEndOfLine(mode);
     {
-        terminal::ColourGuard _(&m_term);
-        m_term.setFgColour(ENTRY_COLOUR);
-        m_term.printAt(3, 10, m_clue.comment, mode);
+        terminal::ColourGuard _(m_term.get());
+        m_term->setFgColour(ENTRY_COLOUR);
+        m_term->printAt(3, 10, m_clue.comment, mode);
     }
-    m_term.clearToEndOfLine(mode);
-    m_term.goTo(4, 1, mode);
-    m_term.printMenuString(terminal::Colour::Default, BRIGHT, "Clue _No: ", mode);
+    m_term->clearToEndOfLine(mode);
+    m_term->goTo(4, 1, mode);
+    m_term->printMenuString(terminal::Colour::Default, BRIGHT, "Clue _No: ", mode);
     {
-        terminal::ColourGuard _(&m_term);
-        m_term.setFgColour(ENTRY_COLOUR);
-        m_term.printAt(4, 10, m_clue.clueNumber, mode);
+        terminal::ColourGuard _(m_term.get());
+        m_term->setFgColour(ENTRY_COLOUR);
+        m_term->printAt(4, 10, m_clue.clueNumber, mode);
     }
-    m_term.clearToEndOfLine(mode);
+    m_term->clearToEndOfLine(mode);
 }
 
 void Ui::displayResults(terminal::OutputMode mode)
@@ -450,38 +458,38 @@ void Ui::displayResults(terminal::OutputMode mode)
     if (!m_suppressRedraw) {
         hr(m_resultsTopRow, mode);
 
-        m_term.setFgColour(terminal::Colour::Default, terminal::OutputMode::immediate);
-        m_term.printAt(m_resultsTopRow, 1, "Results", mode);
+        m_term->setFgColour(terminal::Colour::Default, terminal::OutputMode::immediate);
+        m_term->printAt(m_resultsTopRow, 1, "Results", mode);
         if (m_results.filtered) {
-            m_term.printAt(m_resultsTopRow, 9, "(filtered)", mode);
+            m_term->printAt(m_resultsTopRow, 9, "(filtered)", mode);
         }
     }
 
     if (!m_results.vec.empty()) {
-        terminal::ColourGuard _(&m_term);
-        m_term.setFgColour(terminal::Colour::BrightYellow, mode);
+        terminal::ColourGuard _(m_term.get());
+        m_term->setFgColour(terminal::Colour::BrightYellow, mode);
         std::size_t currentRow = m_resultsTopRow + 2;
         if (m_results.scrollOffset != 0) {
-            m_term.printAt(currentRow - 1, 1, "...", mode);
+            m_term->printAt(currentRow - 1, 1, "...", mode);
         } else {
-            m_term.printAt(currentRow - 1, 1, "   ", mode);
+            m_term->printAt(currentRow - 1, 1, "   ", mode);
         }
         for (std::size_t p = m_results.scrollOffset; p < m_results.vec.size(); ++p) {
             if (m_results.vec[p].size() > m_termSize.cols - 2) {
-                m_term.printAt(
+                m_term->printAt(
                     currentRow, 1, m_results.vec[p].substr(0, m_termSize.cols - 5) + "...", mode);
             } else {
-                m_term.printAt(currentRow, 1, m_results.vec[p], mode);
+                m_term->printAt(currentRow, 1, m_results.vec[p], mode);
             }
-            m_term.clearToEndOfLine(mode);
+            m_term->clearToEndOfLine(mode);
             ++currentRow;
             if (currentRow == lastRowInSection) {
                 if (p < m_results.vec.size() - 1) {
                     // It wasn't the last row in m_results
-                    m_term.printAt(currentRow, 1, "...", mode);
+                    m_term->printAt(currentRow, 1, "...", mode);
                     m_results.scrollAtBottom = false;
                 } else {
-                    m_term.printAt(currentRow, 1, "   ", mode);
+                    m_term->printAt(currentRow, 1, "   ", mode);
                     m_results.scrollAtBottom = true;
                 }
                 break;
@@ -496,16 +504,16 @@ void Ui::displayMenu(terminal::OutputMode mode)
 {
     const std::size_t topRow = m_termSize.rows - m_menuRowSize;
     hr(topRow, mode);
-    m_term.printAt(topRow, 1, "Menu", mode);
-    m_menu.printMenu(topRow + 1, 1, mode);
-    m_term.cursorOff(mode);
+    m_term->printAt(topRow, 1, "Menu", mode);
+    m_menu->printMenu(topRow + 1, 1, mode);
+    m_term->cursorOff(mode);
 }
 
 void Ui::displayCommandPrompt(terminal::OutputMode mode)
 {
-    m_term.printAt(m_termSize.rows - 1, 0, ":", mode);
-    m_term.setCursorType(terminal::CursorType::BlockBlinking, mode);
-    m_term.cursorOn(mode);
+    m_term->printAt(m_termSize.rows - 1, 0, ":", mode);
+    m_term->setCursorType(terminal::CursorType::BlockBlinking, mode);
+    m_term->cursorOn(mode);
 }
 
 void Ui::redraw(bool drawCommandPrompt)
@@ -519,16 +527,16 @@ void Ui::redraw(bool drawCommandPrompt)
     } else {
         clearCommandPrompt();
     }
-    m_term.render();
+    m_term->render();
 }
 
 void Ui::clearCommandPrompt(terminal::OutputMode mode)
 {
-    m_term.saveCursorPosition(mode);
-    m_term.goTo(m_termSize.rows - 1, 0, mode);
-    m_term.clearLine(mode);
-    m_term.restoreCursorPosition(mode);
-    m_term.cursorOff(mode);
+    m_term->saveCursorPosition(mode);
+    m_term->goTo(m_termSize.rows - 1, 0, mode);
+    m_term->clearLine(mode);
+    m_term->restoreCursorPosition(mode);
+    m_term->cursorOff(mode);
 }
 
 void Ui::restart(bool force)
@@ -539,7 +547,7 @@ void Ui::restart(bool force)
         opts.col = 2;
         opts.message = "Clue has changed!\nContinue?";
         opts.type = terminal::MessageBoxType::YesNo;
-        int key = m_term.messageBox(opts);
+        int key = m_term->messageBox(opts);
         if (key != 'y' && key != 'Y') {
             return;
         }
@@ -557,18 +565,18 @@ void Ui::restart(bool force)
 
 void Ui::hr(std::size_t row, terminal::OutputMode mode)
 {
-    m_term.goTo(row, 0, mode);
+    m_term->goTo(row, 0, mode);
     std::string hr;
     for (std::size_t c = 0; c < m_termSize.cols; ++c) {
-        if (m_term.utf8Supported()) {
+        if (m_term->utf8Supported()) {
             hr.append("─"); // UTF-8 line character
         } else {
             hr.append("-"); // plain
         }
     }
-    terminal::ColourGuard guard(&m_term);
-    m_term.setFgColour({ 0, 96, 0 }, mode);
-    m_term.print(hr, mode);
+    terminal::ColourGuard guard(m_term.get());
+    m_term->setFgColour({ 0, 96, 0 }, mode);
+    m_term->print(hr, mode);
 }
 
 void Ui::jumble(std::string foundString, terminal::OutputMode mode)
@@ -635,7 +643,7 @@ void Ui::lookup()
         opts.col = 3;
         opts.type = terminal::MessageBoxType::YesNo;
         opts.message = "Cheat warning!\nAre you sure?";
-        int key = m_term.messageBox(opts);
+        int key = m_term->messageBox(opts);
         if (key != 'y' && key != 'Y') {
             return;
         }
@@ -645,7 +653,7 @@ void Ui::lookup()
     opts.row = 8;
     opts.col = 3;
     opts.message = "Searching...";
-    m_term.messageBox(opts);
+    m_term->messageBox(opts);
     clearResults();
     std::string lowerCase { m_clue.foundString };
     std::transform(
@@ -841,12 +849,12 @@ void Ui::save()
     opts.mode = terminal::OutputMode::render;
     if (m_clue.clueNumber.empty()) {
         opts.message = "Please enter a clue number first";
-        m_term.messageBox(opts);
+        m_term->messageBox(opts);
         return;
     }
     m_savedClues[m_clue.clueNumber] = m_clue;
     opts.message = std::format("Clue saved as '{}'.", m_clue.clueNumber);
-    m_term.messageBox(opts);
+    m_term->messageBox(opts);
     m_clue.dirty = false;
 }
 
@@ -859,12 +867,12 @@ void Ui::filterResults()
     msgboxOpts.row = m_resultsTopRow + 2;
     msgboxOpts.col = 2;
     msgboxOpts.message = "Enter filter string.\nWill drop non-matches.";
-    m_term.messageBox(msgboxOpts);
+    m_term->messageBox(msgboxOpts);
     terminal::InputOptions inputOpts;
     inputOpts.row = m_termSize.rows - 1;
     inputOpts.col = 1;
     inputOpts.overrideCursorType = terminal::CursorType::BlockBlinking;
-    std::string filter = m_term.input(inputOpts).enteredString;
+    std::string filter = m_term->input(inputOpts).enteredString;
     std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
     // dots shouldn't match spaces
     filter = std::regex_replace(filter, std::regex("\\."), "[a-z]");
@@ -1086,12 +1094,12 @@ void Ui::enterFoundStringConstrained()
                     auto c2 = std::count(
                         opts.currentValue.begin(), opts.currentValue.end(), ascii::toupper(key));
                     if (key != '.' && (c1 == 0 || c2 == c1)) {
-                        m_term.bell(terminal::OutputMode::immediate);
+                        m_term->bell(terminal::OutputMode::immediate);
                         rc = keyPress::NO_KEY;
                         break;
                     }
                     if (key != '.' && !ascii::isalpha(key)) {
-                        m_term.bell(terminal::OutputMode::immediate);
+                        m_term->bell(terminal::OutputMode::immediate);
                         rc = keyPress::NO_KEY;
                         break;
                     } else {
@@ -1230,7 +1238,7 @@ void Ui::enterSearchString()
     opts.preInsertHook = [&](int key) -> int {
         // Disallow spaces
         if (key == ' ') {
-            m_term.bell(terminal::OutputMode::immediate);
+            m_term->bell(terminal::OutputMode::immediate);
             return keyPress::NO_KEY;
         }
         if (key < keyPress::NO_KEY) {
@@ -1313,7 +1321,7 @@ void Ui::lostFocus()
     opts.row = 1;
     opts.prompt = "Waiting...";
     opts.waitForKey = true;
-    m_term.messageBox(opts);
+    m_term->messageBox(opts);
     // The "focus gained" message will terminate (and
     // be swallowed by) the messageBox when focus is regained
 }
@@ -1429,7 +1437,7 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             return Command(CommandType::LostFocus);
         default:
             if (!extendedFunction) {
-                m_term.bell();
+                m_term->bell();
             }
     }
     return Command(CommandType::NoOp);
@@ -1453,7 +1461,7 @@ Command Ui::decodeMouseEvent(int button, std::size_t row, std::size_t col)
         }
         if (row > m_termSize.rows - m_menuRowSize) {
             // a click in the menu area
-            std::optional<int> menuItem = m_menu.getIdFromHitBox(row, col);
+            std::optional<int> menuItem = m_menu->getIdFromHitBox(row, col);
             if (menuItem.has_value()) {
                 switch (static_cast<MenuItem>(menuItem.value())) {
                     case MenuItem::Jumble:
@@ -1521,7 +1529,7 @@ Command Ui::decodeMouseEvent(int button, std::size_t row, std::size_t col)
 std::string Ui::input(terminal::InputOptions& opts)
 {
     redraw(false); // to clear any message boxes
-    terminal::InputResult inputResult = m_term.input(opts);
+    terminal::InputResult inputResult = m_term->input(opts);
     if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
         m_commandQueue.push_back(
             decodeMouseEvent(0, inputResult.mouseClickRow, inputResult.mouseClickCol));

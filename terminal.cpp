@@ -107,7 +107,6 @@ std::optional<int> convertMessageBoxClick(
     std::size_t clickRow,
     std::size_t clickCol)
 {
-    assert(opts.type != terminal::MessageBoxType::Plain);
 
     if (buttons.empty() || buttonRow != clickRow || clickCol < buttonStart) {
         return std::nullopt;
@@ -147,7 +146,8 @@ std::optional<int> convertMessageBoxClick(
 
 namespace terminal {
 
-Terminal::Terminal()
+Terminal::Terminal(bool enableFocusReporting)
+    : m_enableFocusReporting(enableFocusReporting)
 {
     if (!isatty(STDOUT_FILENO)) {
         throw std::runtime_error("Terminal is not a TTY");
@@ -163,9 +163,9 @@ Terminal::Terminal()
 
     m_colourDepth = detectColourDepth();
     m_renderMap.clear();
-#ifdef NDEBUG
-    std::cout << "\033[?1004h"; // enable focus reporting
-#endif
+    if (m_enableFocusReporting) {
+        std::cout << "\033[?1004h"; // enable focus reporting
+    }
     std::cout << "\033[?1049h"; // switch to alternate screen
     std::cout << "\033[?1000h\033[?1006h"; // SGR mode (if supported) for mouse reporting
     std::cout << "\033[2J"; // clear screen
@@ -180,9 +180,9 @@ Terminal::~Terminal()
     setCursorType(CursorType::Default, OutputMode::immediate); // reset any cursor change
     std::cout << "\033[?1000l\033[?1006l"; // exit SGR mode
     std::cout << "\033[?1049l"; // switch back to normal screen
-#ifdef NDEBUG
-    std::cout << "\033[?1004l"; // disable focus reporting
-#endif
+    if (m_enableFocusReporting) {
+        std::cout << "\033[?1004l"; // disable focus reporting
+    }
     std::cout << std::flush;
     keyPress::drainInputQueue(); // clear any remaining input
 

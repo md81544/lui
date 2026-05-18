@@ -3,10 +3,11 @@
 // Ui is intended to be the main program interface.
 // This controls output via the Terminal class
 
+#include "configreader.h"
 #include "menu.h"
-
 #include "terminal.h"
 #include "word_searcher.h"
+
 #include <cstddef>
 #include <format>
 #include <list>
@@ -70,7 +71,7 @@ enum class ColourDepth {
 
 class Ui final {
 public:
-    explicit Ui(std::string_view argv0, int wordComplexity, std::optional<ColourDepth> colourDepth);
+    explicit Ui(std::string_view argv0);
     Ui(const Ui&) = delete;
     Ui& operator=(const Ui&) = delete;
     Ui(Ui&&) = delete;
@@ -78,6 +79,7 @@ public:
     ~Ui() { };
     int run(); // main application run loop
 private:
+    std::unique_ptr<mgo::ConfigReader> m_cfg;
     struct TerminalSize {
         std::size_t rows;
         std::size_t cols;
@@ -158,7 +160,7 @@ private:
     Command decodeKeyPress(int keyPress, bool extendedFunction);
     std::string input(terminal::InputOptions& opt);
 
-    terminal::Terminal m_term;
+    std::unique_ptr<terminal::Terminal> m_term;
     TerminalSize m_termSize;
     Clue m_clue;
     std::unordered_map<std::string, Clue> m_savedClues;
@@ -174,8 +176,8 @@ private:
     static constexpr size_t m_menuRowSize { 4 };
     [[nodiscard]] std::size_t getResultsPaneRowSize();
 
-    menu::Menu m_menu { m_term };
-    bool m_suppressRedraw{ false };
+    std::unique_ptr<menu::Menu> m_menu;
+    bool m_suppressRedraw { false };
 };
 
 } // namespace ui

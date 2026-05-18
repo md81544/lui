@@ -250,7 +250,7 @@ struct InputResult {
 
 class Terminal final {
 public:
-    Terminal();
+    explicit Terminal(bool enableFocusReporting);
     ~Terminal();
     // There can only be one terminal:
     Terminal(const Terminal&) = delete;
@@ -337,6 +337,7 @@ public:
     void setColourDepth(ColourDepth colourDepth);
 
 private:
+    bool m_enableFocusReporting{false};
     // if UTF is supported, return utfVersion, otherwise return asciiVersion
     std::string_view utfOrAscii(std::string_view utfVersion, std::string_view asciiVersion);
     std::string colourToAnsiFg(ColourRgb rgb);
