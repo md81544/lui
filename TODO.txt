@@ -1,5 +1,3 @@
-* Turning off focus warning doesn't disable focus warning box
-
 * "Grey out" Load menu item unless there are saved clues
 
 * Dirty visual indicator?
