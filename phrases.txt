@@ -24896,6 +24896,7 @@ go slow
 go smoothly
 go so far as to say
 go so far as to suggest
+go steady
 go straight for the jugular
 go straight in
 go straight on
