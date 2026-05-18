@@ -1,3 +1,5 @@
+* Focus reporting doesn't display if, say, dirty messageBox is displayed
+
 * "Grey out" Load menu item unless there are saved clues
 
 * Dirty visual indicator?
