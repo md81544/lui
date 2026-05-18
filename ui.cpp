@@ -123,7 +123,11 @@ Ui::Ui(std::string_view argv0)
 #else
     enableFocusReporting = m_cfg->readBool("debug/focusReporting", true);
 #endif
-
+    if (enableFocusReporting) {
+        log("Focus reporting ON");
+    } else {
+        log("Focus reporting OFF");
+    }
     m_term = std::make_unique<terminal::Terminal>(enableFocusReporting);
     if (!checkTerminalLargeEnough()) {
         throw(std::runtime_error("Terminal size is too small!"));
