@@ -225,7 +225,9 @@ struct InputOptions {
     // check this value after input to determine whether to move
     // to a different field (e.g. if EntryKey == SHIFT_TAB, immediately
     // start input in a previous field). Up to the caller.
-    int EntryKey { keyPress::ENTER };
+    int entryKey { keyPress::ENTER };
+    // Other "entry keys" can be defined by the caller
+    std::vector<int> additionalEntryKeys;
 };
 
 enum class InputMouseClickType {

@@ -1154,11 +1154,11 @@ void Ui::enterFoundStringConstrained()
     m_clue.foundString = input(opts);
     m_clue.dirty = true;
     log("m_clue.foundString (constrained) input: '{}'", m_clue.foundString);
-    if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
+    if (opts.entryKey == keyPress::TAB || opts.entryKey == keyPress::DOWN) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
     }
-    if (opts.EntryKey == keyPress::SHIFT_TAB || opts.EntryKey == keyPress::UP) {
+    if (opts.entryKey == keyPress::SHIFT_TAB || opts.entryKey == keyPress::UP) {
         // chain to search entry
         m_commandQueue.emplace_back(CommandType::EnterSearchString);
     }
@@ -1218,11 +1218,11 @@ void Ui::enterFoundStringUnconstrained()
     }
     m_clue.dirty = true;
     log("m_clue.foundString (unconstrained) input: '{}'", m_clue.foundString);
-    if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
+    if (opts.entryKey == keyPress::TAB || opts.entryKey == keyPress::DOWN) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
     }
-    if (opts.EntryKey == keyPress::SHIFT_TAB || opts.EntryKey == keyPress::UP) {
+    if (opts.entryKey == keyPress::SHIFT_TAB || opts.entryKey == keyPress::UP) {
         // chain to search entry
         m_commandQueue.emplace_back(CommandType::EnterSearchString);
     }
@@ -1252,14 +1252,15 @@ void Ui::enterSearchString()
         return key;
     };
     m_clue.searchString = input(opts);
-    if (separatedStringSize(m_clue.foundString) != m_clue.searchString.size()) {
+    if (!m_clue.searchString.empty()
+        && separatedStringSize(m_clue.foundString) != m_clue.searchString.size()) {
         m_clue.foundString = std::string(m_clue.searchString.size(), '.');
     }
     if (!m_clue.searchString.empty()) {
         m_clue.dirty = true;
         log("m_clue.searchString input: '{}'", m_clue.searchString);
     }
-    if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
+    if (opts.entryKey == keyPress::TAB || opts.entryKey == keyPress::DOWN) {
         // chain to enter found string
         m_commandQueue.emplace_back(CommandType::EnterFoundString);
     }
@@ -1277,11 +1278,11 @@ void Ui::enterCommentString()
     m_clue.comment = input(opts);
     m_clue.dirty = true;
     log("m_clue.comment input: '{}'", m_clue.comment);
-    if (opts.EntryKey == keyPress::TAB || opts.EntryKey == keyPress::DOWN) {
+    if (opts.entryKey == keyPress::TAB || opts.entryKey == keyPress::DOWN) {
         // chain to clue number entry
         m_commandQueue.emplace_back(CommandType::EnterClueNumber);
     }
-    if (opts.EntryKey == keyPress::SHIFT_TAB || opts.EntryKey == keyPress::UP) {
+    if (opts.entryKey == keyPress::SHIFT_TAB || opts.entryKey == keyPress::UP) {
         // chain to found entry
         m_commandQueue.emplace_back(CommandType::EnterFoundString);
     }
@@ -1304,7 +1305,7 @@ void Ui::enterClueNumber()
         log("m_clue input: '{}'", m_clue.clueNumber);
         m_commandQueue.emplace_back(CommandType::Save);
     }
-    if (opts.EntryKey == keyPress::SHIFT_TAB || opts.EntryKey == keyPress::UP) {
+    if (opts.entryKey == keyPress::SHIFT_TAB || opts.entryKey == keyPress::UP) {
         // chain to comment entry
         m_commandQueue.emplace_back(CommandType::EnterComment);
     }

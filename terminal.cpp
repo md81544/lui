@@ -650,6 +650,18 @@ InputResult Terminal::input(InputOptions& opts)
                 }
             }
         }
+        // Is the key an additional entry key specified by the caller?
+        for (const int ek : opts.additionalEntryKeys) {
+            if (key == ek) {
+                opts.entryKey = key;
+                done = true;
+                break;
+            }
+        }
+        if (done) {
+            break;
+        }
+        
         if (key == keyPress::FOCUS_OUT) {
             rc.lostFocus = true;
             key = keyPress::ENTER;
@@ -712,7 +724,7 @@ InputResult Terminal::input(InputOptions& opts)
             case keyPress::SHIFT_TAB:
             case keyPress::UP:
             case keyPress::DOWN:
-                opts.EntryKey = keyOrig;
+                opts.entryKey = keyOrig;
                 done = true;
                 break;
             case keyPress::BACKSPACE:
