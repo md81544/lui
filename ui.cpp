@@ -2,7 +2,7 @@
 #include "ascii.h"
 #include "configreader.h"
 #include "keypress.h"
-#include "log.h"
+#include "log.h" // IWYU pragma: keep
 #include "menu.h"
 #include "signal_handler.h"
 #include "terminal.h"
