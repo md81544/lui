@@ -7,6 +7,7 @@
 #include "menu.h"
 #include "terminal.h"
 #include "word_searcher.h"
+#include "hotkeys.h"
 
 #include <cstddef>
 #include <format>
@@ -80,6 +81,7 @@ public:
     int run(); // main application run loop
 private:
     std::unique_ptr<mgo::ConfigReader> m_cfg;
+    hotkeys::Hotkeys m_hotkeys;
     struct TerminalSize {
         std::size_t rows;
         std::size_t cols;
@@ -159,7 +161,7 @@ private:
     int messageBox(terminal::MessageBoxOptions& opts);
     Command decodeMouseEvent(int button, std::size_t row, std::size_t col);
     Command decodeKeyPress(int keyPress, bool extendedFunction);
-    std::string input(terminal::InputOptions& opt);
+    std::string input(terminal::InputOptions& opt, bool useGlobalHotKeys = true);
 
     std::unique_ptr<terminal::Terminal> m_term;
     TerminalSize m_termSize;

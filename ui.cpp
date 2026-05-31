@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "ascii.h"
 #include "configreader.h"
+#include "hotkeys.h"
 #include "keypress.h"
 #include "log.h" // IWYU pragma: keep
 #include "menu.h"
@@ -212,20 +213,62 @@ Ui::Ui(std::string_view argv0)
         dataDir / "phrases.txt");
     log("Finished loading data");
 
-    // Set up the menu
+    // Set up the menu and hotkeys.
+    // Interleaving here to keep menu setup and key definitions next to each other.
+    // Note hotkeys can be of type "Menu" or "Global".
+    // "Global" hotkeys will be used even if in an input.
+    // "Menu" hotkeys are only actioned when waiting for a command.
     m_menu->addItem(static_cast<int>(MenuItem::Jumble), "_Jumble");
+    m_hotkeys.add('j', hotkeys::Type::Menu, CommandType::Jumble);
+    m_hotkeys.add('J', hotkeys::Type::Global, CommandType::Jumble);
     m_menu->addItem(static_cast<int>(MenuItem::Reverse), "re_Verse");
+    m_hotkeys.add('v', hotkeys::Type::Menu, CommandType::Reverse);
+    m_hotkeys.add('V', hotkeys::Type::Global, CommandType::Reverse);
     m_menu->addItem(static_cast<int>(MenuItem::Regular), "_Regular");
+    m_hotkeys.add('r', hotkeys::Type::Menu, CommandType::Regular);
     m_menu->addItem(static_cast<int>(MenuItem::Thesaurus), "_Thesaurus");
+    m_hotkeys.add('t', hotkeys::Type::Menu, CommandType::Thesaurus);
     m_menu->addItem(static_cast<int>(MenuItem::Lookup), "_Lookup");
+    m_hotkeys.add('l', hotkeys::Type::Menu, CommandType::Lookup);
     m_menu->addItem(static_cast<int>(MenuItem::Define), "_Define");
+    m_hotkeys.add('d', hotkeys::Type::Menu, CommandType::Define);
     m_menu->addNewLine();
     m_menu->addItem(static_cast<int>(MenuItem::Filter), "f_Ilter");
+    m_hotkeys.add('i', hotkeys::Type::Menu, CommandType::Filter);
     m_menu->addItem(static_cast<int>(MenuItem::Done), "_^_Done");
+    m_hotkeys.add('D', hotkeys::Type::Global, CommandType::Done);
+    m_hotkeys.add(keyPress::CTRL_D, hotkeys::Type::Global, CommandType::Done);
     m_menu->addItem(static_cast<int>(MenuItem::Save), "_^_Save");
+    m_hotkeys.add('S', hotkeys::Type::Global, CommandType::Save);
+    m_hotkeys.add(keyPress::CTRL_S, hotkeys::Type::Global, CommandType::Save);
     m_menu->addItem(static_cast<int>(MenuItem::Load), "_^_Load");
+    m_hotkeys.add('L', hotkeys::Type::Global, CommandType::Load);
+    m_hotkeys.add(keyPress::CTRL_L, hotkeys::Type::Global, CommandType::Load);
     m_menu->addItem(static_cast<int>(MenuItem::Restart), "_^_Restart");
+    m_hotkeys.add(keyPress::CTRL_R, hotkeys::Type::Global, CommandType::Restart);
+    m_hotkeys.add('R', hotkeys::Type::Global, CommandType::HardRestart); // Note HardRestart
     m_menu->addItem(static_cast<int>(MenuItem::Quit), "_^_Quit");
+    m_hotkeys.add(keyPress::CTRL_Q, hotkeys::Type::Global, CommandType::Quit);
+    m_hotkeys.add('Q', hotkeys::Type::Global, CommandType::Quit);
+
+    // Other hotkeys not menu specific:
+    m_hotkeys.add('s', hotkeys::Type::Menu, CommandType::EnterSearchString);
+    m_hotkeys.add(keyPress::TAB, hotkeys::Type::Menu, CommandType::EnterSearchString);
+    m_hotkeys.add('f', hotkeys::Type::Menu, CommandType::EnterFoundString);
+    m_hotkeys.add('c', hotkeys::Type::Menu, CommandType::EnterComment);
+    m_hotkeys.add('n', hotkeys::Type::Menu, CommandType::EnterClueNumber);
+    m_hotkeys.add(':', hotkeys::Type::Global, CommandType::AwaitCommand);
+    m_hotkeys.add(keyPress::ESC, hotkeys::Type::Global, CommandType::AwaitCommand);
+    m_hotkeys.add(keyPress::DOWN, hotkeys::Type::Menu, CommandType::ResultsScrollDown);
+    m_hotkeys.add(keyPress::UP, hotkeys::Type::Menu, CommandType::ResultsScrollUp);
+    m_hotkeys.add(keyPress::SPACE, hotkeys::Type::Menu, CommandType::ResultsPageDown);
+    m_hotkeys.add(keyPress::PGDN, hotkeys::Type::Menu, CommandType::ResultsPageDown);
+    m_hotkeys.add(keyPress::CTRL_F, hotkeys::Type::Menu, CommandType::ResultsPageDown);
+    m_hotkeys.add(keyPress::PGUP, hotkeys::Type::Menu, CommandType::ResultsPageUp);
+    m_hotkeys.add(keyPress::CTRL_B, hotkeys::Type::Menu, CommandType::ResultsPageUp);
+    m_hotkeys.add(keyPress::F12, hotkeys::Type::Menu, CommandType::ShowDebugLog);
+    m_hotkeys.add(keyPress::FOCUS_IN, hotkeys::Type::Global, CommandType::GainedFocus);
+    m_hotkeys.add(keyPress::FOCUS_OUT, hotkeys::Type::Global, CommandType::LostFocus);
 }
 
 void Ui::checkForTerminalResize()
@@ -1275,7 +1318,7 @@ void Ui::enterCommentString()
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
     opts.defaultValue = m_clue.comment;
-    m_clue.comment = input(opts);
+    m_clue.comment = input(opts, false);
     m_clue.dirty = true;
     log("m_clue.comment input: '{}'", m_clue.comment);
     if (opts.entryKey == keyPress::TAB || opts.entryKey == keyPress::DOWN) {
@@ -1352,112 +1395,41 @@ std::size_t Ui::getResultsPaneRowSize()
 
 Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
 {
-    switch (keyPress) {
-        case keyPress::NO_KEY: // key was consumed by input handler
-            return Command(CommandType::NoOp);
-        case ':':
-        case keyPress::ESC:
-            if (extendedFunction) {
+    if (keyPress == keyPress::MOUSE) {
+        return decodeMouseEvent(
+            keyPress::lastMouseEvent.button,
+            keyPress::lastMouseEvent.row,
+            keyPress::lastMouseEvent.col);
+    }
+    if (!extendedFunction) {
+        auto cmd = m_hotkeys.getCommandFromKeyPress(keyPress);
+        if (cmd.has_value()) {
+            return Command(*cmd);
+        }
+    } else {
+        // These are all "extended" functions or mouse related:
+        switch (keyPress) {
+            case keyPress::NO_KEY: // key was consumed by input handler
+                return Command(CommandType::NoOp);
+            case ':':
+            case keyPress::ESC:
                 return Command(CommandType::HardRestart);
-            }
-            return Command(CommandType::AwaitCommand);
-        case keyPress::CTRL_R:
-            // clear eveything down
-            return Command(CommandType::Restart);
-        case 'R':
-            return Command(CommandType::HardRestart);
-        case 'q':
-            if (extendedFunction) {
+            case 'q':
                 return Command(CommandType::Quit);
-            }
-            break;
-        case 'w':
-            if (extendedFunction) {
+            case 'w':
                 return Command(CommandType::Save);
-            }
-            break;
-        case 'e':
-            if (extendedFunction) {
+            case 'e':
                 return Command(CommandType::Load);
-            }
-            break;
-        case keyPress::CTRL_D:
-        case 'D':
-            return Command(CommandType::Done);
-        case keyPress::CTRL_C:
-        case keyPress::CTRL_Q:
-        case 'Q':
-            return Command(CommandType::Quit);
-        case 'j':
-            return Command(CommandType::Jumble);
-        case 't':
-            return Command(CommandType::Thesaurus);
-        case 'l':
-            if (extendedFunction) {
+            case 'l':
                 return Command(CommandType::Load);
-            }
-            return Command(CommandType::Lookup);
-        case 'i':
-            return Command(CommandType::Filter);
-        case 'd':
-            return Command(CommandType::Define);
-        case 'f':
-            return Command(CommandType::EnterFoundString);
-        case 'c':
-            return Command(CommandType::EnterComment);
-        case 'n':
-            return Command(CommandType::EnterClueNumber);
-        case 's':
-            if (extendedFunction) {
+            case 's':
                 return Command(CommandType::Save);
-            }
-            return Command(CommandType::EnterSearchString);
-        case keyPress::TAB:
-            return Command(CommandType::EnterSearchString);
-        case 'r':
-            if (extendedFunction) {
+            case 'r':
                 return Command(CommandType::Restart);
-            }
-            return Command(CommandType::Regular);
-        case 'v':
-            return Command(CommandType::Reverse);
-        case keyPress::DOWN:
-            return Command(CommandType::ResultsScrollDown);
-        case keyPress::UP:
-            return Command(CommandType::ResultsScrollUp);
-        case keyPress::SPACE:
-        case keyPress::PGDN:
-        case keyPress::CTRL_F:
-            if (keyPress == keyPress::SPACE && m_results.type == ResultsType::Jumble) {
-                return Command(CommandType::Jumble);
-            }
-            return Command(CommandType::ResultsPageDown);
-        case keyPress::PGUP:
-        case keyPress::CTRL_B: // Note Ctrl-B may be TMux's "prefix" key!
-            return Command(CommandType::ResultsPageUp);
-        case keyPress::F12:
-            return Command(CommandType::ShowDebugLog);
-        case keyPress::CTRL_S:
-        case 'S':
-            return Command(CommandType::Save);
-        case keyPress::CTRL_L:
-        case 'L':
-            return Command(CommandType::Load);
-        case keyPress::MOUSE:
-            return decodeMouseEvent(
-                keyPress::lastMouseEvent.button,
-                keyPress::lastMouseEvent.row,
-                keyPress::lastMouseEvent.col);
-        case keyPress::FOCUS_IN:
-            log("Gained focus");
-            return Command(CommandType::GainedFocus);
-        case keyPress::FOCUS_OUT:
-            log("Lost focus");
-            return Command(CommandType::LostFocus);
-        default:
-            if (!extendedFunction) {
+
+            default:
                 m_term->bell();
-            }
+        }
     }
     return Command(CommandType::NoOp);
 }
@@ -1545,10 +1517,19 @@ Command Ui::decodeMouseEvent(int button, std::size_t row, std::size_t col)
     return Command(CommandType::NoOp);
 }
 
-std::string Ui::input(terminal::InputOptions& opts)
+std::string Ui::input(terminal::InputOptions& opts, bool useGlobalHotKeys /* = true */)
 {
     redraw(false); // to clear any message boxes
+    if (useGlobalHotKeys) {
+        opts.additionalEntryKeys = m_hotkeys.get(hotkeys::Type::Global);
+    }
     terminal::InputResult inputResult = m_term->input(opts);
+    if (opts.entryKey != keyPress::ENTER) {
+        auto cmd = m_hotkeys.getCommandFromKeyPress(opts.entryKey);
+        if (cmd.has_value()) {
+            m_commandQueue.push_back(*cmd);
+        }
+    }
     if (inputResult.clickType == terminal::InputMouseClickType::ClickedOff) {
         m_commandQueue.push_back(
             decodeMouseEvent(0, inputResult.mouseClickRow, inputResult.mouseClickCol));
