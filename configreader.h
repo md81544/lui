@@ -31,6 +31,7 @@ public:
     virtual double readDouble(std::string_view key, double defaultValue) const = 0;
     virtual bool readBool(std::string_view key, bool defaultValue) const = 0;
     virtual std::string readString(std::string_view key, const std::string& defaultValue) const = 0;
+    virtual ~IConfigReader() = default;
 
 private:
     virtual CfgValueType read(std::string_view key, const CfgValueType& defaultValue) const = 0;

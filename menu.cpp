@@ -1,5 +1,4 @@
 #include "menu.h"
-#include "terminal.h"
 #include <algorithm>
 #include <cstddef>
 
