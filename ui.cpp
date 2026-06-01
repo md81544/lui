@@ -1332,7 +1332,7 @@ void Ui::enterExtendedCommand()
 {
     terminal::InputOptions opts;
     opts.row = m_termSize.rows - 1;
-    opts.col = 1;
+    opts.col = 0;
     opts.prompt = ":";
     opts.bgColour = terminal::Colour::Default;
     opts.fgColour = terminal::Colour::BrightWhite;
