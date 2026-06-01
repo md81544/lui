@@ -606,6 +606,7 @@ InputResult Terminal::input(InputOptions& opts)
         goTo(opts.row, opts.col, imm);
         setBgColour(opts.bgColour, imm);
         setFgColour(opts.fgColour, imm);
+        std::cout << opts.prompt;
         std::cout << opts.currentValue;
         // If it's a fixed size then we print underscores
         // to show available space for entry
@@ -631,7 +632,7 @@ InputResult Terminal::input(InputOptions& opts)
                                // Downside is anything after the input will be cleared.
         cursorOn(imm);
         // Position cursor to insertion/overwrite point
-        goTo(opts.row, opts.col + opts.cursorPos, imm);
+        goTo(opts.row, opts.col + opts.cursorPos + opts.prompt.size(), imm);
         opts.previousValue = opts.currentValue; // for restoration if caller cancels in post hook
         int key = getChar();
         if (key == keyPress::MOUSE) {

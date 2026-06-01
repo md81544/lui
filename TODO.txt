@@ -1,5 +1,3 @@
-* "Extended commands" needs rewriting. An extended command should just be an input
-
 * Filter in define mode should filter on definitions too
 
 * "Grey out" Load menu item unless there are saved clues

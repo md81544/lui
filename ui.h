@@ -121,9 +121,7 @@ private:
     void displayHeader(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayResults(terminal::OutputMode mode = terminal::OutputMode::render);
     void displayMenu(terminal::OutputMode mode = terminal::OutputMode::render);
-    void displayCommandPrompt(terminal::OutputMode mode = terminal::OutputMode::render);
-    void redraw(bool drawCommandPrompt = false); // Note render mode only
-    void clearCommandPrompt(terminal::OutputMode mode = terminal::OutputMode::render);
+    void redraw(); // Note render mode only
     void hr(std::size_t row, terminal::OutputMode mode = terminal::OutputMode::render);
     void jumble(
         std::string remainingLetters = "",
@@ -156,11 +154,12 @@ private:
     void enterSearchString();
     void enterCommentString();
     void enterClueNumber();
+    void enterExtendedCommand();
     void ShowDebugLog();
     void lostFocus();
     int messageBox(terminal::MessageBoxOptions& opts);
     Command decodeMouseEvent(int button, std::size_t row, std::size_t col);
-    Command decodeKeyPress(int keyPress, bool extendedFunction);
+    Command decodeKeyPress(int keyPress);
     std::string input(terminal::InputOptions& opt, bool useGlobalHotKeys = true);
 
     std::unique_ptr<terminal::Terminal> m_term;

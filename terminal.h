@@ -228,6 +228,9 @@ struct InputOptions {
     int entryKey { keyPress::ENTER };
     // Other "entry keys" can be defined by the caller
     std::vector<int> additionalEntryKeys;
+    // If this is defined, the prompt string is printed at row, col and input starts
+    // directly to the right of it
+    std::string prompt;
 };
 
 enum class InputMouseClickType {

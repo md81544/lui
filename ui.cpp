@@ -297,15 +297,11 @@ bool Ui::checkTerminalLargeEnough()
 int Ui::run()
 {
     bool finished { false };
-    u_int8_t commandSeqCount = 0;
     // Start with search string input:
     m_commandQueue.emplace_back(CommandType::EnterSearchString);
     while (!finished && !mgo::shutdown_requested.load(std::memory_order_relaxed)) {
-        if (commandSeqCount > 0) {
-            --commandSeqCount;
-        }
         if (!m_suppressRedraw) {
-            redraw(commandSeqCount > 0);
+            redraw();
         }
         int keyPress;
         Command cmd(CommandType::NoOp);
@@ -315,7 +311,7 @@ int Ui::run()
                 m_commandQueue.pop_front();
             } else {
                 keyPress = m_term->getChar();
-                cmd = decodeKeyPress(keyPress, commandSeqCount > 0);
+                cmd = decodeKeyPress(keyPress);
             }
             // If a command handles its own redraw for performance
             // (e.g. scrolling results) then it can set m_suppressRedraw to true
@@ -324,7 +320,7 @@ int Ui::run()
                 case CommandType::NoOp:
                     break;
                 case CommandType::AwaitCommand: // Used if user presses ':'
-                    commandSeqCount = 2;
+                    enterExtendedCommand();
                     break;
                 case CommandType::Jumble:
                     jumble();
@@ -556,34 +552,13 @@ void Ui::displayMenu(terminal::OutputMode mode)
     m_term->cursorOff(mode);
 }
 
-void Ui::displayCommandPrompt(terminal::OutputMode mode)
-{
-    m_term->printAt(m_termSize.rows - 1, 0, ":", mode);
-    m_term->setCursorType(terminal::CursorType::BlockBlinking, mode);
-    m_term->cursorOn(mode);
-}
-
-void Ui::redraw(bool drawCommandPrompt)
+void Ui::redraw()
 {
     checkForTerminalResize();
     displayHeader();
     displayResults();
     displayMenu();
-    if (drawCommandPrompt) {
-        displayCommandPrompt();
-    } else {
-        clearCommandPrompt();
-    }
     m_term->render();
-}
-
-void Ui::clearCommandPrompt(terminal::OutputMode mode)
-{
-    m_term->saveCursorPosition(mode);
-    m_term->goTo(m_termSize.rows - 1, 0, mode);
-    m_term->clearLine(mode);
-    m_term->restoreCursorPosition(mode);
-    m_term->cursorOff(mode);
 }
 
 void Ui::restart(bool force)
@@ -606,7 +581,6 @@ void Ui::restart(bool force)
     m_clue.comment.clear();
     m_clue.dirty = false;
     clearResults();
-    clearCommandPrompt();
     m_commandQueue.emplace_back(CommandType::EnterSearchString);
 }
 
@@ -1354,6 +1328,49 @@ void Ui::enterClueNumber()
     }
 }
 
+void Ui::enterExtendedCommand()
+{
+    terminal::InputOptions opts;
+    opts.row = m_termSize.rows - 1;
+    opts.col = 1;
+    opts.prompt = ":";
+    opts.bgColour = terminal::Colour::Default;
+    opts.fgColour = terminal::Colour::BrightWhite;
+    opts.mode = terminal::Mode::Overwrite;
+    opts.overrideCursorType = terminal::CursorType::BlockBlinking;
+    opts.keysAllowed = terminal::keysAllowed::alpha;
+    std::string ec = input(opts, false); // false = don't allow hotkeys
+    if (ec.empty()) {
+        return;
+    }
+    switch (ec[0]) {
+        case 'q':
+        case 'Q':
+            m_commandQueue.emplace_back(CommandType::Quit);
+            break;
+        case 's':
+        case 'S':
+        case 'w':
+        case 'W':
+            m_commandQueue.emplace_back(CommandType::Save);
+            break;
+        case 'e':
+        case 'E':
+        case 'l':
+        case 'L':
+            m_commandQueue.emplace_back(CommandType::Load);
+            break;
+        case 'r':
+            m_commandQueue.emplace_back(CommandType::Restart);
+            break;
+        case 'R':
+            m_commandQueue.emplace_back(CommandType::HardRestart);
+            break;
+        default:
+            return;
+    }
+}
+
 void Ui::ShowDebugLog()
 {
     clearResults();
@@ -1393,7 +1410,7 @@ std::size_t Ui::getResultsPaneRowSize()
     return m_termSize.rows - m_menuRowSize - m_headerRowSize;
 }
 
-Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
+Command Ui::decodeKeyPress(int keyPress)
 {
     if (keyPress == keyPress::MOUSE) {
         return decodeMouseEvent(
@@ -1401,35 +1418,9 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             keyPress::lastMouseEvent.row,
             keyPress::lastMouseEvent.col);
     }
-    if (!extendedFunction) {
-        auto cmd = m_hotkeys.getCommandFromKeyPress(keyPress);
-        if (cmd.has_value()) {
-            return Command(*cmd);
-        }
-    } else {
-        // These are all "extended" functions:
-        switch (keyPress) {
-            case keyPress::NO_KEY: // key was consumed by input handler
-                return Command(CommandType::NoOp);
-            case ':':
-            case keyPress::ESC:
-                return Command(CommandType::HardRestart);
-            case 'q':
-                return Command(CommandType::Quit);
-            case 'w':
-                return Command(CommandType::Save);
-            case 'e':
-                return Command(CommandType::Load);
-            case 'l':
-                return Command(CommandType::Load);
-            case 's':
-                return Command(CommandType::Save);
-            case 'r':
-                return Command(CommandType::Restart);
-
-            default:
-                m_term->bell();
-        }
+    auto cmd = m_hotkeys.getCommandFromKeyPress(keyPress);
+    if (cmd.has_value()) {
+        return Command(*cmd);
     }
     return Command(CommandType::NoOp);
 }
@@ -1519,7 +1510,7 @@ Command Ui::decodeMouseEvent(int button, std::size_t row, std::size_t col)
 
 std::string Ui::input(terminal::InputOptions& opts, bool useGlobalHotKeys /* = true */)
 {
-    redraw(false); // to clear any message boxes
+    redraw(); // to clear any message boxes
     if (useGlobalHotKeys) {
         opts.additionalEntryKeys = m_hotkeys.get(hotkeys::Type::Global);
     }
