@@ -254,7 +254,6 @@ Ui::Ui(std::string_view argv0)
 
     // Other hotkeys not menu specific:
     m_hotkeys.add('s', hotkeys::Type::Menu, CommandType::EnterSearchString);
-    m_hotkeys.add(keyPress::TAB, hotkeys::Type::Menu, CommandType::EnterSearchString);
     m_hotkeys.add('f', hotkeys::Type::Menu, CommandType::EnterFoundString);
     m_hotkeys.add('c', hotkeys::Type::Menu, CommandType::EnterComment);
     m_hotkeys.add('n', hotkeys::Type::Menu, CommandType::EnterClueNumber);
@@ -1408,7 +1407,7 @@ Command Ui::decodeKeyPress(int keyPress, bool extendedFunction)
             return Command(*cmd);
         }
     } else {
-        // These are all "extended" functions or mouse related:
+        // These are all "extended" functions:
         switch (keyPress) {
             case keyPress::NO_KEY: // key was consumed by input handler
                 return Command(CommandType::NoOp);
