@@ -1,8 +1,8 @@
 #pragma once
 
+#include <flat_map>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <variant>
 
 // NOTE! This supports a VERY simplified YAML sytax.
@@ -39,19 +39,23 @@ private:
 // Mock config reader always returns the defaultValue
 class MockConfigReader final : public IConfigReader {
 public:
-    virtual double readDouble(std::string_view, double defaultValue) const override {
+    virtual double readDouble(std::string_view, double defaultValue) const override
+    {
         return defaultValue;
     }
-    virtual bool readBool(std::string_view, bool defaultValue) const override {
+    virtual bool readBool(std::string_view, bool defaultValue) const override
+    {
         return defaultValue;
     }
-    virtual std::string readString(std::string_view, const std::string& defaultValue) const override {
+    virtual std::string readString(std::string_view, const std::string& defaultValue) const override
+    {
         return defaultValue;
     }
 
 private:
     // This is unused
-    virtual CfgValueType read(std::string_view, const CfgValueType& defaultValue) const override {
+    virtual CfgValueType read(std::string_view, const CfgValueType& defaultValue) const override
+    {
         return defaultValue;
     }
 };
@@ -68,14 +72,15 @@ public:
     // debug mode, and the default will be silently returned in release mode.
     virtual double readDouble(std::string_view key, double defaultValue) const override;
     virtual bool readBool(std::string_view key, bool defaultValue) const override;
-    virtual std::string readString(std::string_view key, const std::string& defaultValue) const override;
+    virtual std::string
+    readString(std::string_view key, const std::string& defaultValue) const override;
 
 private:
     virtual CfgValueType
     read(std::string_view key, const CfgValueType& defaultValue) const override;
 
 private:
-    std::unordered_map<std::string, CfgValueType> m_map;
+    std::flat_map<std::string, CfgValueType> m_map;
 };
 
 } // namespace mgo

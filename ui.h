@@ -166,7 +166,7 @@ private:
     std::unique_ptr<terminal::Terminal> m_term;
     TerminalSize m_termSize;
     Clue m_clue;
-    std::unordered_map<std::string, Clue> m_savedClues;
+    std::flat_map<std::string, Clue> m_savedClues;
     std::unique_ptr<wordSearcher::WordSearcher> m_ws;
     Results m_results;
     std::vector<std::string> m_debugLog;
