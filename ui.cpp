@@ -225,8 +225,9 @@ Ui::Ui(std::string_view argv0)
     m_menu->addItem(static_cast<int>(MenuItem::Reverse), "re_Verse");
     m_hotkeys.add('v', hotkeys::Type::Menu, CommandType::Reverse);
     m_hotkeys.add('V', hotkeys::Type::Global, CommandType::Reverse);
-    m_menu->addItem(static_cast<int>(MenuItem::Regular), "_Regular");
-    m_hotkeys.add('r', hotkeys::Type::Menu, CommandType::Regular);
+    m_menu->addItem(static_cast<int>(MenuItem::Regular), "re_Gular");
+    m_hotkeys.add('g', hotkeys::Type::Menu, CommandType::Regular);
+    m_hotkeys.add('G', hotkeys::Type::Global, CommandType::Regular);
     m_menu->addItem(static_cast<int>(MenuItem::Thesaurus), "_Thesaurus");
     m_hotkeys.add('t', hotkeys::Type::Menu, CommandType::Thesaurus);
     m_menu->addItem(static_cast<int>(MenuItem::Lookup), "_Lookup");
