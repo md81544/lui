@@ -3,3 +3,18 @@ src:*/c++/v1/*
 src:*/usr/include/*
 fun:std::*
 fun:__*
+
+[implicit-conversion]
+src:*include/c++/13/format*
+
+[implicit-integer-sign-change]
+src:*include/c++/13/format*
+
+[implicit-signed-integer-truncation]
+src:*include/c++/13/format*
+
+[unsigned-integer-overflow]
+# Mersenne Twister deliberately overflows!
+src:*include/c++/13/bits/random.tcc*
+# almost certainly in the capacity/size tracking logic
+src:*include/c++/13/bits/basic_string.h*

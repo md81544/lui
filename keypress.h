@@ -193,8 +193,9 @@ inline std::optional<int> getKeyPress(bool blocking = true)
     char c;
     termios term_attrs;
     tcgetattr(STDIN_FILENO, &term_attrs);
-    term_attrs.c_lflag &= ~(ICANON | ECHO | ISIG);
-    term_attrs.c_iflag &= ~(IXON | IXOFF); // disable XON/XOFF flow control
+    // term_attrs.c_lflag &= ~(ICANON | ECHO | ISIG);
+    term_attrs.c_lflag &= static_cast<tcflag_t>(~(ICANON | ECHO | ISIG));
+    term_attrs.c_iflag &= static_cast<tcflag_t>(~(IXON | IXOFF)); // disable XON/XOFF flow control
     if (!blocking) {
         term_attrs.c_cc[VMIN] = 0;
         term_attrs.c_cc[VTIME] = 0;
