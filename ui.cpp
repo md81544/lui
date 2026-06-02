@@ -15,7 +15,6 @@
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
-#include <flat_map>
 #include <format>
 #include <functional>
 #include <memory>
@@ -25,6 +24,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 namespace {
@@ -612,7 +612,7 @@ void Ui::jumble(std::string foundString, terminal::OutputMode mode)
     std::ranges::copy_if(
         foundString, std::back_inserter(foundLetters), [](char c) { return c != '.' && c != '/'; });
     // Which letters are remaining in the search string?
-    std::flat_map<char, int> freq;
+    std::unordered_map<char, int> freq;
     for (char c : foundLetters) {
         ++freq[c];
     }

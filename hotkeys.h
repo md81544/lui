@@ -3,8 +3,8 @@
 // This class serves as a central repository for all "hot keys", i.e.
 // menu and other keypress commands
 
-#include <flat_map>
 #include <optional>
+#include <unordered_map>
 #include <vector>
 
 namespace ui {
@@ -41,7 +41,7 @@ public:
     std::optional<ui::Command> getCommandFromKeyPress(int keyPress);
 
 private:
-    std::flat_map<int, Kt> m_hotkeys;
+    std::unordered_map<int, Kt> m_hotkeys;
 };
 
 } // namespace hotkeys

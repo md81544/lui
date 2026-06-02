@@ -1,8 +1,8 @@
 #pragma once
 
-#include <flat_map>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
 
 // NOTE! This supports a VERY simplified YAML sytax.
@@ -81,7 +81,7 @@ private:
     read(std::string_view key, const CfgValueType& defaultValue) const override;
 
 private:
-    std::flat_map<std::string, CfgValueType> m_map;
+    std::unordered_map<std::string, CfgValueType> m_map;
 };
 
 } // namespace mgo

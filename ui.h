@@ -4,10 +4,10 @@
 // This controls output via the Terminal class
 
 #include "configreader.h"
+#include "hotkeys.h"
 #include "menu.h"
 #include "terminal.h"
 #include "word_searcher.h"
-#include "hotkeys.h"
 
 #include <cstddef>
 #include <format>
@@ -165,7 +165,7 @@ private:
     std::unique_ptr<terminal::Terminal> m_term;
     TerminalSize m_termSize;
     Clue m_clue;
-    std::flat_map<std::string, Clue> m_savedClues;
+    std::unordered_map<std::string, Clue> m_savedClues;
     std::unique_ptr<wordSearcher::WordSearcher> m_ws;
     Results m_results;
     std::vector<std::string> m_debugLog;
