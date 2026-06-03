@@ -1,4 +1,10 @@
+* number entry in constrained input adds a '/' but unconstrained doesn't -
+  maybe standardise on not adding a separator (allows for easier entry of
+  number above nine, by pressing, say, 5 + 5) 
+
 * Filter in define mode should filter on definitions too
+  (related) clicking on a result line in definitions should
+            display the entire definition (see below)
 
 * "Grey out" Load menu item unless there are saved clues
 
