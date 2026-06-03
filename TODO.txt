@@ -3,8 +3,6 @@
   number above nine, by pressing, say, 5 + 5) 
 
 * Filter in define mode should filter on definitions too
-  (related) clicking on a result line in definitions should
-            display the entire definition (see below)
 
 * "Grey out" Load menu item unless there are saved clues
 
@@ -13,9 +11,6 @@
 * Terminal mode guard
 
 * Improve definitions display
-  - (related) allow horizontal scrolling of results (or at least the definitions portion)
-    - or a click on a definition displays a message box, or simply replaces results with
-      that one (set of) definition(s)
   - (related) consider returning something more structured from WordSearcher::define()
     to allow for the caller to add, say, colour to the output (e.g. definitions, words,
     and undefined to have separate colours)

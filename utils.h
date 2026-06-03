@@ -8,6 +8,7 @@
 #include <regex>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace utils {
 
@@ -52,6 +53,17 @@ inline void trim(std::string& s)
     auto not_space = [](unsigned char c) { return !ascii::isspace(c); };
     s.erase(std::ranges::find_if(s | std::views::reverse, not_space).base(), s.end());
     s.erase(s.begin(), std::ranges::find_if(s, not_space));
+}
+
+inline std::vector<std::string> split(std::string_view sv, char sep) {
+    std::string s { sv };
+    std::vector<std::string> vec;
+    for (auto subrange : s | std::views::split(sep)) {
+        std::string tok(subrange.begin(), subrange.end());
+        trim(tok);
+        vec.push_back(tok);
+    }
+    return vec;
 }
 
 } // namespace utils

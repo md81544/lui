@@ -406,6 +406,9 @@ int Ui::run()
                 case CommandType::ShowDebugLog:
                     ShowDebugLog();
                     break;
+                case CommandType::ExpandDefinition:
+                    expandDefinition(cmd.data);
+                    break;
             }
         }
     }
@@ -797,7 +800,23 @@ void Ui::define()
 {
     if (m_results.type == ResultsType::Words) {
         m_results.vec = m_ws->definitions(m_results.vec);
-        m_results.type = ResultsType::FreeForm;
+        m_results.type = ResultsType::Definitions;
+    }
+}
+
+void Ui::expandDefinition(std::string_view word)
+{
+    clearResults();
+    m_results.type = ResultsType::FreeForm;
+    auto vec = m_ws->definitions(word);
+    if (vec.size() > 1) {
+        m_results.vec.push_back(std::format("Definitions for '{}':", word));
+    } else {
+        m_results.vec.push_back(std::format("Definition for '{}':", word));
+    }
+    m_results.vec.push_back("");
+    for (const auto& def : vec) {
+        m_results.vec.push_back(def);
     }
 }
 
@@ -1494,13 +1513,21 @@ Command Ui::decodeMouseEvent(int button, std::size_t row, std::size_t col)
             return Command(CommandType::ResultsScrollUp);
         }
         if (button == 0
-            && (m_results.type == ResultsType::Words || m_results.type == ResultsType::Load)) {
+            && (m_results.type == ResultsType::Words || m_results.type == ResultsType::Load
+                || m_results.type == ResultsType::Definitions)) {
             std::size_t selection = row - m_resultsTopRow - 2 + m_results.scrollOffset;
             if (m_results.vec.size() > selection) {
                 m_results.selectedItem = selection;
                 Command cmd(CommandType::ResultsSelection, m_results.vec.at(selection));
                 if (m_results.type == ResultsType::Load) {
                     cmd.commandType = CommandType::Load;
+                }
+                if (m_results.type == ResultsType::Definitions) {
+                    cmd.commandType = CommandType::ExpandDefinition;
+                    auto v = utils::split(m_results.vec.at(selection), ':');
+                    if (!v.empty()) {
+                        cmd.data = v[0];
+                    }
                 }
                 return cmd;
             }

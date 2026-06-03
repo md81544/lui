@@ -47,6 +47,7 @@ enum class CommandType {
     ShowDebugLog,
     LostFocus,
     GainedFocus,
+    ExpandDefinition,
 };
 
 struct Command {
@@ -100,6 +101,7 @@ private:
         Words,
         Load,
         Jumble,
+        Definitions,
     };
 
     struct Results {
@@ -131,6 +133,7 @@ private:
     void reverse();
     void thesaurus();
     void define();
+    void expandDefinition(std::string_view word);
     void done();
     void load(std::string resultsLine = {});
     void save();

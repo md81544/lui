@@ -7,6 +7,7 @@
 #include <regex>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -108,8 +109,22 @@ std::vector<std::string> WordSearcher::regexSearch(const std::string& regexStrin
     return result;
 }
 
+std::vector<std::string> WordSearcher::definitions(std::string_view word)
+{
+    auto it = m_definitions.find(std::string { word });
+    if (it == m_definitions.end()) {
+        return { "not found" };
+    }
+    std::vector<std::string> rc;
+    for (const auto& def : it->second) {
+        rc.emplace_back(def);
+    }
+    return rc;
+}
+
 std::vector<std::string> WordSearcher::definitions(const std::vector<std::string>& words)
 {
+    // Not implemented in terms of the single word version above because output format is different
     std::vector<std::string> rc;
     for (const auto& w : words) {
         std::string definition { w };
@@ -117,8 +132,8 @@ std::vector<std::string> WordSearcher::definitions(const std::vector<std::string
         if (d != m_definitions.end()) {
             definition.append(" : ");
             bool bFirst = true;
-            for(const auto& def : d->second) {
-                if (! bFirst) {
+            for (const auto& def : d->second) {
+                if (!bFirst) {
                     definition.append(" OR ");
                 }
                 definition.append(def);

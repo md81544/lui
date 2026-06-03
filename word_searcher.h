@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -20,6 +21,7 @@ public:
 
     std::vector<std::string> regexSearch(const std::string& regexString);
     std::vector<std::string> definitions(const std::vector<std::string>& words);
+    std::vector<std::string> definitions(std::string_view word);
     std::vector<std::string> thesaurus(std::string_view word);
 
 private:
