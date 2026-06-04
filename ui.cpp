@@ -802,6 +802,11 @@ void Ui::define()
     if (m_results.type == ResultsType::Words) {
         m_results.vec = m_ws->definitions(m_results.vec);
         m_results.type = ResultsType::Definitions;
+    } else {
+        std::string lower{m_clue.searchString};
+        std::transform(lower.begin(), lower.end(), lower.begin(), ascii::tolower);
+        m_results.vec = m_ws->definitions(std::vector<std::string>{lower});
+        m_results.type = ResultsType::Definitions;
     }
 }
 
