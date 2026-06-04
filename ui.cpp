@@ -1532,7 +1532,8 @@ Command Ui::decodeMouseEvent(int button, std::size_t row, std::size_t col)
                 if (m_results.type == ResultsType::Load) {
                     cmd.commandType = CommandType::Load;
                 }
-                if (m_results.type == ResultsType::Definitions) {
+                if (m_results.type == ResultsType::Definitions
+                    || m_results.type == ResultsType::Words) {
                     cmd.commandType = CommandType::ExpandDefinition;
                     auto v = utils::split(m_results.vec.at(selection), ':');
                     if (!v.empty()) {
