@@ -1108,7 +1108,8 @@ void Ui::enterFoundStringConstrained()
                         break;
                     }
                     opts.cursorPos += key - 48;
-                    key = '/';
+                    rc = keyPress::NO_KEY;
+                    break;
                 }
                 // Disallow entry of separator at beginning or end
                 if (opts.cursorPos == 0 || opts.cursorPos > opts.currentValue.size() - 1) {
