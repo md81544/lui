@@ -6,8 +6,6 @@
   maybe standardise on not adding a separator (allows for easier entry of
   number above nine, by pressing, say, 5 + 5) 
 
-* Filter in define mode should filter on definitions too
-
 * "Grey out" Load menu item unless there are saved clues
 
 * Dirty visual indicator?

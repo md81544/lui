@@ -804,9 +804,9 @@ void Ui::define()
         m_results.vec = m_ws->definitions(m_results.vec);
         m_results.type = ResultsType::Definitions;
     } else {
-        std::string lower{m_clue.searchString};
+        std::string lower { m_clue.searchString };
         std::transform(lower.begin(), lower.end(), lower.begin(), ascii::tolower);
-        m_results.vec = m_ws->definitions(std::vector<std::string>{lower});
+        m_results.vec = m_ws->definitions(std::vector<std::string> { lower });
         m_results.type = ResultsType::Definitions;
     }
 }
@@ -908,43 +908,46 @@ void Ui::save()
 
 void Ui::filterResults()
 {
-    if (m_results.vec.empty() || m_results.type != ResultsType::Words) {
+    if (m_results.vec.empty()) {
         return;
     }
-    terminal::MessageBoxOptions msgboxOpts;
-    msgboxOpts.row = m_resultsTopRow + 2;
-    msgboxOpts.col = 2;
-    msgboxOpts.message = "Enter filter string.\nWill drop non-matches.";
-    messageBox(msgboxOpts);
-    terminal::InputOptions inputOpts;
-    inputOpts.row = m_termSize.rows - 1;
-    inputOpts.col = 1;
-    inputOpts.overrideCursorType = terminal::CursorType::BlockBlinking;
-    std::string filter = m_term->input(inputOpts).enteredString;
-    std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
-    // dots shouldn't match spaces
-    filter = std::regex_replace(filter, std::regex("\\."), "[a-z]");
-    // separators -> spaces
-    filter = std::regex_replace(filter, std::regex("/"), " ");
-    std::vector<std::string> newResults;
-    std::string regexPrefix;
-    if (!filter.contains("^")) {
-        regexPrefix = "^.*";
-    }
-    std::string regexSuffix;
-    if (!filter.contains("$")) {
-        regexSuffix = ".*$";
-    }
-    filter = std::format("{}{}{}", regexPrefix, filter, regexSuffix);
-    log("Filter regex: '{}'", filter);
-    const std::regex regex(filter);
-    for (const auto& w : m_results.vec) {
-        if (std::regex_match(w, regex)) {
-            newResults.emplace_back(w);
+    if (m_results.type == ResultsType::Words || m_results.type == ResultsType::Definitions) {
+        terminal::MessageBoxOptions msgboxOpts;
+        msgboxOpts.row = m_resultsTopRow + 2;
+        msgboxOpts.col = 2;
+        msgboxOpts.message = "Enter filter string.\nWill drop non-matches.";
+        messageBox(msgboxOpts);
+        terminal::InputOptions inputOpts;
+        inputOpts.row = m_termSize.rows - 1;
+        inputOpts.col = 0;
+        inputOpts.prompt = ':';
+        inputOpts.overrideCursorType = terminal::CursorType::BlockBlinking;
+        std::string filter = m_term->input(inputOpts).enteredString;
+        std::transform(filter.begin(), filter.end(), filter.begin(), ascii::tolower);
+        // dots shouldn't match spaces
+        filter = std::regex_replace(filter, std::regex("\\."), "[a-z]");
+        // separators -> spaces
+        filter = std::regex_replace(filter, std::regex("/"), " ");
+        std::vector<std::string> newResults;
+        std::string regexPrefix;
+        if (!filter.contains("^")) {
+            regexPrefix = "^.*";
         }
+        std::string regexSuffix;
+        if (!filter.contains("$")) {
+            regexSuffix = ".*$";
+        }
+        filter = std::format("{}{}{}", regexPrefix, filter, regexSuffix);
+        log("Filter regex: '{}'", filter);
+        const std::regex regex(filter, std::regex_constants::icase); // note case insensitive
+        for (const auto& w : m_results.vec) {
+            if (std::regex_match(w, regex)) {
+                newResults.emplace_back(w);
+            }
+        }
+        setResults(newResults, ResultsType::Words);
+        m_results.filtered = true;
     }
-    setResults(newResults, ResultsType::Words);
-    m_results.filtered = true;
 }
 
 void Ui::scrollDownResults()
