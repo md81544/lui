@@ -1,3 +1,5 @@
+* Add light colour "theme" as config option
+
 * number entry in constrained input adds a '/' but unconstrained doesn't -
   maybe standardise on not adding a separator (allows for easier entry of
   number above nine, by pressing, say, 5 + 5) 
