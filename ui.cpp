@@ -233,8 +233,9 @@ Ui::Ui(std::string_view argv0)
     m_hotkeys.add('T', hotkeys::Type::Global, CommandType::Thesaurus);
     m_menu->addItem(static_cast<int>(MenuItem::Lookup), "_Lookup");
     m_hotkeys.add('l', hotkeys::Type::Menu, CommandType::Lookup);
-    m_menu->addItem(static_cast<int>(MenuItem::Define), "_Define");
-    m_hotkeys.add('d', hotkeys::Type::Menu, CommandType::Define);
+    m_menu->addItem(static_cast<int>(MenuItem::Define), "d_Efine");
+    m_hotkeys.add('e', hotkeys::Type::Menu, CommandType::Define);
+    m_hotkeys.add('E', hotkeys::Type::Global, CommandType::Define);
     m_menu->addNewLine();
     m_menu->addItem(static_cast<int>(MenuItem::Filter), "f_Ilter");
     m_hotkeys.add('i', hotkeys::Type::Menu, CommandType::Filter);
