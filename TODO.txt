@@ -1,4 +1,8 @@
+* Tab when no input fields selected should focus search string (again)
+
 * Add light colour "theme" as config option
+
+* When "jumble" is displayed, pressing space should re-jumble
 
 * When clicking on a header input field to focus it, the cursor
   should be placed where the user clicked

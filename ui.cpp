@@ -1312,6 +1312,10 @@ void Ui::enterSearchString()
         // chain to enter found string
         m_commandQueue.emplace_back(CommandType::EnterFoundString);
     }
+    if (opts.entryKey == keyPress::SHIFT_TAB || opts.entryKey == keyPress::UP) {
+        // chain to clue number entry
+        m_commandQueue.emplace_back(CommandType::EnterClueNumber);
+    }
 }
 
 void Ui::enterCommentString()
@@ -1352,6 +1356,10 @@ void Ui::enterClueNumber()
     if (!m_clue.clueNumber.empty()) {
         log("m_clue input: '{}'", m_clue.clueNumber);
         m_commandQueue.emplace_back(CommandType::Save);
+    }
+    if (opts.entryKey == keyPress::TAB || opts.entryKey == keyPress::DOWN) {
+        // chain to search string
+        m_commandQueue.emplace_back(CommandType::EnterSearchString);
     }
     if (opts.entryKey == keyPress::SHIFT_TAB || opts.entryKey == keyPress::UP) {
         // chain to comment entry
