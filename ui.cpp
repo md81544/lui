@@ -272,6 +272,7 @@ Ui::Ui(std::string_view argv0)
     m_hotkeys.add(keyPress::F12, hotkeys::Type::Menu, CommandType::ShowDebugLog);
     m_hotkeys.add(keyPress::FOCUS_IN, hotkeys::Type::Global, CommandType::GainedFocus);
     m_hotkeys.add(keyPress::FOCUS_OUT, hotkeys::Type::Global, CommandType::LostFocus);
+    m_hotkeys.add(keyPress::TAB, hotkeys::Type::Menu, CommandType::EnterSearchString);
 }
 
 void Ui::checkForTerminalResize()
@@ -1563,7 +1564,7 @@ std::string Ui::input(terminal::InputOptions& opts, bool useGlobalHotKeys /* = t
         opts.additionalEntryKeys = m_hotkeys.get(hotkeys::Type::Global);
     }
     terminal::InputResult inputResult = m_term->input(opts);
-    if (opts.entryKey != keyPress::ENTER) {
+    if (opts.entryKey != keyPress::ENTER && opts.entryKey != keyPress::TAB) {
         auto cmd = m_hotkeys.getCommandFromKeyPress(opts.entryKey);
         if (cmd.has_value()) {
             m_commandQueue.push_back(*cmd);
