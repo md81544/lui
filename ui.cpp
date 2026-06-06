@@ -386,7 +386,11 @@ int Ui::run()
                     scrollUpResults();
                     break;
                 case CommandType::ResultsPageDown:
-                    pageDownResults();
+                    if (m_results.type == ResultsType::Jumble) {
+                        jumble(); // re-jumble
+                    } else {
+                        pageDownResults();
+                    }
                     break;
                 case CommandType::ResultsPageUp:
                     pageUpResults();
