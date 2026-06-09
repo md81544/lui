@@ -1,7 +1,8 @@
-* Add light colour "theme" as config option
+* Use std::format-style logging in mgo::Log as well as Ui::log
 
-* When clicking on a header input field to focus it, the cursor
-  should be placed where the user clicked
+* Add letter count to jumble
+
+* Add light colour "theme" as config option
 
 * Optional time-out for messageBox
 

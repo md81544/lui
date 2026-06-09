@@ -366,16 +366,16 @@ int Ui::run()
                     finished = true;
                     break;
                 case CommandType::EnterSearchString:
-                    enterSearchString();
+                    enterSearchString(utils::dataToCol(cmd));
                     break;
                 case CommandType::EnterFoundString:
-                    enterFoundString();
+                    enterFoundString(utils::dataToCol(cmd));
                     break;
                 case CommandType::EnterComment:
-                    enterCommentString();
+                    enterCommentString(utils::dataToCol(cmd));
                     break;
                 case CommandType::EnterClueNumber:
-                    enterClueNumber();
+                    enterClueNumber(utils::dataToCol(cmd));
                     break;
                 case CommandType::ResultsScrollDown:
                     m_suppressRedraw = true;
@@ -1019,22 +1019,25 @@ std::filesystem::path Ui::locateDataDirectory(std::string_view argv0)
     throw std::runtime_error("Could not locate data directory");
 }
 
-void Ui::enterFoundString()
+void Ui::enterFoundString(std::size_t clickCol)
 {
     if (m_clue.searchString.empty()) {
-        enterFoundStringUnconstrained();
+        enterFoundStringUnconstrained(clickCol);
     } else {
-        enterFoundStringConstrained();
+        enterFoundStringConstrained(clickCol);
     }
 }
 
-void Ui::enterFoundStringConstrained()
+void Ui::enterFoundStringConstrained(std::size_t clickCol)
 {
     terminal::InputOptions opts;
     opts.mode = terminal::Mode::Overwrite;
     opts.defaultValue = m_clue.foundString;
     opts.row = 2;
-    opts.col = 10;
+    opts.col = INPUT_COL;
+    if (clickCol > INPUT_COL) {
+        opts.cursorPos = std::clamp(clickCol - INPUT_COL, 0uz, opts.defaultValue.size());
+    }
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.maxLen = separatedStringSize(opts.defaultValue);
@@ -1217,13 +1220,16 @@ void Ui::enterFoundStringConstrained()
     }
 }
 
-void Ui::enterFoundStringUnconstrained()
+void Ui::enterFoundStringUnconstrained(std::size_t clickCol)
 {
     displayHeader(terminal::OutputMode::immediate);
     terminal::InputOptions opts;
     opts.defaultValue = m_clue.foundString;
     opts.row = 2;
-    opts.col = 10;
+    opts.col = INPUT_COL;
+    if (clickCol > INPUT_COL) {
+        opts.cursorPos = std::clamp(clickCol - INPUT_COL, 0uz, m_clue.searchString.size());
+    }
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.preInsertHook = [&](int key) -> int {
@@ -1281,13 +1287,16 @@ void Ui::enterFoundStringUnconstrained()
     }
 }
 
-void Ui::enterSearchString()
+void Ui::enterSearchString(std::size_t clickCol)
 {
     displayHeader(terminal::OutputMode::immediate);
     terminal::InputOptions opts;
     opts.defaultValue = m_clue.searchString;
     opts.row = 1;
-    opts.col = 10;
+    opts.col = INPUT_COL;
+    if (clickCol > INPUT_COL) {
+        opts.cursorPos = std::clamp(clickCol - INPUT_COL, 0uz, opts.defaultValue.size());
+    }
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::upper;
@@ -1323,15 +1332,18 @@ void Ui::enterSearchString()
     }
 }
 
-void Ui::enterCommentString()
+void Ui::enterCommentString(std::size_t clickCol)
 {
     terminal::InputOptions opts;
+    opts.defaultValue = m_clue.comment;
     opts.row = 3;
-    opts.col = 10;
+    opts.col = INPUT_COL;
+    if (clickCol > INPUT_COL) {
+        opts.cursorPos = std::clamp(clickCol - INPUT_COL, 0uz, opts.defaultValue.size());
+    }
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
-    opts.defaultValue = m_clue.comment;
     m_clue.comment = input(opts, false);
     m_clue.dirty = true;
     log("m_clue.comment input: '{}'", m_clue.comment);
@@ -1345,15 +1357,18 @@ void Ui::enterCommentString()
     }
 }
 
-void Ui::enterClueNumber()
+void Ui::enterClueNumber(std::size_t clickCol)
 {
     terminal::InputOptions opts;
+    opts.defaultValue = m_clue.clueNumber;
     opts.row = 4;
-    opts.col = 10;
+    opts.col = INPUT_COL;
+    if (clickCol > INPUT_COL) {
+        opts.cursorPos = std::clamp(clickCol - INPUT_COL, 0uz, opts.defaultValue.size());
+    }
     opts.bgColour = terminal::Colour::Grey;
     opts.fgColour = terminal::Colour::BrightWhite;
     opts.mode = terminal::Mode::Insert;
-    opts.defaultValue = m_clue.clueNumber;
     opts.keysAllowed = terminal::keysAllowed::alpha | terminal::keysAllowed::numeric
         | terminal::keysAllowed::upper;
     opts.maxLen = 4;
@@ -1477,13 +1492,13 @@ Command Ui::decodeMouseEvent(int button, std::size_t row, std::size_t col)
     if (button == 0) {
         switch (row) {
             case 1:
-                return Command(CommandType::EnterSearchString);
+                return Command(CommandType::EnterSearchString, std::to_string(col));
             case 2:
-                return Command(CommandType::EnterFoundString);
+                return Command(CommandType::EnterFoundString, std::to_string(col));
             case 3:
-                return Command(CommandType::EnterComment);
+                return Command(CommandType::EnterComment, std::to_string(col));
             case 4:
-                return Command(CommandType::EnterClueNumber);
+                return Command(CommandType::EnterClueNumber, std::to_string(col));
         }
         if (row > m_termSize.rows - m_menuRowSize) {
             // a click in the menu area

@@ -19,6 +19,9 @@
 
 namespace ui {
 
+// The column at which all the header input fields start:
+constexpr std::size_t INPUT_COL = 10;
+
 enum class CommandType {
     NoOp,
     AwaitCommand, // Used if user presses ':'
@@ -151,12 +154,12 @@ private:
         log(std::format(fmt, std::forward<Args>(args)...));
     }
     std::filesystem::path locateDataDirectory(std::string_view argv0);
-    void enterFoundString();
-    void enterFoundStringConstrained();
-    void enterFoundStringUnconstrained();
-    void enterSearchString();
-    void enterCommentString();
-    void enterClueNumber();
+    void enterFoundString(std::size_t clickCol = 0);
+    void enterFoundStringConstrained(std::size_t clickCol = 0);
+    void enterFoundStringUnconstrained(std::size_t clickCol = 0);
+    void enterSearchString(std::size_t clickCol = 0);
+    void enterCommentString(std::size_t clickCol = 0);
+    void enterClueNumber(std::size_t clickCol = 0);
     void enterExtendedCommand();
     void ShowDebugLog();
     void lostFocus();

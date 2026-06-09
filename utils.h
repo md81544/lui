@@ -1,9 +1,13 @@
 #pragma once
 
 #include "ascii.h"
+#include "ui.h"
 
+#include <charconv>
 #include <chrono>
+#include <concepts>
 #include <ctime>
+#include <optional>
 #include <ranges>
 #include <regex>
 #include <string>
@@ -55,7 +59,8 @@ inline void trim(std::string& s)
     s.erase(s.begin(), std::ranges::find_if(s, not_space));
 }
 
-inline std::vector<std::string> split(std::string_view sv, char sep) {
+inline std::vector<std::string> split(std::string_view sv, char sep)
+{
     std::string s { sv };
     std::vector<std::string> vec;
     for (auto subrange : s | std::views::split(sep)) {
@@ -64,6 +69,53 @@ inline std::vector<std::string> split(std::string_view sv, char sep) {
         vec.push_back(tok);
     }
     return vec;
+}
+
+template <std::integral T> std::optional<T> parseNumber(std::string_view sv)
+{
+    auto start = sv.find_first_not_of(" \t\r\n\v\f");
+    if (start == std::string_view::npos) {
+        return std::nullopt;
+    }
+    sv.remove_prefix(start);
+
+    T result {};
+    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), result);
+    if (ec != std::errc {}) {
+        return std::nullopt;
+    }
+    return result;
+}
+
+template <std::floating_point T>
+std::optional<T>
+parseNumber(std::string_view sv, std::chars_format fmt = std::chars_format::general)
+{
+    auto start = sv.find_first_not_of(" \t\r\n\v\f");
+    if (start == std::string_view::npos) {
+        return std::nullopt;
+    }
+    sv.remove_prefix(start);
+
+    T result {};
+    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), result, fmt);
+    if (ec != std::errc {}) {
+        return std::nullopt;
+    }
+    return result;
+}
+
+// Convert Command.data from string to size_t; returns zero if missing
+inline std::size_t dataToCol(const ui::Command& cmd)
+{
+    std::size_t col = 0;
+    if (!cmd.data.empty()) {
+        auto optCol = utils::parseNumber<std::size_t>(cmd.data);
+        if (optCol.has_value()) {
+            col = *optCol;
+        }
+    }
+    return col;
 }
 
 } // namespace utils
