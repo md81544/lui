@@ -6,15 +6,21 @@ fun:__*
 
 [implicit-conversion]
 src:*include/c++/13/format*
+src:*include/c++/15/format*
 
 [implicit-integer-sign-change]
 src:*include/c++/13/format*
+src:*include/c++/15/format*
 
 [implicit-signed-integer-truncation]
 src:*include/c++/13/format*
+src:*include/c++/15/format*
 
 [unsigned-integer-overflow]
 # Mersenne Twister deliberately overflows!
 src:*include/c++/13/bits/random.tcc*
+src:*include/c++/15/bits/random.tcc*
+src:*include/c++/15/bits/stl_uninitialized.h
 # almost certainly in the capacity/size tracking logic
 src:*include/c++/13/bits/basic_string.h*
+src:*include/c++/15/bits/basic_string.h*
